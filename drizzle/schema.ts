@@ -1,17 +1,18 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import {
+  bigint,
+  date,
+  decimal,
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
+// ─── Users (Psicólogos / Admins) ───────────────────────────────────────────
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +26,118 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+// ─── Patients (Pacientes) ───────────────────────────────────────────────────
+export const patients = mysqlTable("patients", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id (psicólogo responsável)
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  phone: varchar("phone", { length: 30 }),
+  birthDate: varchar("birthDate", { length: 10 }),
+  cpf: varchar("cpf", { length: 14 }),
+  address: text("address"),
+  emergencyContact: varchar("emergencyContact", { length: 255 }),
+  emergencyPhone: varchar("emergencyPhone", { length: 30 }),
+  occupation: varchar("occupation", { length: 255 }),
+  referredBy: varchar("referredBy", { length: 255 }),
+  mainComplaint: text("mainComplaint"),
+  medicalHistory: text("medicalHistory"),
+  medications: text("medications"),
+  notes: text("notes"),
+  status: mysqlEnum("status", ["active", "inactive", "discharged"]).default("active").notNull(),
+  sessionValue: decimal("sessionValue", { precision: 10, scale: 2 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Patient = typeof patients.$inferSelect;
+export type InsertPatient = typeof patients.$inferInsert;
+
+// ─── Sessions (Sessões / Agendamentos) ─────────────────────────────────────
+export const sessions = mysqlTable("sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id
+  patientId: int("patientId").notNull(), // FK → patients.id
+  scheduledAt: bigint("scheduledAt", { mode: "number" }).notNull(), // UTC ms
+  durationMinutes: int("durationMinutes").default(50).notNull(),
+  status: mysqlEnum("status", ["scheduled", "confirmed", "completed", "cancelled", "no_show"])
+    .default("scheduled")
+    .notNull(),
+  sessionType: mysqlEnum("sessionType", ["individual", "couple", "group", "evaluation"])
+    .default("individual")
+    .notNull(),
+  modality: mysqlEnum("modality", ["in_person", "online"]).default("in_person").notNull(),
+  sessionValue: decimal("sessionValue", { precision: 10, scale: 2 }),
+  isPaid: mysqlEnum("isPaid", ["pending", "paid", "waived"]).default("pending").notNull(),
+  cancelReason: text("cancelReason"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Session = typeof sessions.$inferSelect;
+export type InsertSession = typeof sessions.$inferInsert;
+
+// ─── Clinical Notes (Prontuários / Anotações Clínicas) ─────────────────────
+export const clinicalNotes = mysqlTable("clinical_notes", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(), // FK → sessions.id
+  patientId: int("patientId").notNull(), // FK → patients.id
+  userId: int("userId").notNull(), // FK → users.id
+  content: text("content").notNull(), // Rich text HTML
+  aiSuggestions: text("aiSuggestions"), // Sugestões geradas pela IA
+  aiSummary: text("aiSummary"), // Resumo gerado pela IA
+  mood: mysqlEnum("mood", ["very_bad", "bad", "neutral", "good", "very_good"]),
+  progressRating: int("progressRating"), // 1-10
+  goals: text("goals"),
+  interventions: text("interventions"),
+  homework: text("homework"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ClinicalNote = typeof clinicalNotes.$inferSelect;
+export type InsertClinicalNote = typeof clinicalNotes.$inferInsert;
+
+// ─── Transactions (Transações Financeiras) ─────────────────────────────────
+export const transactions = mysqlTable("transactions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id
+  patientId: int("patientId"), // FK → patients.id (optional for expenses)
+  sessionId: int("sessionId"), // FK → sessions.id (opcional)
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  type: mysqlEnum("type", ["income", "expense", "refund"]).default("income").notNull(),
+  status: mysqlEnum("status", ["pending", "paid", "overdue", "cancelled"]).default("pending").notNull(),
+  paymentMethod: mysqlEnum("paymentMethod", ["cash", "pix", "credit_card", "debit_card", "bank_transfer", "health_insurance", "other"]),
+  category: varchar("category", { length: 64 }).default("other").notNull(),
+  description: text("description"),
+  transactionDate: bigint("transactionDate", { mode: "number" }), // UTC ms
+  dueDate: bigint("dueDate", { mode: "number" }), // UTC ms
+  paidAt: bigint("paidAt", { mode: "number" }), // UTC ms
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Transaction = typeof transactions.$inferSelect;
+export type InsertTransaction = typeof transactions.$inferInsert;
+
+// ─── Patient Documents (Documentos / Laudos / PDFs) ────────────────────────
+export const patientDocuments = mysqlTable("patient_documents", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id
+  patientId: int("patientId").notNull(), // FK → patients.id
+  sessionId: int("sessionId"), // FK → sessions.id (opcional)
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileKey: varchar("fileKey", { length: 512 }).notNull(), // S3 key
+  fileUrl: varchar("fileUrl", { length: 1024 }).notNull(), // URL de acesso
+  mimeType: varchar("mimeType", { length: 128 }).notNull(),
+  fileSize: int("fileSize"), // bytes
+  category: mysqlEnum("category", ["report", "exam", "prescription", "referral", "consent", "other"])
+    .default("other")
+    .notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PatientDocument = typeof patientDocuments.$inferSelect;
+export type InsertPatientDocument = typeof patientDocuments.$inferInsert;

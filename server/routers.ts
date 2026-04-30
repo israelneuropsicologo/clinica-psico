@@ -1,28 +1,436 @@
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import {
+  createClinicalNote,
+  createDocument,
+  createPatient,
+  createSession,
+  createTransaction,
+  deletDocument,
+  deletePatient,
+  deleteSession,
+  getClinicalNotesByPatient,
+  getClinicalNotesBySession,
+  getDocumentsByPatient,
+  getMonthlyRevenue,
+  getOverdueSessions,
+  getPatientById,
+  getPatientCount,
+  getPatients,
+  getSessionById,
+  getSessions,
+  getSessionsThisMonth,
+  getTransactions,
+  getUpcomingSessions,
+  updateClinicalNote,
+  updatePatient,
+  updateSession,
+  updateTransaction,
+} from "./db";
+import { invokeLLM } from "./_core/llm";
+import { notifyOwner } from "./_core/notification";
+import { storagePut } from "./storage";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { financialRouter } from "./routers/financial";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
+// ─── Admin guard ────────────────────────────────────────────────────────────
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+  }
+  return next({ ctx });
+});
+
+// ─── Patients Router ────────────────────────────────────────────────────────
+const patientsRouter = router({
+  list: protectedProcedure
+    .input(z.object({ search: z.string().optional(), status: z.string().optional() }))
+    .query(({ ctx, input }) => getPatients(ctx.user.id, input.search, input.status)),
+
+  getById: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const patient = await getPatientById(input.id, ctx.user.id);
+      if (!patient) throw new TRPCError({ code: "NOT_FOUND" });
+      return patient;
+    }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(2),
+        email: z.string().email().optional().or(z.literal("")),
+        phone: z.string().optional(),
+        birthDate: z.string().optional(),
+        cpf: z.string().optional(),
+        address: z.string().optional(),
+        emergencyContact: z.string().optional(),
+        emergencyPhone: z.string().optional(),
+        occupation: z.string().optional(),
+        referredBy: z.string().optional(),
+        mainComplaint: z.string().optional(),
+        medicalHistory: z.string().optional(),
+        medications: z.string().optional(),
+        notes: z.string().optional(),
+        sessionValue: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const id = await createPatient({
+        ...input,
+        userId: ctx.user.id,
+        email: input.email || null,
+        sessionValue: input.sessionValue || null,
+      });
+      return { id };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(2).optional(),
+        email: z.string().email().optional().or(z.literal("")),
+        phone: z.string().optional(),
+        birthDate: z.string().optional(),
+        cpf: z.string().optional(),
+        address: z.string().optional(),
+        emergencyContact: z.string().optional(),
+        emergencyPhone: z.string().optional(),
+        occupation: z.string().optional(),
+        referredBy: z.string().optional(),
+        mainComplaint: z.string().optional(),
+        medicalHistory: z.string().optional(),
+        medications: z.string().optional(),
+        notes: z.string().optional(),
+        sessionValue: z.string().optional(),
+        status: z.enum(["active", "inactive", "discharged"]).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      await updatePatient(id, ctx.user.id, data);
+      return { success: true };
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await deletePatient(input.id, ctx.user.id);
+      return { success: true };
+    }),
+});
+
+// ─── Sessions Router ────────────────────────────────────────────────────────
+const sessionsRouter = router({
+  list: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number().optional(),
+        status: z.string().optional(),
+        isPaid: z.string().optional(),
+        from: z.number().optional(),
+        to: z.number().optional(),
+      })
+    )
+    .query(({ ctx, input }) => getSessions(ctx.user.id, input)),
+
+  getById: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const session = await getSessionById(input.id, ctx.user.id);
+      if (!session) throw new TRPCError({ code: "NOT_FOUND" });
+      return session;
+    }),
+
+  upcoming: protectedProcedure
+    .input(z.object({ limit: z.number().optional() }))
+    .query(({ ctx, input }) => getUpcomingSessions(ctx.user.id, input.limit)),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        scheduledAt: z.number(),
+        durationMinutes: z.number().default(50),
+        status: z.enum(["scheduled", "confirmed", "completed", "cancelled", "no_show"]).default("scheduled"),
+        sessionType: z.enum(["individual", "couple", "group", "evaluation"]).default("individual"),
+        modality: z.enum(["in_person", "online"]).default("in_person"),
+        sessionValue: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const id = await createSession({ ...input, userId: ctx.user.id, sessionValue: input.sessionValue || null });
+      // Notificar proprietário
+      await notifyOwner({
+        title: "Nova sessão agendada",
+        content: `Uma nova sessão foi agendada para ${new Date(input.scheduledAt).toLocaleString("pt-BR")}.`,
+      }).catch(() => {});
+      return { id };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        scheduledAt: z.number().optional(),
+        durationMinutes: z.number().optional(),
+        status: z.enum(["scheduled", "confirmed", "completed", "cancelled", "no_show"]).optional(),
+        sessionType: z.enum(["individual", "couple", "group", "evaluation"]).optional(),
+        modality: z.enum(["in_person", "online"]).optional(),
+        sessionValue: z.string().optional(),
+        isPaid: z.enum(["pending", "paid", "waived"]).optional(),
+        cancelReason: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      await updateSession(id, ctx.user.id, data);
+      // Notificar se cancelada
+      if (data.status === "cancelled") {
+        await notifyOwner({
+          title: "Sessão cancelada",
+          content: `Uma sessão foi cancelada. Motivo: ${data.cancelReason || "Não informado"}.`,
+        }).catch(() => {});
+      }
+      return { success: true };
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await deleteSession(input.id, ctx.user.id);
+      return { success: true };
+    }),
+});
+
+// ─── Clinical Notes Router ──────────────────────────────────────────────────
+const clinicalNotesRouter = router({
+  bySession: protectedProcedure
+    .input(z.object({ sessionId: z.number() }))
+    .query(({ ctx, input }) => getClinicalNotesBySession(input.sessionId, ctx.user.id)),
+
+  byPatient: protectedProcedure
+    .input(z.object({ patientId: z.number() }))
+    .query(({ ctx, input }) => getClinicalNotesByPatient(input.patientId, ctx.user.id)),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.number(),
+        patientId: z.number(),
+        content: z.string(),
+        mood: z.enum(["very_bad", "bad", "neutral", "good", "very_good"]).optional(),
+        progressRating: z.number().min(1).max(10).optional(),
+        goals: z.string().optional(),
+        interventions: z.string().optional(),
+        homework: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const id = await createClinicalNote({ ...input, userId: ctx.user.id });
+      return { id };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        content: z.string().optional(),
+        mood: z.enum(["very_bad", "bad", "neutral", "good", "very_good"]).optional(),
+        progressRating: z.number().min(1).max(10).optional(),
+        goals: z.string().optional(),
+        interventions: z.string().optional(),
+        homework: z.string().optional(),
+        aiSuggestions: z.string().optional(),
+        aiSummary: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      await updateClinicalNote(id, ctx.user.id, data);
+      return { success: true };
+    }),
+
+  analyzeWithAI: protectedProcedure
+    .input(
+      z.object({
+        noteId: z.number(),
+        content: z.string(),
+        patientHistory: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `Você é um assistente clínico especializado em psicologia. Analise as anotações de sessão fornecidas e ofereça:
+1. Um resumo objetivo da sessão (máx. 3 parágrafos)
+2. Pontos de atenção clínica identificados
+3. Sugestões de intervenções terapêuticas para próximas sessões
+4. Análise de evolução do paciente (se houver histórico)
+
+Responda em português brasileiro, de forma profissional e empática. Não faça diagnósticos definitivos.`,
+          },
+          {
+            role: "user",
+            content: `Anotações da sessão:\n${input.content}${input.patientHistory ? `\n\nHistórico anterior do paciente:\n${input.patientHistory}` : ""}`,
+          },
+        ],
+      });
+
+      const rawContent = response.choices[0]?.message?.content;
+      const aiText = typeof rawContent === "string" ? rawContent : "";
+      await updateClinicalNote(input.noteId, ctx.user.id, { aiSuggestions: aiText });
+      return { suggestions: aiText };
+    }),
+});
+
+// ─── Transactions Router ────────────────────────────────────────────────────
+const transactionsRouter = router({
+  list: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number().optional(),
+        status: z.string().optional(),
+        from: z.number().optional(),
+        to: z.number().optional(),
+      })
+    )
+    .query(({ ctx, input }) => getTransactions(ctx.user.id, input)),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        sessionId: z.number().optional(),
+        amount: z.string(),
+        type: z.enum(["income", "expense", "refund"]).default("income"),
+        status: z.enum(["pending", "paid", "overdue", "cancelled"]).default("pending"),
+        paymentMethod: z
+          .enum(["cash", "pix", "credit_card", "debit_card", "bank_transfer", "health_insurance", "other"])
+          .optional(),
+        description: z.string().optional(),
+        dueDate: z.number().optional(),
+        paidAt: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const id = await createTransaction({ ...input, userId: ctx.user.id });
+      return { id };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
+        paymentMethod: z
+          .enum(["cash", "pix", "credit_card", "debit_card", "bank_transfer", "health_insurance", "other"])
+          .optional(),
+        paidAt: z.number().optional(),
+        description: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      await updateTransaction(id, ctx.user.id, data);
+      return { success: true };
+    }),
+
+  summary: protectedProcedure.query(async ({ ctx }) => {
+    const [revenue, overdueCount] = await Promise.all([
+      getMonthlyRevenue(ctx.user.id),
+      getOverdueSessions(ctx.user.id),
+    ]);
+    return { monthlyRevenue: revenue, overdueCount };
+  }),
+});
+
+// ─── Documents Router ───────────────────────────────────────────────────────
+const documentsRouter = router({
+  byPatient: protectedProcedure
+    .input(z.object({ patientId: z.number() }))
+    .query(({ ctx, input }) => getDocumentsByPatient(input.patientId, ctx.user.id)),
+
+  upload: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        sessionId: z.number().optional(),
+        fileName: z.string(),
+        mimeType: z.string(),
+        fileSize: z.number().optional(),
+        category: z.enum(["report", "exam", "prescription", "referral", "consent", "other"]).default("other"),
+        description: z.string().optional(),
+        fileBase64: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const buffer = Buffer.from(input.fileBase64, "base64");
+      const fileKey = `patients/${ctx.user.id}/${input.patientId}/${Date.now()}-${input.fileName}`;
+      const { key, url } = await storagePut(fileKey, buffer, input.mimeType);
+      const id = await createDocument({
+        userId: ctx.user.id,
+        patientId: input.patientId,
+        sessionId: input.sessionId,
+        fileName: input.fileName,
+        fileKey: key,
+        fileUrl: url,
+        mimeType: input.mimeType,
+        fileSize: input.fileSize,
+        category: input.category,
+        description: input.description,
+      });
+      return { id, url };
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await deletDocument(input.id, ctx.user.id);
+      return { success: true };
+    }),
+});
+
+// ─── Dashboard Router ───────────────────────────────────────────────────────
+const dashboardRouter = router({
+  metrics: protectedProcedure.query(async ({ ctx }) => {
+    const [patientCount, sessionsThisMonth, monthlyRevenue, overdueCount, upcomingSessions] = await Promise.all([
+      getPatientCount(ctx.user.id),
+      getSessionsThisMonth(ctx.user.id),
+      getMonthlyRevenue(ctx.user.id),
+      getOverdueSessions(ctx.user.id),
+      getUpcomingSessions(ctx.user.id, 5),
+    ]);
+    return { patientCount, sessionsThisMonth, monthlyRevenue, overdueCount, upcomingSessions };
+  }),
+});
+
+// ─── App Router ─────────────────────────────────────────────────────────────
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
-
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  dashboard: dashboardRouter,
+  patients: patientsRouter,
+  sessions: sessionsRouter,
+  clinicalNotes: clinicalNotesRouter,
+  transactions: transactionsRouter,
+  financial: financialRouter,
+  documents: documentsRouter,
 });
 
 export type AppRouter = typeof appRouter;

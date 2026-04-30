@@ -1,5 +1,34 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1777585615513,
+      "tag": "0000_petite_sharon_carter",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1777585718261,
+      "tag": "0001_melted_mojo",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1777585897808,
+      "tag": "0002_nebulous_captain_universe",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1777586421619,
+      "tag": "0003_fancy_yellow_claw",
+      "breakpoints": true
+    }
+  ]
 }
