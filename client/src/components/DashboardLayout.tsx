@@ -34,6 +34,7 @@ import {
   DollarSign,
   Stethoscope,
   Settings as SettingsIcon,
+  ExternalLink,
 } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -47,6 +48,10 @@ const menuItems = [
   { icon: CalendarDays, label: "Agenda", path: "/calendar" },
   { icon: DollarSign, label: "Financeiro", path: "/financial" },
   { icon: SettingsIcon, label: "Configurações", path: "/settings" },
+];
+
+const externalLinks = [
+  { icon: ExternalLink, label: "Painel Administrativo", url: "https://psicologo.manus.space" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -137,7 +142,7 @@ function DashboardLayoutContent({
         </SidebarHeader>
 
         {/* Navigation */}
-        <SidebarContent className="gap-0 pt-2">
+        <SidebarContent className="gap-0 pt-2 flex flex-col">
           <SidebarMenu className="px-2 py-1 gap-0.5">
             {menuItems.map((item) => {
               const isActive = location.startsWith(item.path);
@@ -156,6 +161,24 @@ function DashboardLayoutContent({
               );
             })}
           </SidebarMenu>
+          
+          {/* External Links - Acesso Administrativo */}
+          <div className="mt-auto pt-2 border-t">
+            <SidebarMenu className="px-2 py-1 gap-0.5">
+              {externalLinks.map((link) => (
+                <SidebarMenuItem key={link.url}>
+                  <SidebarMenuButton
+                    onClick={() => window.open(link.url, "_blank")}
+                    tooltip={link.label}
+                    className="h-10 transition-all font-medium"
+                  >
+                    <link.icon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground text-xs">{link.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </div>
         </SidebarContent>
 
         {/* Footer */}
@@ -198,6 +221,14 @@ function DashboardLayoutContent({
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
                 {user?.role === "admin" ? "Administrador" : "Psicólogo"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => window.open("https://psicologo.manus.space", "_blank")}
+                className="cursor-pointer"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                <span>Painel Administrativo</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
