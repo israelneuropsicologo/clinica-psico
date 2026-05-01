@@ -1,4 +1,3 @@
-import DashboardLayout from "@/components/DashboardLayout";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { CalendarDays, Clock, Plus, User, Video, MapPin } from "lucide-react";
+import ExportButton from "@/components/ExportButton";
+import DashboardLayout from "@/components/DashboardLayout";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -42,10 +43,22 @@ export default function Sessions() {
               {isLoading ? "Carregando..." : `${sessions?.length ?? 0} sessão(ões)`}
             </p>
           </div>
-          <Button onClick={() => setShowCreate(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Agendar Sessão
-          </Button>
+          <div className="flex gap-2">
+            <ExportButton
+              label="Exportar"
+              onExport={async (format) => {
+                const result = await trpc.reports.exportSessions.useQuery({
+                  status: statusFilter,
+                  format,
+                });
+                return result.data || { content: "", filename: "", mimeType: "" };
+              }}
+            />
+            <Button onClick={() => setShowCreate(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Agendar Sessão
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

@@ -33,6 +33,8 @@ import { storagePut } from "./storage";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
+import { reportsRouter } from "./routers/reports";
+import { settingsRouter } from "./routers/settings";
 import { financialRouter } from "./routers/financial";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
@@ -416,6 +418,8 @@ const dashboardRouter = router({
 // ─── App Router ─────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
+  settings: settingsRouter,
+  reports: reportsRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

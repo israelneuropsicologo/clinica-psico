@@ -11,6 +11,7 @@ import Sessions from "./pages/Sessions";
 import SessionDetail from "./pages/SessionDetail";
 import Financial from "./pages/Financial";
 import Calendar from "./pages/Calendar";
+import Settings from "./pages/Settings";
 import Home from "./pages/Home";
 
 function Router() {
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/sessions/:id" component={SessionDetail} />
       <Route path="/financial" component={Financial} />
       <Route path="/calendar" component={Calendar} />
+      <Route path="/settings" component={Settings} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

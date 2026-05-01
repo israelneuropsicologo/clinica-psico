@@ -84,3 +84,35 @@
 - [x] Modo claro/escuro funcionando em todas as páginas
 - [x] Status badges com cores corretas para todos os estados
 - [x] Checkpoint final e entrega
+
+
+## Fase 11: Exportador de Relatórios (PDF/Excel Abrangente)
+- [x] Router tRPC: reports com procedures para exportar sessões, prontuários, financeiro e documentação
+- [x] exportSessionsCSV/JSON (todas as sessões com detalhes)
+- [x] exportFinancialCSV/JSON (transações detalhadas por período)
+- [x] exportProntuarioJSON (prontuário completo de um paciente com histórico)
+- [x] exportPatientDocumentationJSON (documentação completa do paciente)
+- [x] Componente ExportButton com dropdown para CSV/JSON
+- [x] Botão "Exportar" em Sessões (com filtros de status)
+- [x] Botão "Exportar" em Financeiro (com período selecionado)
+- [x] Suporte para download automático de arquivos
+- [x] Toast de feedback ao usuário
+
+## Fase 12: Painel de Configurações/Admin
+- [x] Tabela `settings` no schema (clinicName, ownerName, CRP, etc)
+- [x] Router tRPC: settings (getSettings, updateSettings)
+- [x] Página de Configurações com 3 abas (Clínica, Proprietário, Sistema)
+- [x] Formulário para editar dados da clínica
+- [x] Formulário para editar dados do proprietário/psicólogo
+- [x] Configurações de sessão (duração, preço padrão)
+- [x] Preferências regionais (idioma, moeda, fuso horário)
+- [x] Rota /settings no App.tsx
+- [x] Item "Configurações" no menu lateral do DashboardLayout
+- [x] Testes Vitest para settings
+
+
+- [ ] Página Settings com formulário de configuração
+- [ ] Campos: Nome da clínica, email, telefone, endereço, informações do proprietário
+- [ ] Validação de formulário com Zod
+- [ ] Notificação ao salvar configurações
+- [ ] Testes Vitest para settings router

@@ -1,4 +1,3 @@
-import DashboardLayout from "@/components/DashboardLayout";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ExportButton from "@/components/ExportButton";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import {
   AlertCircle,
@@ -73,10 +74,21 @@ export default function Financial() {
             <h1 className="text-2xl font-bold">Financeiro</h1>
             <p className="text-muted-foreground text-sm mt-1">Controle de receitas e despesas</p>
           </div>
-          <Button onClick={() => setShowCreate(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nova Transação
-          </Button>
+          <div className="flex gap-2">
+            <ExportButton
+              label="Exportar"
+              onExport={async (format) => {
+                const result = await trpc.reports.exportFinancial.useQuery({
+                  format,
+                });
+                return result.data || { content: "", filename: "", mimeType: "" };
+              }}
+            />
+            <Button onClick={() => setShowCreate(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nova Transação
+            </Button>
+           </div>
         </div>
 
         {/* Period Filter */}

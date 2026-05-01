@@ -33,6 +33,7 @@ import {
   ClipboardList,
   DollarSign,
   Stethoscope,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -45,6 +46,7 @@ const menuItems = [
   { icon: ClipboardList, label: "Sessões", path: "/sessions" },
   { icon: CalendarDays, label: "Agenda", path: "/calendar" },
   { icon: DollarSign, label: "Financeiro", path: "/financial" },
+  { icon: SettingsIcon, label: "Configurações", path: "/settings" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

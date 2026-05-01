@@ -141,3 +141,31 @@ export const patientDocuments = mysqlTable("patient_documents", {
 
 export type PatientDocument = typeof patientDocuments.$inferSelect;
 export type InsertPatientDocument = typeof patientDocuments.$inferInsert;
+
+// ─── Settings (Configurações do Sistema) ────────────────────────────────────
+export const settings = mysqlTable("settings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  clinicName: varchar("clinicName", { length: 255 }).notNull(),
+  clinicEmail: varchar("clinicEmail", { length: 320 }),
+  clinicPhone: varchar("clinicPhone", { length: 20 }),
+  clinicAddress: text("clinicAddress"),
+  clinicCity: varchar("clinicCity", { length: 100 }),
+  clinicState: varchar("clinicState", { length: 2 }),
+  clinicZipCode: varchar("clinicZipCode", { length: 10 }),
+  ownerName: varchar("ownerName", { length: 255 }),
+  ownerEmail: varchar("ownerEmail", { length: 320 }),
+  ownerPhone: varchar("ownerPhone", { length: 20 }),
+  ownerCPF: varchar("ownerCPF", { length: 14 }),
+  ownerCRPNumber: varchar("ownerCRPNumber", { length: 20 }),
+  sessionDefaultDuration: int("sessionDefaultDuration").default(60).notNull(),
+  sessionDefaultPrice: decimal("sessionDefaultPrice", { precision: 10, scale: 2 }),
+  currency: varchar("currency", { length: 3 }).default("BRL").notNull(),
+  timezone: varchar("timezone", { length: 50 }).default("America/Sao_Paulo").notNull(),
+  language: varchar("language", { length: 10 }).default("pt-BR").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Settings = typeof settings.$inferSelect;
+export type InsertSettings = typeof settings.$inferInsert;

@@ -29,6 +29,13 @@
       "when": 1777586421619,
       "tag": "0003_fancy_yellow_claw",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1777630691384,
+      "tag": "0004_material_whistler",
+      "breakpoints": true
     }
   ]
 }
