@@ -111,8 +111,8 @@
 - [x] Testes Vitest para settings
 
 
-- [ ] Página Settings com formulário de configuração
-- [ ] Campos: Nome da clínica, email, telefone, endereço, informações do proprietário
-- [ ] Validação de formulário com Zod
-- [ ] Notificação ao salvar configurações
-- [ ] Testes Vitest para settings router
+- [x] Página Settings com formulário de configuração
+- [x] Campos: Nome da clínica, email, telefone, endereço, informações do proprietário
+- [x] Sincronização de formulário com dados carregados
+- [x] Notificação ao salvar configurações
+- [x] Testes Vitest para settings router

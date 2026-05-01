@@ -26,16 +26,25 @@ export default function ExportButton({ onExport, label = "Exportar" }: ExportBut
       setIsLoading(true);
       const result = await Promise.resolve(onExport(format));
 
-      // Criar blob e download
+      // Criar blob e download usando método seguro
       const blob = new Blob([result.content], { type: result.mimeType });
-      const url = window.URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
+      
+      // Usar fetch + download sem manipular DOM
+      const response = await fetch(url);
+      const data = await response.blob();
+      
+      // Criar link temporário apenas para o download
       const link = document.createElement("a");
-      link.href = url;
+      link.href = URL.createObjectURL(data);
       link.download = result.filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      
+      // Disparar download sem adicionar ao DOM
+      link.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      
+      // Limpar URLs
+      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(link.href);
 
       toast.success(`Arquivo ${result.filename} baixado com sucesso!`);
     } catch (error) {
