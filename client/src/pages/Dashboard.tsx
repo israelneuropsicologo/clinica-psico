@@ -123,7 +123,7 @@ export default function Dashboard() {
               <div className="h-64 flex items-center justify-center">
                 <div className="text-muted-foreground">Carregando...</div>
               </div>
-            ) : !conversionData || conversionData.total === 0 ? (
+            ) : !conversionData || (conversionData.leads + conversionData.prospects + conversionData.customers) === 0 ? (
               <div className="h-64 flex items-center justify-center text-center">
                 <div>
                   <p className="text-muted-foreground text-sm">Nenhum lead registrado</p>
@@ -131,8 +131,9 @@ export default function Dashboard() {
               </div>
             ) : (
               <>
+                <div className="h-64 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
+                  <PieChart key="conversion-pie-chart">
                     <Pie
                       data={[
                         { name: "Leads", value: conversionData.leads, color: "#3b82f6" },
@@ -155,6 +156,7 @@ export default function Dashboard() {
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
+                </div>
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
                   <div>
                     <p className="text-muted-foreground">Taxa Conversão</p>
@@ -184,8 +186,9 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="h-52 flex items-center justify-center">
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={weeklyData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                <BarChart data={weeklyData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }} key="weekly-bar-chart">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="day" tick={{ fontSize: 12 }} className="text-muted-foreground" />
                   <YAxis tick={{ fontSize: 12 }} />
@@ -196,6 +199,7 @@ export default function Dashboard() {
                   <Bar dataKey="sessoes" name="Sessões" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 

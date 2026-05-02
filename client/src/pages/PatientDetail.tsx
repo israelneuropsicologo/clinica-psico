@@ -276,23 +276,19 @@ export default function PatientDetail() {
         </Tabs>
       </div>
 
-      {showEdit && (
-        <EditPatientDialog
-          patient={patient}
-          open={showEdit}
-          onClose={() => setShowEdit(false)}
-          onSuccess={() => { setShowEdit(false); refetch(); }}
-        />
-      )}
+      <EditPatientDialog
+        patient={patient}
+        open={showEdit}
+        onClose={() => setShowEdit(false)}
+        onSuccess={() => { setShowEdit(false); refetch(); }}
+      />
 
-      {showUpload && (
-        <UploadDocumentDialog
-          patientId={patientId}
-          open={showUpload}
-          onClose={() => setShowUpload(false)}
-          onSuccess={() => { setShowUpload(false); refetchDocs(); }}
-        />
-      )}
+      <UploadDocumentDialog
+        patientId={patientId}
+        open={showUpload}
+        onClose={() => setShowUpload(false)}
+        onSuccess={() => { setShowUpload(false); refetchDocs(); }}
+      />
     </DashboardLayout>
   );
 }
