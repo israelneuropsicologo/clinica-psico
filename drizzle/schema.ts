@@ -263,6 +263,17 @@ export const conversionFunnel = mysqlTable("conversion_funnel", {
 export type ConversionFunnel = typeof conversionFunnel.$inferSelect;
 export type InsertConversionFunnel = typeof conversionFunnel.$inferInsert;
 
+// ─── User Links (Sincronização de Usuários) ───────────────────────────────────
+export const userLinks = mysqlTable("user_links", {
+  id: int("id").autoincrement().primaryKey(),
+  primaryUserId: int("primaryUserId").notNull(), // FK → users.id (usuário principal)
+  linkedUserId: int("linkedUserId").notNull(), // FK → users.id (usuário vinculado)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserLink = typeof userLinks.$inferSelect;
+export type InsertUserLink = typeof userLinks.$inferInsert;
+
 // ─── Expandir Transactions com campos financeiros detalhados ──────────────────
 // Nota: A tabela transactions já existe, mas vamos adicionar campos via migration
 // paymentMethod: enum (credit_card, debit_card, pix, bank_transfer, cash, other)

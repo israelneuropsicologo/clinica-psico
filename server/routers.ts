@@ -467,7 +467,41 @@ const dashboardRouter = router({
   }),
 });
 
-// ─── App Router ─────────────────────────────────────────────────────────────
+// ─── User Sync Router ───────────────────────────────────
+const userSyncRouter = router({
+  linkUsers: adminProcedure
+    .input(z.object({ primaryUserId: z.number(), linkedUserId: z.number() }))
+    .mutation(async ({ input }) => {
+      const { linkUsers } = await import("./db");
+      await linkUsers(input.primaryUserId, input.linkedUserId);
+      return { success: true };
+    }),
+
+  getSharedPatients: protectedProcedure
+    .input(z.object({ search: z.string().optional(), status: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      const { getPatientsShared } = await import("./db");
+      return getPatientsShared(ctx.user.id, input.search, input.status);
+    }),
+
+  getSharedPatientById: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const { getPatientByIdShared } = await import("./db");
+      const patient = await getPatientByIdShared(input.id, ctx.user.id);
+      if (!patient) throw new TRPCError({ code: "NOT_FOUND" });
+      return patient;
+    }),
+
+  getSharedSessions: protectedProcedure
+    .input(z.object({ patientId: z.number().optional(), status: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      const { getSessionsShared } = await import("./db");
+      return getSessionsShared(ctx.user.id, input.patientId, input.status);
+    }),
+});
+
+// ─── App Router ───────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
   settings: settingsRouter,
@@ -488,6 +522,7 @@ export const appRouter = router({
   transactions: transactionsRouter,
   financial: financialRouter,
   documents: documentsRouter,
+  userSync: userSyncRouter,
 });
 
 export type AppRouter = typeof appRouter;

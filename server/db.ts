@@ -8,16 +8,19 @@ import {
   InsertSession,
   InsertTransaction,
   InsertUser,
+  InsertUserLink,
   Patient,
   PatientDocument,
   Session,
   Transaction,
   User,
+  UserLink,
   clinicalNotes,
   patientDocuments,
   patients,
   sessions,
   transactions,
+  userLinks,
   users,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -358,4 +361,98 @@ export async function deletDocument(id: number, userId: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
   await db.delete(patientDocuments).where(and(eq(patientDocuments.id, id), eq(patientDocuments.userId, userId)));
+}
+
+
+// ─── User Links (Sincronização de Usuários) ────────────────────────────────
+
+export async function linkUsers(primaryUserId: number, linkedUserId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  // Verificar se já existe link
+  const existing = await db
+    .select()
+    .from(userLinks)
+    .where(and(eq(userLinks.primaryUserId, primaryUserId), eq(userLinks.linkedUserId, linkedUserId)))
+    .limit(1);
+  
+  if (!existing.length) {
+    await db.insert(userLinks).values({ primaryUserId, linkedUserId });
+  }
+}
+
+export async function getLinkedUserIds(userId: number): Promise<number[]> {
+  const db = await getDb();
+  if (!db) return [userId];
+  
+  // Buscar usuários vinculados
+  const links = await db
+    .select({ linkedUserId: userLinks.linkedUserId })
+    .from(userLinks)
+    .where(eq(userLinks.primaryUserId, userId));
+  
+  // Retornar o usuário original + todos os vinculados
+  return [userId, ...links.map(l => l.linkedUserId)];
+}
+
+export async function getPatientsShared(userId: number, search?: string, status?: string): Promise<Patient[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Buscar IDs de todos os usuários vinculados
+  const linkedUserIds = await getLinkedUserIds(userId);
+  
+  const conditions = [sql`${patients.userId} IN (${sql.join(linkedUserIds)})`];
+  
+  if (status && status !== "all") {
+    conditions.push(eq(patients.status, status as Patient["status"]));
+  }
+  if (search) {
+    conditions.push(
+      or(
+        like(patients.name, `%${search}%`),
+        like(patients.email, `%${search}%`),
+        like(patients.phone, `%${search}%`),
+        like(patients.cpf, `%${search}%`)
+      )!
+    );
+  }
+  
+  return db.select().from(patients).where(and(...conditions)).orderBy(patients.name);
+}
+
+export async function getPatientByIdShared(id: number, userId: number): Promise<Patient | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  // Buscar IDs de todos os usuários vinculados
+  const linkedUserIds = await getLinkedUserIds(userId);
+  
+  const result = await db
+    .select()
+    .from(patients)
+    .where(and(eq(patients.id, id), sql`${patients.userId} IN (${sql.join(linkedUserIds)})`))
+    .limit(1);
+  
+  return result[0];
+}
+
+export async function getSessionsShared(userId: number, patientId?: number, status?: string): Promise<Session[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Buscar IDs de todos os usuários vinculados
+  const linkedUserIds = await getLinkedUserIds(userId);
+  
+  const conditions = [sql`${sessions.userId} IN (${sql.join(linkedUserIds)})`];
+  
+  if (patientId) {
+    conditions.push(eq(sessions.patientId, patientId));
+  }
+  if (status && status !== "all") {
+    conditions.push(eq(sessions.status, status as Session["status"]));
+  }
+  
+  return db.select().from(sessions).where(and(...conditions)).orderBy(desc(sessions.scheduledAt));
 }

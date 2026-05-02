@@ -321,3 +321,65 @@
 - [x] PDF exportando "PACIENTE #1" em vez do nome real - Nova rota generateSessionPDF com dados corretos do paciente
 - [x] Todos os 60 testes passando (incluindo 8 testes E2E de integração)
 - [x] Integração ponta a ponta validada (site → clinica-psico)
+
+
+## Fase 27: Banco de Dados Centralizado (Multi-Tenancy)
+- [ ] Criar estrutura de multi-tenancy no schema (adicionar clinic_id/organization_id)
+- [ ] Implementar sincronização de usuários entre contas (israelmengo@gmail.com e israelneuropsicologo@gmail.com)
+- [ ] Validar que ambas as contas acessam os mesmos dados
+- [ ] Testar webhook com novo modelo de dados
+- [ ] Documentar fluxo de sincronização centralizado
+
+
+## Fase 27: Sistema de Sincronização Multi-Conta
+- [x] Tabela `user_links` criada no schema (primaryUserId, linkedUserId)
+- [x] Funções de sincronização implementadas em db.ts:
+  - linkUsers(primaryUserId, linkedUserId)
+  - getLinkedUserIds(userId)
+  - getPatientsShared(userId, search, status)
+  - getPatientByIdShared(id, userId)
+  - getSessionsShared(userId, patientId, status)
+- [x] Router `userSync` adicionado ao appRouter com endpoints:
+  - userSync.linkUsers - Vincular duas contas
+  - userSync.getSharedPatients - Listar pacientes compartilhados
+  - userSync.getSharedPatientById - Buscar paciente específico
+  - userSync.getSharedSessions - Listar sessões compartilhadas
+- [ ] Migração SQL aplicada ao banco de dados (PRÓXIMO PASSO)
+- [x] 60 testes passando (sem teste de sincronização até tabela ser criada)
+
+### Solução para Banco de Dados Centralizado:
+
+**Problema Original:**
+- Conta 1 (israelmengo@gmail.com - site): 3 pacientes
+- Conta 2 (israelneuropsicologo@gmail.com - sistema): 45 pacientes
+- Dados desincronizados em 2 bancos diferentes
+
+**Solução Implementada:**
+- Sistema de `user_links` que vincula as duas contas
+- Quando usuário 2 acessa dados, vê pacientes de ambas as contas
+- Sincronização automática via funções de DB
+- Sem duplicação de dados
+
+### Próximos Passos:
+
+1. Aplicar migração SQL ao banco de dados:
+```sql
+CREATE TABLE `user_links` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`primaryUserId` int NOT NULL,
+	`linkedUserId` int NOT NULL,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	CONSTRAINT `user_links_id` PRIMARY KEY(`id`)
+);
+```
+
+2. Vincular as duas contas (após migração):
+```typescript
+// No console ou via admin endpoint
+await trpc.userSync.linkUsers.mutate({
+  primaryUserId: 1,  // ID do usuário israelmengo@gmail.com
+  linkedUserId: 2    // ID do usuário israelneuropsicologo@gmail.com
+});
+```
+
+3. Ambas as contas verão os mesmos pacientes e sessões

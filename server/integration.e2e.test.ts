@@ -253,3 +253,4 @@ describe("End-to-End Integration: Site → Clinica-Psico Webhook Flow", { timeou
     }
   });
 });
+
