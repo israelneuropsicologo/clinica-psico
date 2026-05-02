@@ -14,6 +14,9 @@ import Calendar from "./pages/Calendar";
 import Settings from "./pages/Settings";
 import Webhooks from "./pages/Webhooks";
 import Home from "./pages/Home";
+import MedicalRecords from "./pages/MedicalRecords";
+import TechnicalDocuments from "./pages/TechnicalDocuments";
+import Anamnesis from "./pages/Anamnesis";
 
 function Router() {
   return (
@@ -28,6 +31,9 @@ function Router() {
       <Route path="/calendar" component={Calendar} />
       <Route path="/settings" component={Settings} />
       <Route path="/webhooks" component={Webhooks} />
+      <Route path="/medical-records" component={MedicalRecords} />
+      <Route path="/technical-documents" component={TechnicalDocuments} />
+      <Route path="/anamnesis" component={Anamnesis} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

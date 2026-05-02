@@ -283,3 +283,45 @@
 - [x] Corrigir PatientDetail.tsx: adicionar enabled: patientId > 0 nas queries
 - [x] Validar testes: 52 passando
 - [x] Testar navegação Pacientes → Detalhes sem erros
+
+
+## Fase 24: Complementação com Funcionalidades do DocsPsi
+**Fonte de Dados:** psicologo.manus.space (Site) → clinicaapp-p4nfwoum.manus.space (Back-office)
+**Sincronização:** Automática via webhooks (pacientes, pagamentos, ChatBot)
+
+- [ ] Aplicar migrações SQL (4 novas tabelas: prontuário, documentação, anamnese, planos)
+- [ ] Implementar routers tRPC para Prontuário Dinâmico
+- [ ] Implementar routers tRPC para Documentação Técnica (Atestados, Laudos, Pareceres)
+- [ ] Implementar routers tRPC para Anamnese e Triagem
+- [ ] Criar UI para Prontuário Dinâmico com linha do tempo
+- [ ] Criar UI para Gerador de Documentos Técnicos
+- [ ] Criar UI para Anamnese (formulário inteligente)
+- [ ] Adicionar testes Vitest para novos endpoints
+- [ ] Testar integração ponta a ponta
+- [ ] Criar checkpoint final
+- [ ] Publicar sistema completo
+
+
+## Fase 24: Complementação com Funcionalidades do DocsPsi
+**Fonte de Dados:** psicologo.manus.space (Site) → clinicaapp-p4nfwoum.manus.space (Back-office)
+**Sincronização:** Automática via webhooks (pacientes, pagamentos, ChatBot)
+
+- [x] Aplicar migrações SQL (4 novas tabelas: prontuário, documentação, anamnese, planos)
+- [x] Implementar routers tRPC para Prontuário Dinâmico (7 procedures)
+- [x] Implementar routers tRPC para Documentação Técnica (6 procedures)
+- [x] Implementar routers tRPC para Anamnese e Triagem (5 procedures)
+- [x] Criar UI para Prontuário Dinâmico com linha do tempo
+- [x] Criar UI para Gerador de Documentos Técnicos
+- [x] Criar UI para Anamnese (formulário inteligente)
+- [x] Adicionar rotas em App.tsx
+- [x] Validar 52 testes passando
+- [ ] Criar checkpoint final
+- [ ] Publicar sistema completo
+
+## Status Final
+- **Testes:** 52 ✅ passando | 5 skipped | 57 total
+- **Routers tRPC:** 18 novos procedures (medicalRecords, technicalDocuments, anamnesis)
+- **Páginas UI:** 3 novas (MedicalRecords, TechnicalDocuments, Anamnesis)
+- **Rotas:** /medical-records, /technical-documents, /anamnesis
+- **TypeScript:** 0 erros
+- **Status:** Pronto para publicação

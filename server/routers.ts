@@ -39,6 +39,9 @@ import { reportsRouter } from "./routers/reports";
 import { settingsRouter } from "./routers/settings";
 import { financialRouter } from "./routers/financial";
 import { webhooksRouter } from "./routers/webhooks";
+import { medicalRecordsRouter } from "./routers/medicalRecords";
+import { technicalDocumentsRouter } from "./routers/technicalDocuments";
+import { anamnesisRouter } from "./routers/anamnesis";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -473,6 +476,9 @@ export const appRouter = router({
   settings: settingsRouter,
   reports: reportsRouter,
   webhooks: webhooksRouter,
+  medicalRecords: medicalRecordsRouter,
+  technicalDocuments: technicalDocumentsRouter,
+  anamnesis: anamnesisRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
