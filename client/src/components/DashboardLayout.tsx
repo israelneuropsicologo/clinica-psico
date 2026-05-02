@@ -36,9 +36,6 @@ import {
   Settings as SettingsIcon,
   ExternalLink,
   Zap,
-  FileText,
-  BookOpen,
-  Clipboard,
 } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -51,9 +48,6 @@ const menuItems = [
   { icon: ClipboardList, label: "Sessões", path: "/sessions" },
   { icon: CalendarDays, label: "Agenda", path: "/calendar" },
   { icon: DollarSign, label: "Financeiro", path: "/financial" },
-  { icon: FileText, label: "Prontuário", path: "/medical-records" },
-  { icon: Clipboard, label: "Documentação", path: "/technical-documents" },
-  { icon: BookOpen, label: "Anamnese", path: "/anamnesis" },
   { icon: SettingsIcon, label: "Configurações", path: "/settings" },
   { icon: Zap, label: "Integração", path: "/webhooks" },
 ];
