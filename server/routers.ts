@@ -147,15 +147,6 @@ const patientsRouter = router({
       await deletePatient(input.id, ctx.user.id);
       return { success: true };
     }),
-
-  deleteMultiple: protectedProcedure
-    .input(z.object({ ids: z.array(z.number()) }))
-    .mutation(async ({ ctx, input }) => {
-      for (const id of input.ids) {
-        await deletePatient(id, ctx.user.id);
-      }
-      return { success: true, deletedCount: input.ids.length };
-    }),
 });
 
 // ─── Sessions Router ────────────────────────────────────────────────────────

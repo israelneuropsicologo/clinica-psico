@@ -15,7 +15,7 @@ import Settings from "./pages/Settings";
 import Webhooks from "./pages/Webhooks";
 import Home from "./pages/Home";
 
-// App Router - v1.0.4 - Bulk select/delete
+// App Router - v1.0.3
 function Router() {
   return (
     <Switch>
