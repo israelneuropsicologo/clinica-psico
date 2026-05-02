@@ -236,3 +236,45 @@ describe("webhooks router", () => {
     expect(typeof statusResult.failureCount).toBe("number");
   });
 });
+
+
+
+describe("syncChatbotLead", () => {
+  it("should require authentication token or OAuth", async () => {
+    const ctx = {
+      user: null,
+      req: { protocol: "https", headers: {} } as TrpcContext["req"],
+      res: { clearCookie: () => {} } as TrpcContext["res"],
+    } as TrpcContext;
+
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.webhooks.syncChatbotLead({
+        customer_id: "test",
+        name: "Test",
+        message: "Test message",
+      });
+      expect.fail("Should have thrown UNAUTHORIZED error");
+    } catch (error: any) {
+      expect(error.code).toBe("UNAUTHORIZED");
+    }
+  });
+
+  it("should validate email format when provided", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.webhooks.syncChatbotLead({
+        customer_id: "test",
+        name: "Test",
+        message: "Test message",
+        email: "invalid-email",
+      });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      expect(error.code).toBe("BAD_REQUEST");
+    }
+  });
+});
