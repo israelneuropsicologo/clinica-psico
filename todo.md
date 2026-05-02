@@ -331,6 +331,14 @@
 - [ ] Documentar fluxo de sincronização centralizado
 
 
+## Fase 28: Seletor de Múltiplos Pacientes
+- [x] Adicionar checkboxes para seleção individual de pacientes
+- [x] Adicionar checkbox "Selecionar todos" para marcar/desmarcar todos
+- [x] Criar procedimento tRPC `deleteMultiple` para deletar múltiplos pacientes
+- [x] Implementar botão "Deletar Selecionados" com confirmação
+- [x] Indicador visual de pacientes selecionados
+- [x] Integração com estado React (useState para selectedPatients)
+
 ## Fase 27: Sistema de Sincronização Multi-Conta
 - [x] Tabela `user_links` criada no schema (primaryUserId, linkedUserId)
 - [x] Funções de sincronização implementadas em db.ts:

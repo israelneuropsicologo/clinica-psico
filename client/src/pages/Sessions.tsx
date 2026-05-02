@@ -10,6 +10,7 @@ import { CalendarDays, Clock, Plus, User, Video, MapPin } from "lucide-react";
 import ExportButton from "@/components/ExportButton";
 import PDFExportButton from "@/components/PDFExportButton";
 import DashboardLayout from "@/components/DashboardLayout";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ function formatDate(ts: number) {
 export default function Sessions() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [selectedSessions, setSelectedSessions] = useState<Set<number>>(new Set());
   const [, navigate] = useLocation();
 
   const { data: sessions, isLoading, refetch } = trpc.sessions.list.useQuery({
@@ -36,6 +38,39 @@ export default function Sessions() {
 
   const generatePatientPDFMutation = trpc.reports.generatePatientPDF.useMutation();
   const trpcUtils = trpc.useUtils();
+  const deleteMultipleMutation = trpc.sessions.deleteMultiple.useMutation({
+    onSuccess: () => {
+      toast.success(`${selectedSessions.size} sessão(ões) deletada(s)!`);
+      setSelectedSessions(new Set());
+      refetch();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const toggleSessionSelection = (sessionId: number) => {
+    const newSelected = new Set(selectedSessions);
+    if (newSelected.has(sessionId)) {
+      newSelected.delete(sessionId);
+    } else {
+      newSelected.add(sessionId);
+    }
+    setSelectedSessions(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedSessions.size === sessions?.length) {
+      setSelectedSessions(new Set());
+    } else {
+      setSelectedSessions(new Set(sessions?.map(s => s.id) || []));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedSessions.size === 0) return;
+    if (confirm(`Tem certeza que deseja deletar ${selectedSessions.size} sessão(ões)?`)) {
+      deleteMultipleMutation.mutate({ ids: Array.from(selectedSessions) });
+    }
+  };
 
   const handleExportPatientPDF = async () => {
     const result = await generatePatientPDFMutation.mutateAsync({});
@@ -65,7 +100,7 @@ export default function Sessions() {
               {isLoading ? "Carregando..." : `${sessions?.length ?? 0} sessão(ões)`}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <PDFExportButton
               label="Exportar PDF"
               disabled={!sessions || sessions.length === 0}
@@ -75,6 +110,15 @@ export default function Sessions() {
               label="Exportar"
               onExport={(format: string) => handleExportSessions(format)}
             />
+            {selectedSessions.size > 0 && (
+              <Button 
+                onClick={handleDeleteSelected} 
+                variant="destructive"
+                disabled={deleteMultipleMutation.isPending}
+              >
+                Deletar Selecionadas ({selectedSessions.size})
+              </Button>
+            )}
             <Button onClick={() => setShowCreate(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               Agendar Sessão
@@ -116,19 +160,50 @@ export default function Sessions() {
           </Card>
         ) : (
           <div className="space-y-2">
+            {sessions && sessions.length > 0 && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
+                <input
+                  type="checkbox"
+                  checked={selectedSessions.size === sessions.length && sessions.length > 0}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4 cursor-pointer"
+                />
+                <span className="text-sm text-muted-foreground">
+                  {selectedSessions.size > 0 ? `${selectedSessions.size} selecionada(s)` : 'Selecionar todas'}
+                </span>
+              </div>
+            )}
             {sessions.map((session) => (
               <Card
                 key={session.id}
-                className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                onClick={() => navigate(`/sessions/${session.id}`)}
+                className={`transition-all ${
+                  selectedSessions.has(session.id)
+                    ? 'border-primary bg-primary/5'
+                    : 'cursor-pointer hover:shadow-md hover:border-primary/30'
+                }`}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedSessions.has(session.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          toggleSessionSelection(session.id);
+                        }}
+                        className="w-4 h-4 cursor-pointer shrink-0"
+                      />
+                      <div 
+                        className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 cursor-pointer"
+                        onClick={() => navigate(`/sessions/${session.id}`)}
+                      >
                         <User className="h-4 w-4 text-primary" />
                       </div>
-                      <div className="min-w-0">
+                      <div 
+                        className="min-w-0 cursor-pointer"
+                        onClick={() => navigate(`/sessions/${session.id}`)}
+                      >
                         <p className="font-semibold text-sm">Paciente #{session.patientId}</p>
                         <div className="flex items-center gap-3 mt-0.5 flex-wrap text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">

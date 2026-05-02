@@ -276,6 +276,16 @@ const sessionsRouter = router({
       await deleteSession(input.id, ctx.user.id);
       return { success: true };
     }),
+  deleteMultiple: protectedProcedure
+    .input(z.object({ ids: z.array(z.number()) }))
+    .mutation(async ({ ctx, input }) => {
+      let deletedCount = 0;
+      for (const id of input.ids) {
+        await deleteSession(id, ctx.user.id);
+        deletedCount++;
+      }
+      return { success: true, deletedCount };
+    }),
 });
 
 // ─── Clinical Notes Router ──────────────────────────────────────────────────
