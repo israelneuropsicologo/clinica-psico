@@ -232,6 +232,7 @@ export default function Patients() {
       </div>
 
       {/* Create Patient Dialog */}
+      </div>
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
