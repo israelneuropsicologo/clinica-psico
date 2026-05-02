@@ -1,5 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { and, eq, like } from "drizzle-orm";
+import { patients } from "../drizzle/schema";
 import {
   createClinicalNote,
   createDocument,
@@ -141,20 +143,32 @@ const patientsRouter = router({
       return { success: true };
     }),
 
-  delete: protectedProcedure
+   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       await deletePatient(input.id, ctx.user.id);
       return { success: true };
     }),
-
+  deleteMultiple: protectedProcedure
+    .input(z.object({ ids: z.array(z.number()) }))
+    .mutation(async ({ ctx, input }) => {
+      let deletedCount = 0;
+      for (const id of input.ids) {
+        await deletePatient(id, ctx.user.id);
+        deletedCount++;
+      }
+      return { success: true, deletedCount };
+    }),
   deleteTestData: protectedProcedure
     .mutation(async ({ ctx }) => {
-      const db = getDb();
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+      
       const testPatterns = [
         'Appointment Test',
         'Duplicate Test',
         'Joao E2E Test',
+        'João E2E Test',
         'Pending Payment Test',
         'Test Patient',
         'E2E Test',
@@ -162,13 +176,12 @@ const patientsRouter = router({
       
       let deletedCount = 0;
       for (const pattern of testPatterns) {
-        const testPatients = await db.query.patients.findMany({
-          where: (patients, { and, eq, like }) =>
-            and(
-              eq(patients.userId, ctx.user.id),
-              like(patients.name, `%${pattern}%`)
-            ),
-        });
+        const testPatients = await db.select().from(patients).where(
+          and(
+            eq(patients.userId, ctx.user.id),
+            like(patients.name, `%${pattern}%`)
+          )
+        );
         
         for (const patient of testPatients) {
           await deletePatient(patient.id, ctx.user.id);

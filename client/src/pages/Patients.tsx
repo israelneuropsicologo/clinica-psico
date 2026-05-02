@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Plus, Search, User, Phone, Mail, Calendar } from "lucide-react";
+import { Plus, Search, User, Phone, Mail, Calendar, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ export default function Patients() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [selectedPatients, setSelectedPatients] = useState<Set<number>>(new Set());
   const [, navigate] = useLocation();
 
   const { data: patients, isLoading, refetch } = trpc.patients.list.useQuery({
@@ -37,6 +38,46 @@ export default function Patients() {
 
   const generatePDFMutation = trpc.reports.generatePatientPDF.useMutation();
   const deleteTestDataMutation = trpc.patients.deleteTestData.useMutation();
+  const deleteMultipleMutation = trpc.patients.deleteMultiple.useMutation();
+
+  const togglePatientSelection = (patientId: number) => {
+    const newSelected = new Set(selectedPatients);
+    if (newSelected.has(patientId)) {
+      newSelected.delete(patientId);
+    } else {
+      newSelected.add(patientId);
+    }
+    setSelectedPatients(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPatients.size === patients?.length) {
+      setSelectedPatients(new Set());
+    } else {
+      setSelectedPatients(new Set(patients?.map(p => p.id) || []));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedPatients.size === 0) return;
+    
+    const confirmed = confirm(`Tem certeza que deseja deletar ${selectedPatients.size} paciente(s)?`);
+    if (!confirmed) return;
+
+    deleteMultipleMutation.mutate(
+      { ids: Array.from(selectedPatients) },
+      {
+        onSuccess: () => {
+          toast.success(`${selectedPatients.size} paciente(s) deletado(s) com sucesso`);
+          setSelectedPatients(new Set());
+          refetch();
+        },
+        onError: (error) => {
+          toast.error('Erro ao deletar pacientes: ' + error.message);
+        },
+      }
+    );
+  };
 
   const handleExportPDF = async () => {
     const result = await generatePDFMutation.mutateAsync({
@@ -61,26 +102,17 @@ export default function Patients() {
               label="Exportar PDF"
               onExportPDF={handleExportPDF}
             />
-            <Button 
-              onClick={() => {
-                if (confirm('Tem certeza que deseja deletar todos os dados de teste?')) {
-                  deleteTestDataMutation.mutate(undefined, {
-                    onSuccess: () => {
-                      toast.success('Dados de teste deletados com sucesso');
-                      refetch();
-                    },
-                    onError: (error) => {
-                      toast.error('Erro ao deletar dados de teste');
-                    },
-                  });
-                }
-              }}
-              variant="outline"
-              className="gap-2"
-              disabled={deleteTestDataMutation.isPending}
-            >
-              Limpar Dados de Teste
-            </Button>
+            {selectedPatients.size > 0 && (
+              <Button 
+                onClick={handleDeleteSelected}
+                variant="destructive"
+                className="gap-2"
+                disabled={deleteMultipleMutation.isPending}
+              >
+                <Trash2 className="h-4 w-4" />
+                Deletar {selectedPatients.size}
+              </Button>
+            )}
             <Button onClick={() => setShowCreate(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               Novo Paciente
@@ -131,21 +163,49 @@ export default function Patients() {
           </Card>
         ) : (
           <div className="space-y-2">
+            {patients && patients.length > 0 && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
+                <input
+                  type="checkbox"
+                  checked={selectedPatients.size === patients.length && patients.length > 0}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4 cursor-pointer"
+                />
+                <span className="text-sm text-muted-foreground">
+                  {selectedPatients.size > 0 ? `${selectedPatients.size} selecionado(s)` : 'Selecionar todos'}
+                </span>
+              </div>
+            )}
             {patients.map((patient) => (
               <Card
                 key={patient.id}
-                className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                onClick={() => navigate(`/patients/${patient.id}`)}
+                className={`transition-all ${
+                  selectedPatients.has(patient.id)
+                    ? 'border-primary bg-primary/5'
+                    : 'cursor-pointer hover:shadow-md hover:border-primary/30'
+                }`}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedPatients.has(patient.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          togglePatientSelection(patient.id);
+                        }}
+                        className="w-4 h-4 cursor-pointer shrink-0"
+                      />
+                      <div
+                        className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 cursor-pointer"
+                        onClick={() => navigate(`/patients/${patient.id}`)}
+                      >
                         <span className="text-primary font-semibold text-sm">
                           {patient.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 cursor-pointer" onClick={() => navigate(`/patients/${patient.id}`)}>
                         <p className="font-semibold text-sm truncate">{patient.name}</p>
                         <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                           {patient.email && (
@@ -169,7 +229,7 @@ export default function Patients() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0" onClick={() => navigate(`/patients/${patient.id}`)}>
                       {patient.sessionValue && (
                         <span className="text-xs text-muted-foreground hidden sm:block">
                           {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
