@@ -35,10 +35,24 @@ export default function Sessions() {
   });
 
   const generatePatientPDFMutation = trpc.reports.generatePatientPDF.useMutation();
+  const trpcUtils = trpc.useUtils();
 
   const handleExportPatientPDF = async () => {
     const result = await generatePatientPDFMutation.mutateAsync({});
     return result;
+  };
+
+  const handleExportSessions = async (format: string) => {
+    try {
+      const result = await trpcUtils.reports.exportSessions.fetch({
+        status: statusFilter,
+        format: format as "json" | "csv",
+      });
+      return result || { content: "", filename: "", mimeType: "" };
+    } catch (error) {
+      toast.error("Erro ao exportar sessões");
+      return { content: "", filename: "", mimeType: "" };
+    }
   };
 
   return (
@@ -59,13 +73,7 @@ export default function Sessions() {
             />
             <ExportButton
               label="Exportar"
-              onExport={async (format) => {
-                const result = await trpc.reports.exportSessions.useQuery({
-                  status: statusFilter,
-                  format,
-                });
-                return result.data || { content: "", filename: "", mimeType: "" };
-              }}
+              onExport={(format: string) => handleExportSessions(format)}
             />
             <Button onClick={() => setShowCreate(true)} className="gap-2">
               <Plus className="h-4 w-4" />

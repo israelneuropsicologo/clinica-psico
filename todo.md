@@ -222,6 +222,7 @@
 - [x] Erro SQL na inserção de pacientes - campos com nomes incorretos (userld, externalCustomerld) - CORRIGIDO
 - [x] Erro no esbuild: "Expected '(' but found 'status'" em webhooks.ts:615 - CORRIGIDO (encoding UTF-8 no comentário)
 - [x] Import duplicado de DashboardLayout em Dashboard.tsx - CORRIGIDO
+- [x] Erro NotFoundError ao clicar em paciente - CORRIGIDO (violação de regras de hooks React)
 
 ## Fase 20: Testes de Sincronização de ChatBot
 - [x] Adicionar testes Vitest para syncChatbotLead
@@ -272,4 +273,13 @@
 - [x] Permitir externalCustomerId como null para cadastros manuais
 - [x] Testar inserção de paciente manual - SUCESSO (ID 60001)
 - [x] Reiniciar servidor para refletir mudanças
-- [ ] Testar integração com ChatBot (externalCustomerId preenchido)
+- [x] Testar integração com ChatBot (externalCustomerId preenchido) - PRONTO
+
+## Fase 23: Correção de Erro NotFoundError ao Clicar em Paciente
+- [x] Investigar erro "Failed to execute 'removeChild' on 'Node'"
+- [x] Identificar causa: violação de regras de hooks React em Sessions.tsx e Financial.tsx
+- [x] Refatorar Sessions.tsx: remover useQuery de callback, usar fetch imperativo
+- [x] Refatorar Financial.tsx: remover useQuery de callback, usar fetch imperativo
+- [x] Corrigir PatientDetail.tsx: adicionar enabled: patientId > 0 nas queries
+- [x] Validar testes: 52 passando
+- [x] Testar navegação Pacientes → Detalhes sem erros

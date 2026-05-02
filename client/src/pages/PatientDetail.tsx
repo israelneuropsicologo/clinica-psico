@@ -40,9 +40,9 @@ export default function PatientDetail() {
   const [showEdit, setShowEdit] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
 
-  const { data: patient, isLoading, refetch } = trpc.patients.getById.useQuery({ id: patientId });
-  const { data: sessions } = trpc.sessions.list.useQuery({ patientId });
-  const { data: documents, refetch: refetchDocs } = trpc.documents.byPatient.useQuery({ patientId });
+  const { data: patient, isLoading, refetch } = trpc.patients.getById.useQuery({ id: patientId }, { enabled: patientId > 0 });
+  const { data: sessions } = trpc.sessions.list.useQuery({ patientId }, { enabled: patientId > 0 });
+  const { data: documents, refetch: refetchDocs } = trpc.documents.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
   const deleteMutation = trpc.patients.delete.useMutation({
     onSuccess: () => { toast.success("Paciente excluído."); navigate("/patients"); },
     onError: (e) => toast.error(e.message),
@@ -52,7 +52,7 @@ export default function PatientDetail() {
     onError: (e) => toast.error(e.message),
   });
 
-  if (isLoading) {
+  if (patientId === 0 || isLoading) {
     return (
       <DashboardLayout>
         <div className="p-6 space-y-4">

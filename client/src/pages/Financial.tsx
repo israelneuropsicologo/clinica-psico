@@ -58,10 +58,23 @@ export default function Financial() {
   const { data: summary } = trpc.financial.summary.useQuery({ period });
 
   const generateFinancialPDFMutation = trpc.reports.generateFinancialPDF.useMutation();
+  const trpcUtils = trpc.useUtils();
 
   const handleExportFinancialPDF = async () => {
     const result = await generateFinancialPDFMutation.mutateAsync({});
     return result;
+  };
+
+  const handleExportFinancial = async (format: string) => {
+    try {
+      const result = await trpcUtils.reports.exportFinancial.fetch({
+        format: format as "json" | "csv",
+      });
+      return result || { content: "", filename: "", mimeType: "" };
+    } catch (error) {
+      toast.error("Erro ao exportar dados financeiros");
+      return { content: "", filename: "", mimeType: "" };
+    }
   };
 
   const totalIncome = transactions?.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0) ?? 0;
@@ -89,12 +102,7 @@ export default function Financial() {
             />
             <ExportButton
               label="Exportar"
-              onExport={async (format) => {
-                const result = await trpc.reports.exportFinancial.useQuery({
-                  format,
-                });
-                return result.data || { content: "", filename: "", mimeType: "" };
-              }}
+              onExport={(format: string) => handleExportFinancial(format)}
             />
             <Button onClick={() => setShowCreate(true)} className="gap-2">
               <Plus className="h-4 w-4" />
