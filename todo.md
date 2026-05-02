@@ -283,3 +283,14 @@
 - [x] Corrigir PatientDetail.tsx: adicionar enabled: patientId > 0 nas queries
 - [x] Validar testes: 52 passando
 - [x] Testar navegação Pacientes → Detalhes sem erros
+
+
+## Fase 26: Implementação de Autosave com Sincronização em Nuvem
+- [x] Criar hook useAutoSave com debounce e localStorage
+- [x] Implementar autosave em EditPatientDialog (2s debounce)
+- [x] Implementar autosave em CreatePatientDialog com restauração de rascunho
+- [x] Adicionar indicadores visuais de sincronização (💾 Salvando, ✅ Salvo)
+- [x] Testes Vitest: 52 passando
+- [ ] Testar autosave com perda de internet
+- [ ] Testar autosave ao mudar de página
+- [ ] Publicar sistema com autosave

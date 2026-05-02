@@ -23,6 +23,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import PDFExportButton from "@/components/PDFExportButton";
+import { useAutoSave } from "@/hooks/useAutoSave";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
@@ -204,6 +205,28 @@ function CreatePatientDialog({
     onError: (e) => toast.error(`Erro: ${e.message}`),
   });
 
+  // Autosave com sincronização em nuvem
+  const { status: autoSaveStatus, restoreFromStorage } = useAutoSave(
+    form,
+    async (data) => {
+      // Não salvar se o formulário está vazio
+      if (!data.name.trim()) return;
+      // Apenas salvar em localStorage, não criar paciente automaticamente
+    },
+    {
+      debounceMs: 1500,
+      storageKey: "patient-create-draft",
+    }
+  );
+
+  // Restaurar dados salvos ao abrir o diálogo
+  if (open && form.name === "") {
+    const restored = restoreFromStorage();
+    if (restored && restored.name) {
+      setForm(restored);
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createMutation.mutate(form);
@@ -219,6 +242,11 @@ function CreatePatientDialog({
           <DialogTitle>Novo Paciente</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          {/* Indicador de autosave */}
+          <div className="text-xs text-muted-foreground flex items-center gap-1">
+            {autoSaveStatus === "saving" && <span>💾 Salvando rascunho...</span>}
+            {autoSaveStatus === "saved" && <span>✅ Rascunho salvo</span>}
+          </div>
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="name">Nome completo *</Label>
