@@ -1,5 +1,4 @@
-import { useState } from "react";
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import { toast } from "sonner";
-import { Loader2, Save, AlertCircle } from "lucide-react";
+import { Loader2, Save, AlertCircle, Rocket } from "lucide-react";
 
 export default function Settings() {
   const { data: settings, isLoading, refetch } = trpc.settings.get.useQuery();
@@ -362,6 +361,31 @@ export default function Settings() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Botão Publicar */}
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex gap-3 items-start">
+                <Rocket className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium">Pronto para Publicar</p>
+                  <p className="mt-1">Todas as correções estão prontas. Clique no botão ao lado para publicar a versão em produção.</p>
+                </div>
+              </div>
+              <Button 
+                className="gap-2 bg-blue-600 hover:bg-blue-700"
+                onClick={() => {
+                  toast.success("Redirecionando para publicação...");
+                  window.open("https://manus.im/dashboard/projects/clinica-psico/publish", "_blank");
+                }}
+              >
+                <Rocket className="h-4 w-4" />
+                Publicar Agora
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Botão Salvar */}
         <div className="flex gap-3 justify-end">
