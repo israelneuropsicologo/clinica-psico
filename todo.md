@@ -394,3 +394,30 @@ await trpc.userSync.linkUsers.mutate({
 ```
 
 3. Ambas as contas verão os mesmos pacientes e sessões
+
+
+## Fase 29: Seletor de Múltiplas Sessões
+- [x] Adicionar checkboxes para seleção individual de sessões
+- [x] Adicionar checkbox "Selecionar todas" para marcar/desmarcar todas
+- [x] Criar procedimento tRPC `deleteMultiple` para deletar múltiplas sessões
+- [x] Implementar botão "Deletar Selecionadas" com confirmação
+- [x] Indicador visual de sessões selecionadas
+- [x] Integração com estado React (useState para selectedSessions)
+
+## Fase 30: Melhorias na Exibição de Sessões
+- [ ] Mostrar nome real do paciente em vez de "Paciente #ID"
+- [ ] Adicionar emojis diferenciadores (🎥 Online vs 🏥 Presencial)
+- [ ] Adicionar emojis para pagamento (💰 Pago vs ⏳ Pendente)
+- [ ] Adicionar emojis para origem (🌐 Site vs ✋ Manual)
+- [ ] Sincronizar automaticamente clientes do ChatBot do site
+
+## Fase 31: Integração Google Calendar
+- [ ] Configurar autenticação Google OAuth para Google Calendar API
+- [ ] Criar procedimento tRPC para sincronizar eventos do Google Calendar
+- [ ] Integrar Google Calendar embarcado na página Agenda
+- [ ] Mapear eventos do Google Calendar para sessões do sistema
+- [ ] Implementar sincronização automática de eventos
+- [ ] Testar sincronização ponta a ponta
+- [ ] Remover agenda interna e usar Google Calendar como fonte única
+- [ ] Manter layout atual com funcionalidades do Google Calendar
+- [ ] Botão "Nova Sessão" para adições manuais

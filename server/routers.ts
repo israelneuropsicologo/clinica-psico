@@ -578,6 +578,49 @@ export const appRouter = router({
   financial: financialRouter,
   documents: documentsRouter,
   userSync: userSyncRouter,
+  calendar: router({
+    getEvents: protectedProcedure
+      .input(z.object({
+        accessToken: z.string(),
+        calendarId: z.string().optional(),
+        timeMin: z.string().optional(),
+        timeMax: z.string().optional(),
+        maxResults: z.number().optional(),
+      }))
+      .query(async ({ input }) => {
+        const { listCalendarEvents } = await import("./_core/google-calendar");
+        return listCalendarEvents(
+          input.accessToken,
+          input.calendarId,
+          {
+            timeMin: input.timeMin,
+            timeMax: input.timeMax,
+            maxResults: input.maxResults,
+          }
+        );
+      }),
+    createEvent: protectedProcedure
+      .input(z.object({
+        accessToken: z.string(),
+        summary: z.string(),
+        description: z.string().optional(),
+        start: z.object({
+          dateTime: z.string(),
+          timeZone: z.string().optional(),
+        }),
+        end: z.object({
+          dateTime: z.string(),
+          timeZone: z.string().optional(),
+        }),
+        attendees: z.array(z.object({ email: z.string() })).optional(),
+        calendarId: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { createCalendarEvent } = await import("./_core/google-calendar");
+        const { accessToken, calendarId, ...eventData } = input;
+        return createCalendarEvent(accessToken, eventData, calendarId);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
