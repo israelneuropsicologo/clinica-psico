@@ -169,3 +169,35 @@ export const settings = mysqlTable("settings", {
 
 export type Settings = typeof settings.$inferSelect;
 export type InsertSettings = typeof settings.$inferInsert;
+
+// ─── API Tokens (Autenticação Server-to-Server) ──────────────────────────────
+export const apiTokens = mysqlTable("api_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt"),
+  lastUsedAt: timestamp("lastUsedAt"),
+});
+
+export type ApiToken = typeof apiTokens.$inferSelect;
+export type InsertApiToken = typeof apiTokens.$inferInsert;
+
+// ─── Webhook Logs (Registro de Sincronizações) ──────────────────────────────
+export const webhookLogs = mysqlTable("webhook_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  webhookType: varchar("webhookType", { length: 50 }).notNull(), // 'patient', 'appointment', 'payment'
+  externalId: varchar("externalId", { length: 255 }).notNull(), // customer_id ou transaction_id
+  status: varchar("status", { length: 50 }).notNull(), // 'success', 'failed', 'pending'
+  payload: text("payload").notNull(), // JSON do payload recebido
+  errorMessage: text("errorMessage"),
+  syncedAt: timestamp("syncedAt").defaultNow().notNull(),
+  processedAt: timestamp("processedAt"),
+});
+
+export type WebhookLog = typeof webhookLogs.$inferSelect;
+export type InsertWebhookLog = typeof webhookLogs.$inferInsert;

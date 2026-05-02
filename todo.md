@@ -116,3 +116,64 @@
 - [x] Sincronização de formulário com dados carregados
 - [x] Notificação ao salvar configurações
 - [x] Testes Vitest para settings router
+
+
+## Fase 13: Integração Server-to-Server com Site Mãe (psicologo.manus.space)
+
+### Arquitetura de Webhooks e Endpoints
+- [ ] Criar tabela `webhook_logs` para registrar todas as sincronizações
+- [ ] Criar tabela `api_tokens` para armazenar Bearer Tokens de autenticação
+- [ ] Implementar middleware de autenticação com Bearer Token
+- [ ] Criar endpoint POST `/api/webhooks/sync/patient` para receber novos pacientes
+- [ ] Criar endpoint POST `/api/webhooks/sync/appointment` para receber agendamentos
+- [ ] Criar endpoint POST `/api/webhooks/sync/payment` para receber confirmações de pagamento
+- [ ] Criar endpoint GET `/api/webhooks/validate/customer/:id` para validação cruzada
+
+### Lógica de Sincronização de Pacientes
+- [ ] Receber POST com customer_id, nome, email, telefone, data_nascimento
+- [ ] Validar se customer_id já existe (GET /validate/customer/:id)
+- [ ] Se não existe: criar novo paciente com status "ativo"
+- [ ] Se existe: atualizar dados do paciente (merge inteligente)
+- [ ] Registrar log de sincronização com timestamp
+
+### Lógica de Sincronização de Agendamentos
+- [ ] Receber POST com appointment_date (ISO 8601), customer_id, service_type
+- [ ] Validar se customer_id existe no sistema
+- [ ] Validar payment_status antes de criar sessão
+- [ ] Somente criar sessão se payment_status === "approved"
+- [ ] Atualizar status para "confirmada" automaticamente
+- [ ] Sincronizar com Google Calendar se vinculado
+
+### Lógica de Sincronização de Pagamentos
+- [ ] Receber POST com transaction_id, customer_id, amount, payment_status
+- [ ] Validar transaction_id para evitar duplicatas
+- [ ] Atualizar status da sessão para "paga" se payment_status === "approved"
+- [ ] Registrar transação no módulo financeiro
+- [ ] Atualizar status de inadimplência automaticamente
+
+### Routers tRPC para Integração
+- [ ] Router `webhooks.sync` com procedures para cada tipo de sincronização
+- [ ] Router `webhooks.validate` com procedures de validação cruzada
+- [ ] Router `webhooks.logs` para visualizar histórico de sincronizações
+- [ ] Router `webhooks.status` para verificar status da integração
+
+### Painel de Sincronização
+- [ ] Criar página `/sync-status` com dashboard de sincronizações
+- [ ] Mostrar último sync, status, erros e logs
+- [ ] Botão "Sincronizar Agora" para forçar sincronização manual
+- [ ] Gráfico de sincronizações por hora/dia
+- [ ] Alertas para falhas de sincronização
+
+### Segurança e Validação
+- [ ] Implementar rate limiting para endpoints de webhook
+- [ ] Validar assinatura HMAC dos webhooks (se aplicável)
+- [ ] Criptografar dados sensíveis (CPF, CRP) em trânsito
+- [ ] Implementar retry automático para falhas de rede
+- [ ] Logging de todas as operações para auditoria LGPD
+
+### Testes Vitest
+- [ ] Testes para validação cruzada de customer_id
+- [ ] Testes para sincronização de pacientes
+- [ ] Testes para sincronização de agendamentos com validação de pagamento
+- [ ] Testes para sincronização de transações
+- [ ] Testes para tratamento de erros e retry

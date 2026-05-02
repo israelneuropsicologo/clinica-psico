@@ -12,6 +12,7 @@ import SessionDetail from "./pages/SessionDetail";
 import Financial from "./pages/Financial";
 import Calendar from "./pages/Calendar";
 import Settings from "./pages/Settings";
+import Webhooks from "./pages/Webhooks";
 import Home from "./pages/Home";
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/financial" component={Financial} />
       <Route path="/calendar" component={Calendar} />
       <Route path="/settings" component={Settings} />
+      <Route path="/webhooks" component={Webhooks} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

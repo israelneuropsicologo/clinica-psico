@@ -35,6 +35,7 @@ import {
   Stethoscope,
   Settings as SettingsIcon,
   ExternalLink,
+  Zap,
 } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -48,6 +49,7 @@ const menuItems = [
   { icon: CalendarDays, label: "Agenda", path: "/calendar" },
   { icon: DollarSign, label: "Financeiro", path: "/financial" },
   { icon: SettingsIcon, label: "Configurações", path: "/settings" },
+  { icon: Zap, label: "Integração", path: "/webhooks" },
 ];
 
 const externalLinks = [

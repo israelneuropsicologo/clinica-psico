@@ -36,6 +36,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { reportsRouter } from "./routers/reports";
 import { settingsRouter } from "./routers/settings";
 import { financialRouter } from "./routers/financial";
+import { webhooksRouter } from "./routers/webhooks";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -420,6 +421,7 @@ export const appRouter = router({
   system: systemRouter,
   settings: settingsRouter,
   reports: reportsRouter,
+  webhooks: webhooksRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
