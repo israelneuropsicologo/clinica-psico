@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Plus, Search, User, Phone, Mail, Calendar } from "lucide-react";
+import { Plus, Search, User, Phone, Mail, Calendar, Trash2, CheckSquare, Square } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ export default function Patients() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [, navigate] = useLocation();
 
   const { data: patients, isLoading, refetch } = trpc.patients.list.useQuery({
@@ -36,6 +37,14 @@ export default function Patients() {
   });
 
   const generatePDFMutation = trpc.reports.generatePatientPDF.useMutation();
+  const deleteMultipleMutation = trpc.patients.deleteMultiple.useMutation({
+    onSuccess: () => {
+      toast.success(`${selectedIds.size} paciente(s) deletado(s) com sucesso!`);
+      setSelectedIds(new Set());
+      refetch();
+    },
+    onError: (e) => toast.error(`Erro ao deletar: ${e.message}`),
+  });
 
   const handleExportPDF = async () => {
     const result = await generatePDFMutation.mutateAsync({
@@ -55,7 +64,18 @@ export default function Patients() {
               {isLoading ? "Carregando..." : `${patients?.length ?? 0} paciente(s) encontrado(s)`}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                onClick={() => deleteMultipleMutation.mutate({ ids: Array.from(selectedIds) })}
+                disabled={deleteMultipleMutation.isPending}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Deletar {selectedIds.size} paciente(s)
+              </Button>
+            )}
             <PDFExportButton
               label="Exportar PDF"
               onExportPDF={handleExportPDF}
@@ -68,7 +88,28 @@ export default function Patients() {
         </div>
 
         {/* Filters */}
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-3 flex-wrap items-center">
+          {patients && patients.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (selectedIds.size === patients.length) {
+                  setSelectedIds(new Set());
+                } else {
+                  setSelectedIds(new Set(patients.map(p => p.id)));
+                }
+              }}
+              className="gap-2"
+            >
+              {selectedIds.size === patients.length ? (
+                <CheckSquare className="h-4 w-4" />
+              ) : (
+                <Square className="h-4 w-4" />
+              )}
+              {selectedIds.size === patients.length ? "Desselecionar Todos" : "Selecionar Todos"}
+            </Button>
+          )}
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -113,12 +154,40 @@ export default function Patients() {
             {patients.map((patient) => (
               <Card
                 key={patient.id}
-                className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                onClick={() => navigate(`/patients/${patient.id}`)}
+                className={`transition-all ${
+                  selectedIds.has(patient.id)
+                    ? "border-primary/50 bg-primary/5"
+                    : "cursor-pointer hover:shadow-md hover:border-primary/30"
+                }`}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+                      onClick={() => {
+                        const newSelected = new Set(selectedIds);
+                        if (newSelected.has(patient.id)) {
+                          newSelected.delete(patient.id);
+                        } else {
+                          newSelected.add(patient.id);
+                        }
+                        setSelectedIds(newSelected);
+                      }}
+                    >
+                      <div className="shrink-0">
+                        {selectedIds.has(patient.id) ? (
+                          <CheckSquare className="h-5 w-5 text-primary" />
+                        ) : (
+                          <Square className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div
+                        className="flex items-center gap-3 min-w-0 flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/patients/${patient.id}`);
+                        }}
+                      >
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <span className="text-primary font-semibold text-sm">
                           {patient.name.charAt(0).toUpperCase()}
@@ -147,6 +216,7 @@ export default function Patients() {
                           )}
                         </div>
                       </div>
+                    </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {patient.sessionValue && (
