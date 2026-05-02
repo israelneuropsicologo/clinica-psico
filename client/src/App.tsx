@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import Webhooks from "./pages/Webhooks";
 import Home from "./pages/Home";
 
+// App Router - v1.0.1
 function Router() {
   return (
     <Switch>
