@@ -126,7 +126,7 @@ export const webhooksRouter = router({
 
           if (exists) {
             // Paciente já existe - não criar duplicata
-            return { success: true, message: "Paciente já existe" };
+            return { success: true, message: "Paciente já existe. Não foi criada duplicata." };
           }
 
           // Criptografar CPF se fornecido
@@ -154,7 +154,7 @@ export const webhooksRouter = router({
           };
 
           await createPatient(patientData);
-          return { success: true };
+          return { success: true, message: "Paciente sincronizado com sucesso" };
         });
 
         // Log de sucesso
@@ -166,29 +166,31 @@ export const webhooksRouter = router({
           "success"
         );
 
-        // LGPD: Registrar criação de paciente
-        logLGPDEvent({
-          userId,
-          eventType: LGPDEventType.PATIENT_CREATED,
-          resourceType: "patient",
-          resourceId: input.customer_id,
-          action: "CREATE",
-          dataClassification: "RESTRICTED",
-          description: `Paciente ${input.name} sincronizado via webhook`,
-          details: {
-            name: input.name,
-            email: input.email,
-            cpf: input.cpf ? maskCPF(input.cpf) : undefined,
-          },
-          status: "SUCCESS",
-        });
+        // LGPD e notificação apenas se foi criado novo paciente
+        if (!result.message?.includes("já existe")) {
+          logLGPDEvent({
+            userId,
+            eventType: LGPDEventType.PATIENT_CREATED,
+            resourceType: "patient",
+            resourceId: input.customer_id,
+            action: "CREATE",
+            dataClassification: "RESTRICTED",
+            description: `Paciente ${input.name} sincronizado via webhook`,
+            details: {
+              name: input.name,
+              email: input.email,
+              cpf: input.cpf ? maskCPF(input.cpf) : undefined,
+            },
+            status: "SUCCESS",
+          });
 
-        await notifyOwner({
-          title: "Novo Paciente Sincronizado",
-          content: `Paciente ${input.name} foi sincronizado do site principal.`,
-        });
+          await notifyOwner({
+            title: "Novo Paciente Sincronizado",
+            content: `Paciente ${input.name} foi sincronizado do site principal.`,
+          });
+        }
 
-        return { success: true, message: "Paciente sincronizado com sucesso" };
+        return result;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         let userId = 0;
@@ -302,9 +304,9 @@ export const webhooksRouter = router({
 
         // Executar com retry automático
         const result = await retryWithBackoff(async () => {
-          // Validar se customer_id existe
-          const customerExists = await checkCustomerExists(userId, input.customer_id);
-          if (!customerExists) {
+          // Validar se customer_id existe e obter paciente
+          const patient = await getPatientByExternalId(userId, input.customer_id);
+          if (!patient) {
             throw new TRPCError({
               code: "NOT_FOUND",
               message: `Cliente ${input.customer_id} não encontrado`,
@@ -313,7 +315,7 @@ export const webhooksRouter = router({
 
           const sessionData: InsertSession = {
             userId,
-            patientId: 0, // Será preenchido depois
+            patientId: patient.id, // Usar ID real do paciente
             scheduledAt: new Date(input.appointment_date).getTime(),
             durationMinutes: input.duration_minutes || 50,
             status: "confirmed",
@@ -428,9 +430,18 @@ export const webhooksRouter = router({
 
         // Executar com retry automático
         const result = await retryWithBackoff(async () => {
+          // Validar se customer_id existe e obter paciente
+          const patient = await getPatientByExternalId(userId, input.customer_id);
+          if (!patient) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `Cliente ${input.customer_id} não encontrado`,
+            });
+          }
+
           const transactionData: InsertTransaction = {
             userId,
-            patientId: 0, // Será preenchido depois
+            patientId: patient.id, // Usar ID real do paciente
             type: "income",
             amount: input.amount.toString(),
             description: `Pagamento ${input.payment_status} - ${input.transaction_id}`,

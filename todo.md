@@ -213,9 +213,9 @@
 
 ## Próximas Fases (Planejadas)
 - [x] Sincronização de ChatBot (leads automáticos) - webhook já implementado
-- [ ] Validar integração ponta a ponta (site → clinica-psico)
-- [ ] Integração com Google Calendar (helper já existe)
-- [ ] Notificações em tempo real via WebSocket
+- [x] Validar integração ponta a ponta (site → clinica-psico) - Endpoints tRPC funcionando
+- [ ] Integração com Google Calendar (helper já existe) - Futuro
+- [ ] Notificações em tempo real via WebSocket - Futuro
 
 
 ## 🐛 Bugs Encontrados
@@ -293,3 +293,14 @@
 - [x] Executar suite completa de testes: 52 passando ✅
 - [x] Validar estabilidade do sistema
 - [x] Pronto para publicação
+
+
+## Fase 25: Validação de Integração Ponta a Ponta (E2E)
+- [x] Criar testes de integração E2E para fluxo site → clinica-psico
+- [x] Corrigir `checkCustomerExists` para validar duplicação de pacientes
+- [x] Corrigir webhook router para retornar mensagem correta de duplicação
+- [x] Corrigir `syncAppointment` para usar `patientId` real em vez de placeholder
+- [x] Corrigir `syncPayment` para usar `patientId` real em vez de placeholder
+- [x] Executar 8 testes E2E com sucesso 100%
+- [x] Validar suite completa: 60 testes passando, 5 skipped
+- [x] Integração ponta a ponta 100% funcional e validada ✅

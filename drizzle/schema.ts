@@ -35,7 +35,7 @@ export const patients = mysqlTable("patients", {
   email: varchar("email", { length: 320 }),
   phone: varchar("phone", { length: 30 }),
   birthDate: varchar("birthDate", { length: 10 }),
-  cpf: varchar("cpf", { length: 14 }),
+  cpf: varchar("cpf", { length: 500 }), // Aumentado para armazenar CPF criptografado
   address: text("address"),
   emergencyContact: varchar("emergencyContact", { length: 255 }),
   emergencyPhone: varchar("emergencyPhone", { length: 30 }),

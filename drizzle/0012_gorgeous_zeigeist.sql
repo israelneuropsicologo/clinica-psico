@@ -1,0 +1,1 @@
+ALTER TABLE `patients` MODIFY COLUMN `cpf` varchar(500);

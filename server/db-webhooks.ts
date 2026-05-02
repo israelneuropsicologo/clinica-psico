@@ -125,15 +125,14 @@ export async function checkCustomerExists(userId: number, externalCustomerId: st
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  const { patients } = await import("../drizzle/schema");
   const result = await db
     .select()
-    .from(webhookLogs)
+    .from(patients)
     .where(
       and(
-        eq(webhookLogs.userId, userId),
-        eq(webhookLogs.webhookType, "patient"),
-        eq(webhookLogs.externalId, externalCustomerId),
-        eq(webhookLogs.status, "success")
+        eq(patients.userId, userId),
+        eq(patients.externalCustomerId, externalCustomerId)
       )
     )
     .limit(1);
