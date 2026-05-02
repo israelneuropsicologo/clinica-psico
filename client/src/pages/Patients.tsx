@@ -213,7 +213,7 @@ function CreatePatientDialog({
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Novo Paciente</DialogTitle>

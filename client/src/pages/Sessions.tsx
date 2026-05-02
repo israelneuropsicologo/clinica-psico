@@ -215,7 +215,7 @@ function CreateSessionDialog({
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Agendar Sessão</DialogTitle>

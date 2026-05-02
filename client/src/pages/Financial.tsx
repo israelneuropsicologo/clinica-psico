@@ -402,7 +402,7 @@ function CreateTransactionDialog({
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Nova Transação</DialogTitle>
