@@ -36,6 +36,7 @@ export default function Patients() {
   });
 
   const generatePDFMutation = trpc.reports.generatePatientPDF.useMutation();
+  const deleteTestDataMutation = trpc.patients.deleteTestData.useMutation();
 
   const handleExportPDF = async () => {
     const result = await generatePDFMutation.mutateAsync({
@@ -60,6 +61,26 @@ export default function Patients() {
               label="Exportar PDF"
               onExportPDF={handleExportPDF}
             />
+            <Button 
+              onClick={() => {
+                if (confirm('Tem certeza que deseja deletar todos os dados de teste?')) {
+                  deleteTestDataMutation.mutate(undefined, {
+                    onSuccess: () => {
+                      toast.success('Dados de teste deletados com sucesso');
+                      refetch();
+                    },
+                    onError: (error) => {
+                      toast.error('Erro ao deletar dados de teste');
+                    },
+                  });
+                }
+              }}
+              variant="outline"
+              className="gap-2"
+              disabled={deleteTestDataMutation.isPending}
+            >
+              Limpar Dados de Teste
+            </Button>
             <Button onClick={() => setShowCreate(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               Novo Paciente

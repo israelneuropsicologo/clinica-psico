@@ -147,6 +147,37 @@ const patientsRouter = router({
       await deletePatient(input.id, ctx.user.id);
       return { success: true };
     }),
+
+  deleteTestData: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const db = getDb();
+      const testPatterns = [
+        'Appointment Test',
+        'Duplicate Test',
+        'Joao E2E Test',
+        'Pending Payment Test',
+        'Test Patient',
+        'E2E Test',
+      ];
+      
+      let deletedCount = 0;
+      for (const pattern of testPatterns) {
+        const testPatients = await db.query.patients.findMany({
+          where: (patients, { and, eq, like }) =>
+            and(
+              eq(patients.userId, ctx.user.id),
+              like(patients.name, `%${pattern}%`)
+            ),
+        });
+        
+        for (const patient of testPatients) {
+          await deletePatient(patient.id, ctx.user.id);
+          deletedCount++;
+        }
+      }
+      
+      return { success: true, deletedCount };
+    }),
 });
 
 // ─── Sessions Router ────────────────────────────────────────────────────────
