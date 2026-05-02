@@ -263,3 +263,13 @@
 **Features Implementadas:** 7 principais
 **Linhas de Código:** ~5000+ linhas de código e testes
 **Status:** ✅ PRONTO PARA DEPLOY
+
+
+## Fase 22: Correção de Erro SQL na Inserção de Pacientes
+- [x] Investigar erro de inserção com nomes de colunas incorretos - CAUSA: Migrações não aplicadas
+- [x] Aplicar migrações SQL pendentes (0007, 0008)
+- [x] Validar campos obrigatórios (userId, name, email)
+- [x] Permitir externalCustomerId como null para cadastros manuais
+- [x] Testar inserção de paciente manual - SUCESSO (ID 60001)
+- [x] Reiniciar servidor para refletir mudanças
+- [ ] Testar integração com ChatBot (externalCustomerId preenchido)
