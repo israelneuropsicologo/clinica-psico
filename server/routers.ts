@@ -17,7 +17,6 @@ import {
   getPatientById,
   getPatientCount,
   getPatients,
-  getPatientsShared,
   getPatientByIdShared,
   getSessionById,
   getSessions,

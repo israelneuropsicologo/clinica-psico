@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, like, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, like, lte, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   ClinicalNote,
@@ -386,14 +386,21 @@ export async function getLinkedUserIds(userId: number): Promise<number[]> {
   const db = await getDb();
   if (!db) return [userId];
   
-  // Buscar usuários vinculados
-  const links = await db
+  // Buscar onde este usuário é primary
+  const primaryLinks = await db
     .select({ linkedUserId: userLinks.linkedUserId })
     .from(userLinks)
     .where(eq(userLinks.primaryUserId, userId));
   
+  // Buscar onde este usuário é linked (vinculado por outro)
+  const linkedByOthers = await db
+    .select({ primaryUserId: userLinks.primaryUserId })
+    .from(userLinks)
+    .where(eq(userLinks.linkedUserId, userId));
+  
   // Retornar o usuário original + todos os vinculados
-  return [userId, ...links.map(l => l.linkedUserId)];
+  const allLinked = [userId, ...primaryLinks.map(l => l.linkedUserId), ...linkedByOthers.map(l => l.primaryUserId)];
+  return Array.from(new Set(allLinked)); // Remove duplicatas
 }
 
 export async function getPatientsShared(userId: number, search?: string, status?: string): Promise<Patient[]> {
@@ -403,7 +410,7 @@ export async function getPatientsShared(userId: number, search?: string, status?
   // Buscar IDs de todos os usuários vinculados
   const linkedUserIds = await getLinkedUserIds(userId);
   
-  const conditions = [sql`${patients.userId} IN (${sql.join(linkedUserIds)})`];
+  const conditions = [inArray(patients.userId, linkedUserIds)];
   
   if (status && status !== "all") {
     conditions.push(eq(patients.status, status as Patient["status"]));
@@ -455,4 +462,99 @@ export async function getSessionsShared(userId: number, patientId?: number, stat
   }
   
   return db.select().from(sessions).where(and(...conditions)).orderBy(desc(sessions.scheduledAt));
+}
+
+// ─── Shared Patient Count (para sincronização) ──────────────────────────────
+export async function getPatientCountShared(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const linkedUserIds = await getLinkedUserIds(userId);
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(patients)
+    .where(and(inArray(patients.userId, linkedUserIds), eq(patients.status, "active")));
+  return Number(result[0]?.count ?? 0);
+}
+
+// ─── Shared Sessions This Month (para sincronização) ────────────────────────
+export async function getSessionsThisMonthShared(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const linkedUserIds = await getLinkedUserIds(userId);
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getTime();
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(sessions)
+    .where(
+      and(
+        inArray(sessions.userId, linkedUserIds),
+        gte(sessions.scheduledAt, startOfMonth),
+        lte(sessions.scheduledAt, endOfMonth)
+      )
+    );
+  return Number(result[0]?.count ?? 0);
+}
+
+// ─── Shared Monthly Revenue (para sincronização) ──────────────────────────
+export async function getMonthlyRevenueShared(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const linkedUserIds = await getLinkedUserIds(userId);
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getTime();
+  const result = await db
+    .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
+    .from(transactions)
+    .where(
+      and(
+        inArray(transactions.userId, linkedUserIds),
+        eq(transactions.type, "income"),
+        eq(transactions.status, "paid"),
+        gte(transactions.paidAt, startOfMonth),
+        lte(transactions.paidAt, endOfMonth)
+      )
+    );
+  return Number(result[0]?.total ?? 0);
+}
+
+// ─── Shared Overdue Sessions (para sincronização) ──────────────────────────
+export async function getOverdueSessionsShared(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const linkedUserIds = await getLinkedUserIds(userId);
+  const now = Date.now();
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(sessions)
+    .where(
+      and(
+        inArray(sessions.userId, linkedUserIds),
+        lte(sessions.scheduledAt, now),
+        eq(sessions.status, "scheduled")
+      )
+    );
+  return Number(result[0]?.count ?? 0);
+}
+
+// ─── Shared Upcoming Sessions (para sincronização) ────────────────────────
+export async function getUpcomingSessionsShared(userId: number, limit: number = 5): Promise<Session[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const linkedUserIds = await getLinkedUserIds(userId);
+  const now = Date.now();
+  return db
+    .select()
+    .from(sessions)
+    .where(
+      and(
+        inArray(sessions.userId, linkedUserIds),
+        gte(sessions.scheduledAt, now),
+        eq(sessions.status, "scheduled")
+      )
+    )
+    .orderBy(sessions.scheduledAt)
+    .limit(limit);
 }

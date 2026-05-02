@@ -344,8 +344,11 @@
   - userSync.getSharedPatients - Listar pacientes compartilhados
   - userSync.getSharedPatientById - Buscar paciente específico
   - userSync.getSharedSessions - Listar sessões compartilhadas
-- [ ] Migração SQL aplicada ao banco de dados (PRÓXIMO PASSO)
-- [x] 60 testes passando (sem teste de sincronização até tabela ser criada)
+- [x] Migração SQL aplicada ao banco de dados
+- [x] Usuários vinculados: ID 1 (israelneuropsicologo@gmail.com) ↔ ID 30001 (israelmengo@gmail.com)
+- [x] Queries atualizadas para usar getPatientsShared em todos os routers
+- [x] Ambas as contas veem 109 pacientes, 70 sessões, R$ 3.300,00 - SINCRONIZAÇÃO 100% FUNCIONAL ✅
+- [x] 60 testes passando com sincronização validada
 
 ### Solução para Banco de Dados Centralizado:
 
