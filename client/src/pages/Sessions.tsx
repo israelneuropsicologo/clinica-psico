@@ -204,7 +204,7 @@ export default function Sessions() {
                         className="min-w-0 cursor-pointer"
                         onClick={() => navigate(`/sessions/${session.id}`)}
                       >
-                        <p className="font-semibold text-sm">Paciente #{session.patientId}</p>
+                        <p className="font-semibold text-sm">{session.patient?.name || `Paciente #${session.patientId}`}</p>
                         <div className="flex items-center gap-3 mt-0.5 flex-wrap text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <CalendarDays className="h-3 w-3" />

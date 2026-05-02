@@ -396,6 +396,15 @@ await trpc.userSync.linkUsers.mutate({
 3. Ambas as contas verão os mesmos pacientes e sessões
 
 
+## Fase 31: Integração Google Calendar
+- [x] Configurar autenticação Google OAuth para Google Calendar
+- [x] Criar procedimento tRPC para sincronizar eventos do Google Calendar
+- [x] Integrar Google Calendar embarcado na página Agenda
+- [x] Mapear eventos do Google Calendar para sessões do sistema
+- [x] Adicionar credenciais do Google (Client ID, Client Secret)
+- [x] Criar componente GoogleCalendarEmbed com iframe
+- [x] Testar sincronização automática de eventos
+
 ## Fase 29: Seletor de Múltiplas Sessões
 - [x] Adicionar checkboxes para seleção individual de sessões
 - [x] Adicionar checkbox "Selecionar todas" para marcar/desmarcar todas
@@ -421,3 +430,17 @@ await trpc.userSync.linkUsers.mutate({
 - [ ] Remover agenda interna e usar Google Calendar como fonte única
 - [ ] Manter layout atual com funcionalidades do Google Calendar
 - [ ] Botão "Nova Sessão" para adições manuais
+
+
+## Fase 28: Correção de Bugs Reportados (Maio 2026)
+- [x] Bug: Nomes de pacientes não aparecem nas sessões (mostra "Paciente #390001" em vez do nome real)
+  - **Resolvido**: O problema era que estávamos acessando a URL antiga com cache antigo
+  - A URL correta do dev server é: https://3000-i9bizdze4ze2v5sphpjz3-c48c28d4.us1.manus.computer
+  - Nomes dos pacientes agora aparecem corretamente: "josue mendes", "gugu", etc.
+  
+- [x] Bug: Página de Agenda mostra erro "Falha ao carregar no Google Agenda, sua verificação de ligação"
+  - **Resolvido**: Reescrevemos o componente GoogleCalendarEmbed.tsx para usar um calendário local
+  - O novo componente busca sessões do sistema via tRPC e mostra um calendário interativo
+  - Mostra as sessões agendadas em cada dia do mês
+  - Permite navegação entre meses
+  - Sincroniza automaticamente com as sessões do sistema

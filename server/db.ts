@@ -12,6 +12,7 @@ import {
   Patient,
   PatientDocument,
   Session,
+  SessionWithPatient,
   Transaction,
   User,
   UserLink,
@@ -152,7 +153,7 @@ export async function getPatientCount(userId: number): Promise<number> {
 export async function getSessions(
   userId: number,
   opts?: { patientId?: number; status?: string; isPaid?: string; from?: number; to?: number }
-): Promise<Session[]> {
+): Promise<SessionWithPatient[]> {
   const db = await getDb();
   if (!db) return [];
   const conditions = [eq(sessions.userId, userId)];
@@ -165,7 +166,18 @@ export async function getSessions(
   }
   if (opts?.from) conditions.push(gte(sessions.scheduledAt, opts.from));
   if (opts?.to) conditions.push(lte(sessions.scheduledAt, opts.to));
-  return db.select().from(sessions).where(and(...conditions)).orderBy(desc(sessions.scheduledAt));
+  
+  const result = await db
+    .select()
+    .from(sessions)
+    .leftJoin(patients, eq(sessions.patientId, patients.id))
+    .where(and(...conditions))
+    .orderBy(desc(sessions.scheduledAt));
+  
+  return result.map(row => ({
+    ...row.sessions,
+    patient: row.patients || undefined,
+  }));
 }
 
 export async function getSessionById(id: number, userId: number): Promise<Session | undefined> {

@@ -280,3 +280,6 @@ export type InsertUserLink = typeof userLinks.$inferInsert;
 // paymentDate: timestamp (data do pagamento efetivo)
 // dueDate: timestamp (data de vencimento)
 // status: enum (pending, paid, overdue, cancelled, refunded)
+
+// ─── Session with Patient (for API responses) ──────────────────────────────
+export type SessionWithPatient = Session & { patient?: Patient };
