@@ -725,15 +725,19 @@ export const webhooksRouter = router({
           });
         }
 
+        // Mapear session_type para modality
+        const modality = input.session_type === "online" ? "online" : "in_person";
+
         // Criar sessão
         const sessionData: InsertSession = {
           userId,
           patientId,
-          scheduledAt: appointmentDateTime,
-          sessionType: input.session_type,
-          status: "agendada",
+          scheduledAt: appointmentDateTime.getTime(), // Converter para timestamp em ms
+          status: "confirmed",
+          sessionType: "individual",
+          modality: modality as "in_person" | "online",
           notes: input.notes || `Agendamento via ChatBot - ${input.service_type}`,
-          paymentStatus: "pendente",
+          isPaid: "pending",
           createdAt: new Date(),
           updatedAt: new Date(),
         };

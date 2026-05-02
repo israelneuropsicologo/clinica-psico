@@ -477,3 +477,11 @@ await trpc.userSync.linkUsers.mutate({
   - Rate limiting para proteção contra abuso
   - Log de webhook para auditoria
   - Notificação ao proprietário quando novo agendamento é criado
+
+- [x] Testes do webhook ChatBot
+  - Criar suite de testes Vitest para sincronização de agendamentos
+  - Testar criação de sessão com dados corretos
+  - Testar sincronização de paciente (lead → customer)
+  - Testar atualização de paciente existente
+  - Testar sessões online e presenciais
+  - 5 testes passando (68 testes totais)
