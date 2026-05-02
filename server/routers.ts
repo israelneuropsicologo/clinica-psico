@@ -83,10 +83,29 @@ const patientsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const id = await createPatient({
-        ...input,
         userId: ctx.user.id,
+        name: input.name,
         email: input.email || null,
+        phone: input.phone || null,
+        birthDate: input.birthDate || null,
+        cpf: input.cpf || null,
+        address: input.address || null,
+        emergencyContact: input.emergencyContact || null,
+        emergencyPhone: input.emergencyPhone || null,
+        occupation: input.occupation || null,
+        referredBy: input.referredBy || null,
+        mainComplaint: input.mainComplaint || null,
+        medicalHistory: input.medicalHistory || null,
+        medications: input.medications || null,
+        notes: input.notes || null,
+        status: "active",
+        leadSource: "manual",
+        leadStatus: "customer",
+        interactionCount: 1,
+        lastInteractionAt: new Date(),
         sessionValue: input.sessionValue || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
       return { id };
     }),

@@ -163,9 +163,22 @@
 - [x] Criptografar CPF na sincronização
 - [x] Adicionar leadSource e leadStatus aos pacientes sincronizados
 
+## Fase 15: Webhooks Públicos e Autenticação Externa
+- [x] Mudar webhooks para publicProcedure (syncPatient, syncAppointment, syncPayment)
+- [x] Implementar autenticação por Bearer token nos webhooks
+- [x] Adicionar fallback para OAuth (chamadas internas)
+- [x] Rate limiting e HMAC validation funcionando
+- [x] Retry automático com backoff exponencial
+- [x] 36 testes Vitest passando
+
 ## Próximas Fases (Planejadas)
+- [ ] Testar integração ponta a ponta (site → clinica-psico)
 - [ ] Sincronização de ChatBot (leads automáticos)
 - [ ] Dashboard avançado com gráficos de conversão
 - [ ] Gerador de relatórios PDF com filtros
 - [ ] Integração com Google Calendar
 - [ ] Notificações em tempo real via WebSocket
+
+
+## 🐛 Bugs Encontrados
+- [x] Erro SQL na inserção de pacientes - campos com nomes incorretos (userld, externalCustomerld) - CORRIGIDO
