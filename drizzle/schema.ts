@@ -30,6 +30,7 @@ export type InsertUser = typeof users.$inferInsert;
 export const patients = mysqlTable("patients", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(), // FK → users.id (psicólogo responsável)
+  externalCustomerId: varchar("externalCustomerId", { length: 255 }).unique(), // ID do cliente no site mãe
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }),
   phone: varchar("phone", { length: 30 }),
@@ -45,6 +46,10 @@ export const patients = mysqlTable("patients", {
   medications: text("medications"),
   notes: text("notes"),
   status: mysqlEnum("status", ["active", "inactive", "discharged"]).default("active").notNull(),
+  leadSource: mysqlEnum("leadSource", ["chatbot", "direct_booking", "manual", "import"]).default("manual").notNull(),
+  leadStatus: mysqlEnum("leadStatus", ["lead", "prospect", "customer", "inactive"]).default("lead").notNull(),
+  interactionCount: int("interactionCount").default(0).notNull(),
+  lastInteractionAt: timestamp("lastInteractionAt"),
   sessionValue: decimal("sessionValue", { precision: 10, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -223,3 +228,44 @@ export const lgpdAuditLogs = mysqlTable("lgpd_audit_logs", {
 
 export type LGPDAuditLog = typeof lgpdAuditLogs.$inferSelect;
 export type InsertLGPDAuditLog = typeof lgpdAuditLogs.$inferInsert;
+
+// ─── ChatBot Interactions (Interações do ChatBot) ──────────────────────────────
+export const chatbotInteractions = mysqlTable("chatbot_interactions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id (psicólogo responsável)
+  customerId: varchar("customerId", { length: 255 }).notNull(), // ID do cliente no site mãe
+  patientId: int("patientId"), // FK → patients.id (pode ser null se lead ainda não foi criado)
+  message: text("message").notNull(), // Mensagem do usuário
+  response: text("response"), // Resposta do ChatBot
+  sentiment: varchar("sentiment", { length: 20 }), // positive, neutral, negative
+  topic: varchar("topic", { length: 100 }), // Tópico da conversa (agendamento, dúvida, etc)
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ChatbotInteraction = typeof chatbotInteractions.$inferSelect;
+export type InsertChatbotInteraction = typeof chatbotInteractions.$inferInsert;
+
+// ─── Conversion Funnel (Funil de Conversão) ────────────────────────────────────
+export const conversionFunnel = mysqlTable("conversion_funnel", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id
+  patientId: int("patientId").notNull(), // FK → patients.id
+  stage: mysqlEnum("stage", ["lead", "prospect", "customer", "inactive"]).notNull(),
+  previousStage: varchar("previousStage", { length: 50 }),
+  source: varchar("source", { length: 50 }).notNull(), // chatbot, direct_booking, manual
+  conversionTime: int("conversionTime"), // Tempo em ms desde o primeiro contato até esta etapa
+  notes: text("notes"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ConversionFunnel = typeof conversionFunnel.$inferSelect;
+export type InsertConversionFunnel = typeof conversionFunnel.$inferInsert;
+
+// ─── Expandir Transactions com campos financeiros detalhados ──────────────────
+// Nota: A tabela transactions já existe, mas vamos adicionar campos via migration
+// paymentMethod: enum (credit_card, debit_card, pix, bank_transfer, cash, other)
+// paymentDate: timestamp (data do pagamento efetivo)
+// dueDate: timestamp (data de vencimento)
+// status: enum (pending, paid, overdue, cancelled, refunded)

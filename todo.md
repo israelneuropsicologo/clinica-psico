@@ -185,3 +185,58 @@
 - [x] Testes para tratamento de erros e retry
 - [x] Testes para criptografia (encryptCPF, decryptCPF, maskCPF)
 - [x] Testes para LGPD logging (eventos, filtros, exportação)
+
+
+## Fase 14: Sincronização de ChatBot e Dashboard Avançado
+### Schema Expandido
+- [ ] Adicionar coluna `leadSource` em `patients` (enum: "chatbot" | "direct_booking" | "manual" | "import")
+- [ ] Adicionar coluna `leadStatus` em `patients` (enum: "lead" | "prospect" | "customer" | "inactive")
+- [ ] Adicionar coluna `interactionCount` em `patients` (número de interações no ChatBot)
+- [ ] Adicionar coluna `lastInteractionAt` em `patients` (timestamp da última interação)
+- [ ] Expandir `transactions` com campos: `paymentMethod`, `paymentDate`, `dueDate`, `status` (pending/paid/overdue/cancelled)
+- [ ] Criar tabela `chatbot_interactions` (id, userId, customerId, message, response, timestamp)
+- [ ] Criar tabela `conversion_funnel` (id, userId, leadId, stage, timestamp) para rastrear conversão
+
+### Webhooks para ChatBot
+- [ ] Router `webhooks.syncChatbotLead` para receber leads do ChatBot
+- [ ] Validar dados mínimos: nome, email ou telefone
+- [ ] Criar paciente com `leadSource: "chatbot"` e `leadStatus: "lead"`
+- [ ] Registrar interação em `chatbot_interactions`
+- [ ] Atualizar `interactionCount` e `lastInteractionAt`
+
+### Dashboard Avançado
+- [ ] Card: Total de Leads (ChatBot + Direct)
+- [ ] Card: Taxa de Conversão (Leads → Clientes)
+- [ ] Card: Clientes Ativos vs Inativos
+- [ ] Gráfico: Origem dos Leads (ChatBot vs Agendamento Direto)
+- [ ] Gráfico: Funil de Conversão (Lead → Prospect → Customer)
+- [ ] Gráfico: Receita por Origem
+- [ ] Gráfico: Evolução de Clientes (últimos 6 meses)
+- [ ] Tabela: Últimos Leads (com status, origem, data)
+- [ ] Filtros: Período, Origem, Status
+
+### Módulo Financeiro Expandido
+- [ ] Visualizar status de pagamento detalhado (pendente/pago/atrasado/cancelado)
+- [ ] Histórico de pagamentos por cliente
+- [ ] Gráfico de inadimplência por período
+- [ ] Relatório de fluxo de caixa
+- [ ] Previsão de receita (próximos 30 dias)
+
+### Gerador de Relatórios PDF
+- [ ] Criar página `/reports` com interface de geração
+- [ ] Filtros: Período (data início/fim), Origem (ChatBot/Direct/Todos), Status (Lead/Customer/Todos)
+- [ ] Botão "Gerar Relatório PDF"
+- [ ] Relatório deve incluir:
+  - [ ] Capa com nome da clínica, data de geração
+  - [ ] Resumo executivo (total clientes, receita, taxa conversão)
+  - [ ] Tabela de clientes com: nome, origem, status, data, receita
+  - [ ] Gráficos: origem, conversão, receita por período
+  - [ ] Detalhes financeiros: receitas, despesas, saldo
+  - [ ] Análise de inadimplência
+  - [ ] Rodapé com assinatura digital
+
+### Testes Vitest
+- [ ] Testes para sincronização de leads do ChatBot
+- [ ] Testes para cálculo de taxa de conversão
+- [ ] Testes para geração de relatório PDF
+- [ ] Testes para filtros de relatório

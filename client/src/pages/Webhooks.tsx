@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Loader2, Copy, Check, AlertCircle, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
@@ -14,10 +14,24 @@ export default function Webhooks() {
   const { user } = useAuth();
   const [copiedToken, setCopiedToken] = useState(false);
   const [manualSyncLoading, setManualSyncLoading] = useState(false);
+  const [origin, setOrigin] = useState("");
+
+  // Evitar problema de hidratação: ler window.location.origin apenas no useEffect
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   const { data: status, isLoading: statusLoading } = trpc.webhooks.getStatus.useQuery();
   const { data: logs, isLoading: logsLoading } = trpc.webhooks.getLogs.useQuery({ limit: 20 });
-  const generateTokenMutation = trpc.webhooks.generateToken.useMutation();
+  const generateTokenMutation = trpc.webhooks.generateToken.useMutation({
+    onError: (error) => {
+      if (error.data?.code === "UNAUTHORIZED") {
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+      } else {
+        toast.error("Erro ao gerar token: " + (error.message || "Erro desconhecido"));
+      }
+    },
+  });
 
   // Mock data para gráfico de sincronizações por hora
   const syncChartData = [
@@ -38,7 +52,7 @@ export default function Webhooks() {
       toast.success("Token gerado com sucesso!");
       setCopiedToken(false);
     } catch (error) {
-      toast.error("Erro ao gerar token");
+      // Erro já tratado em onError
     }
   };
 
@@ -262,7 +276,7 @@ export default function Webhooks() {
                 <label className="text-sm font-medium">Endpoint: Sincronizar Paciente</label>
                 <Input
                   readOnly
-                  value={`${window.location.origin}/api/trpc/webhooks.syncPatient`}
+                  value={origin ? `${origin}/api/trpc/webhooks.syncPatient` : "Carregando..."}
                   className="mt-1"
                 />
               </div>
@@ -271,7 +285,7 @@ export default function Webhooks() {
                 <label className="text-sm font-medium">Endpoint: Sincronizar Agendamento</label>
                 <Input
                   readOnly
-                  value={`${window.location.origin}/api/trpc/webhooks.syncAppointment`}
+                  value={origin ? `${origin}/api/trpc/webhooks.syncAppointment` : "Carregando..."}
                   className="mt-1"
                 />
               </div>
@@ -280,7 +294,7 @@ export default function Webhooks() {
                 <label className="text-sm font-medium">Endpoint: Sincronizar Pagamento</label>
                 <Input
                   readOnly
-                  value={`${window.location.origin}/api/trpc/webhooks.syncPayment`}
+                  value={origin ? `${origin}/api/trpc/webhooks.syncPayment` : "Carregando..."}
                   className="mt-1"
                 />
               </div>

@@ -53,7 +53,8 @@ const menuItems = [
 ];
 
 const externalLinks = [
-  { icon: ExternalLink, label: "Painel Administrativo", url: "https://psicologo.manus.space" },
+  { icon: ExternalLink, label: "Backoffice do Site", url: "https://psicologo.manus.space/admin/configuracoes" },
+  { icon: ExternalLink, label: "Site Profissional", url: "https://psicologo.manus.space" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
