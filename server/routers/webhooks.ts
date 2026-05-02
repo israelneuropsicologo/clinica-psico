@@ -6,6 +6,7 @@ import {
   getWebhookLogs,
   checkCustomerExists,
   validateApiToken,
+  getPatientByExternalId,
 } from "../db-webhooks";
 import { createPatient, updatePatient, createSession, createTransaction } from "../db";
 import { notifyOwner } from "../_core/notification";
@@ -517,6 +518,107 @@ export const webhooksRouter = router({
       } catch (error) {
         throw error;
       }
+    }),
+
+  /**
+
+  /**
+   * Sincronizar lead do ChatBot
+   */
+  syncChatbotLead: publicProcedure
+    .input(
+      z.object({
+        token: z.string().optional(),
+        customer_id: z.string(),
+        name: z.string(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        message: z.string(),
+        sentiment: z.enum(["positive", "neutral", "negative"]).optional(),
+        topic: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      let userId: number | null = null;
+
+      // Autenticação por Bearer token ou OAuth
+      if (input.token) {
+        const apiToken = await validateApiToken(input.token);
+        if (!apiToken) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Token inválido ou expirado",
+          });
+        }
+        userId = apiToken.userId;
+      } else if (ctx.user) {
+        userId = ctx.user.id;
+      } else {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Token ou autenticação OAuth requerida",
+        });
+      }
+
+      // Verificar se o cliente já existe
+      const existingPatient = await getPatientByExternalId(userId, input.customer_id);
+
+      let patientId: number;
+      let isNew = false;
+
+      if (existingPatient) {
+        // Atualizar paciente existente
+        patientId = existingPatient.id;
+        await updatePatient(patientId, userId, {
+          interactionCount: (existingPatient.interactionCount || 0) + 1,
+          lastInteractionAt: new Date(),
+          leadStatus: "prospect",
+        });
+      } else {
+        // Criar novo paciente como lead do ChatBot
+        isNew = true;
+        patientId = await createPatient({
+          userId,
+          externalCustomerId: input.customer_id,
+          name: input.name,
+          email: input.email || null,
+          phone: input.phone || null,
+          mainComplaint: input.message,
+          status: "active",
+          leadSource: "chatbot",
+          leadStatus: "lead",
+          interactionCount: 1,
+          lastInteractionAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+
+      // Log LGPD
+      if (isNew) {
+        logLGPDEvent({
+          userId,
+          eventType: LGPDEventType.PATIENT_CREATED,
+          resourceType: "patient",
+          resourceId: patientId,
+          action: "CREATE",
+          dataClassification: "CONFIDENTIAL",
+          description: `Lead do ChatBot: ${input.name} (${input.customer_id})`,
+          status: "SUCCESS",
+        });
+      }
+
+      // Log de webhook
+      await logWebhook(userId, "chatbot_lead", "success", {
+        customer_id: input.customer_id,
+        patient_id: patientId,
+      }).catch(() => {});
+
+      return {
+        success: true,
+        patientId,
+        message: existingPatient ? "Lead atualizado com sucesso" : "Lead criado com sucesso",
+      };
     }),
 
   /**

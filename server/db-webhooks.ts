@@ -140,3 +140,25 @@ export async function checkCustomerExists(userId: number, externalCustomerId: st
 
   return result.length > 0;
 }
+
+/**
+ * Obter paciente pelo externalCustomerId
+ */
+export async function getPatientByExternalId(userId: number, externalCustomerId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { patients } = await import("../drizzle/schema");
+  const result = await db
+    .select()
+    .from(patients)
+    .where(
+      and(
+        eq(patients.userId, userId),
+        eq(patients.externalCustomerId, externalCustomerId)
+      )
+    )
+    .limit(1);
+
+  return result[0] || null;
+}
