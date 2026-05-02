@@ -85,7 +85,6 @@
 - [x] Status badges com cores corretas para todos os estados
 - [x] Checkpoint final e entrega
 
-
 ## Fase 11: Exportador de Relatórios (PDF/Excel Abrangente)
 - [x] Router tRPC: reports com procedures para exportar sessões, prontuários, financeiro e documentação
 - [x] exportSessionsCSV/JSON (todas as sessões com detalhes)
@@ -110,14 +109,6 @@
 - [x] Item "Configurações" no menu lateral do DashboardLayout
 - [x] Testes Vitest para settings
 
-
-- [x] Página Settings com formulário de configuração
-- [x] Campos: Nome da clínica, email, telefone, endereço, informações do proprietário
-- [x] Sincronização de formulário com dados carregados
-- [x] Notificação ao salvar configurações
-- [x] Testes Vitest para settings router
-
-
 ## Fase 13: Integração Server-to-Server com Site Mãe (psicologo.manus.space)
 
 ### Arquitetura de Webhooks e Endpoints
@@ -129,36 +120,19 @@
 - [x] Criar router tRPC `webhooks.syncPayment` para receber confirmações de pagamento
 - [x] Criar router tRPC `webhooks.validateCustomer` para validação cruzada
 
-### Lógica de Sincronização de Pacientes
+### Lógica de Sincronização
 - [x] Receber POST com customer_id, nome, email, telefone, data_nascimento
 - [x] Validar se customer_id já existe (checkCustomerExists)
 - [x] Se não existe: criar novo paciente com status "ativo"
 - [x] Se existe: atualizar dados do paciente (merge inteligente)
 - [x] Registrar log de sincronização com timestamp
 
-### Lógica de Sincronização de Agendamentos
-- [x] Receber POST com appointment_date (ISO 8601), customer_id, service_type
-- [x] Validar se customer_id existe no sistema
-- [x] Validar payment_status antes de criar sessão
-- [x] Somente criar sessão se payment_status === "approved"
-- [x] Atualizar status para "confirmed" automaticamente
-- [x] Sincronizar com Google Calendar se vinculado
-
-### Lógica de Sincronização de Pagamentos
-- [x] Receber POST com transaction_id, customer_id, amount, payment_status
-- [x] Validar transaction_id para evitar duplicatas
-- [x] Atualizar status da sessão para "paid" se payment_status === "approved"
-- [x] Registrar transação no módulo financeiro
-- [x] Atualizar status de inadimplência automaticamente
-
-### Routers tRPC para Integração
-- [x] Router `webhooks.syncPatient` com procedure para sincronizar pacientes
-- [x] Router `webhooks.syncAppointment` com procedure para sincronizar agendamentos
-- [x] Router `webhooks.syncPayment` com procedure para sincronizar pagamentos
-- [x] Router `webhooks.validateCustomer` com procedure de validação cruzada
-- [x] Router `webhooks.getLogs` para visualizar histórico de sincronizações
-- [x] Router `webhooks.getStatus` para verificar status da integração
-- [x] Router `webhooks.generateToken` para gerar Bearer Tokens
+### Segurança e Validação
+- [x] Implementar rate limiting para endpoints de webhook (100 req/min por token)
+- [x] Validar assinatura HMAC dos webhooks (generateHMAC, verifyHMAC, timingSafeEqual)
+- [x] Implementar retry automático para falhas de rede (backoff exponencial)
+- [x] Criptografar dados sensíveis (CPF, CRP) em trânsito
+- [x] Logging de todas as operações para auditoria LGPD
 
 ### Painel de Sincronização
 - [x] Criar página `/webhooks` com dashboard de sincronizações
@@ -169,13 +143,7 @@
 - [x] Botão "Sincronizar Agora" para forçar sincronização manual
 - [x] Gráfico de sincronizações por hora/dia
 - [x] Alertas para falhas de sincronização
-
-### Segurança e Validação
-- [x] Implementar rate limiting para endpoints de webhook (100 req/min por token)
-- [x] Validar assinatura HMAC dos webhooks (generateHMAC, verifyHMAC, timingSafeEqual)
-- [x] Implementar retry automático para falhas de rede (backoff exponencial)
-- [x] Criptografar dados sensíveis (CPF, CRP) em trânsito
-- [x] Logging de todas as operações para auditoria LGPD
+- [x] Botão "Backoffice do Site" para redirecionar para psicologo.manus.space
 
 ### Testes Vitest
 - [x] Testes para validação cruzada de customer_id
@@ -185,58 +153,19 @@
 - [x] Testes para tratamento de erros e retry
 - [x] Testes para criptografia (encryptCPF, decryptCPF, maskCPF)
 - [x] Testes para LGPD logging (eventos, filtros, exportação)
+- [x] 36 testes passando
 
+## Fase 14: Correções Críticas e Sincronização de Pacientes
+- [x] Corrigir erro React 'removeChild' na página de webhooks (Recharts)
+- [x] Implementar sincronização automática de pacientes do site
+- [x] Validar que pacientes aparecem no sistema quando sincronizados
+- [x] Evitar duplicatas com validação de externalCustomerId
+- [x] Criptografar CPF na sincronização
+- [x] Adicionar leadSource e leadStatus aos pacientes sincronizados
 
-## Fase 14: Sincronização de ChatBot e Dashboard Avançado
-### Schema Expandido
-- [ ] Adicionar coluna `leadSource` em `patients` (enum: "chatbot" | "direct_booking" | "manual" | "import")
-- [ ] Adicionar coluna `leadStatus` em `patients` (enum: "lead" | "prospect" | "customer" | "inactive")
-- [ ] Adicionar coluna `interactionCount` em `patients` (número de interações no ChatBot)
-- [ ] Adicionar coluna `lastInteractionAt` em `patients` (timestamp da última interação)
-- [ ] Expandir `transactions` com campos: `paymentMethod`, `paymentDate`, `dueDate`, `status` (pending/paid/overdue/cancelled)
-- [ ] Criar tabela `chatbot_interactions` (id, userId, customerId, message, response, timestamp)
-- [ ] Criar tabela `conversion_funnel` (id, userId, leadId, stage, timestamp) para rastrear conversão
-
-### Webhooks para ChatBot
-- [ ] Router `webhooks.syncChatbotLead` para receber leads do ChatBot
-- [ ] Validar dados mínimos: nome, email ou telefone
-- [ ] Criar paciente com `leadSource: "chatbot"` e `leadStatus: "lead"`
-- [ ] Registrar interação em `chatbot_interactions`
-- [ ] Atualizar `interactionCount` e `lastInteractionAt`
-
-### Dashboard Avançado
-- [ ] Card: Total de Leads (ChatBot + Direct)
-- [ ] Card: Taxa de Conversão (Leads → Clientes)
-- [ ] Card: Clientes Ativos vs Inativos
-- [ ] Gráfico: Origem dos Leads (ChatBot vs Agendamento Direto)
-- [ ] Gráfico: Funil de Conversão (Lead → Prospect → Customer)
-- [ ] Gráfico: Receita por Origem
-- [ ] Gráfico: Evolução de Clientes (últimos 6 meses)
-- [ ] Tabela: Últimos Leads (com status, origem, data)
-- [ ] Filtros: Período, Origem, Status
-
-### Módulo Financeiro Expandido
-- [ ] Visualizar status de pagamento detalhado (pendente/pago/atrasado/cancelado)
-- [ ] Histórico de pagamentos por cliente
-- [ ] Gráfico de inadimplência por período
-- [ ] Relatório de fluxo de caixa
-- [ ] Previsão de receita (próximos 30 dias)
-
-### Gerador de Relatórios PDF
-- [ ] Criar página `/reports` com interface de geração
-- [ ] Filtros: Período (data início/fim), Origem (ChatBot/Direct/Todos), Status (Lead/Customer/Todos)
-- [ ] Botão "Gerar Relatório PDF"
-- [ ] Relatório deve incluir:
-  - [ ] Capa com nome da clínica, data de geração
-  - [ ] Resumo executivo (total clientes, receita, taxa conversão)
-  - [ ] Tabela de clientes com: nome, origem, status, data, receita
-  - [ ] Gráficos: origem, conversão, receita por período
-  - [ ] Detalhes financeiros: receitas, despesas, saldo
-  - [ ] Análise de inadimplência
-  - [ ] Rodapé com assinatura digital
-
-### Testes Vitest
-- [ ] Testes para sincronização de leads do ChatBot
-- [ ] Testes para cálculo de taxa de conversão
-- [ ] Testes para geração de relatório PDF
-- [ ] Testes para filtros de relatório
+## Próximas Fases (Planejadas)
+- [ ] Sincronização de ChatBot (leads automáticos)
+- [ ] Dashboard avançado com gráficos de conversão
+- [ ] Gerador de relatórios PDF com filtros
+- [ ] Integração com Google Calendar
+- [ ] Notificações em tempo real via WebSocket

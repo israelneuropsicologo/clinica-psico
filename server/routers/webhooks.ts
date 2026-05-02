@@ -111,40 +111,36 @@ export const webhooksRouter = router({
           // Validação cruzada: verificar se customer_id já existe
           const exists = await checkCustomerExists(ctx.user.id, input.customer_id);
 
+          if (exists) {
+            // Paciente já existe - não criar duplicata
+            return { success: true, message: "Paciente já existe" };
+          }
+
+          // Criptografar CPF se fornecido
+          const encryptedCPF = input.cpf ? encryptCPF(input.cpf) : undefined;
+
           const patientData: InsertPatient = {
             userId: ctx.user.id,
+            externalCustomerId: input.customer_id,
             name: input.name,
             email: input.email,
             phone: input.phone,
             birthDate: input.birth_date,
-            cpf: input.cpf,
+            cpf: encryptedCPF,
             address: input.address,
             occupation: input.occupation,
             mainComplaint: input.main_complaint,
             medicalHistory: input.medical_history,
             status: "active",
+            leadSource: "direct_booking",
+            leadStatus: "customer",
+            interactionCount: 1,
+            lastInteractionAt: new Date(),
             createdAt: new Date(),
             updatedAt: new Date(),
           };
 
-          if (exists) {
-            // Nota: checkCustomerExists verifica via webhook_logs, não via patients.externalCustomerId
-            // Para uma implementação mais robusta, seria necessário adicionar coluna externalCustomerId
-            // Por enquanto, apenas criar novo paciente se não existir
-            const newPatientData = {
-              ...patientData,
-              externalCustomerId: input.customer_id,
-            };
-            await createPatient(newPatientData);
-          } else {
-            // Adicionar externalCustomerId ao novo paciente
-            const newPatientData = {
-              ...patientData,
-              externalCustomerId: input.customer_id,
-            };
-            await createPatient(newPatientData);
-          }
-
+          await createPatient(patientData);
           return { success: true };
         });
 

@@ -172,25 +172,29 @@ export default function Webhooks() {
         ) : null}
 
         {/* Gráfico de Sincronizações */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sincronizações por Hora (Últimas 24h)</CardTitle>
-            <CardDescription>Visualização de sucesso e falhas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={syncChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hora" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="sucesso" fill="#10b981" name="Sucesso" />
-                <Bar dataKey="falha" fill="#ef4444" name="Falha" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {syncChartData && syncChartData.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Sincronizações por Hora (Últimas 24h)</CardTitle>
+              <CardDescription>Visualização de sucesso e falhas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div style={{ width: "100%", height: "300px" }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={syncChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="hora" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="sucesso" fill="#10b981" name="Sucesso" />
+                    <Bar dataKey="falha" fill="#ef4444" name="Falha" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Alertas de Falhas */}
         {status && status.failureCount > 0 && (
