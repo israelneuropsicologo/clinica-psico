@@ -22,7 +22,6 @@ import {
 import { useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
-import { useAutoSave } from "@/hooks/useAutoSave";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("pt-BR", {
@@ -334,41 +333,6 @@ function EditPatientDialog({
     onError: (e) => toast.error(e.message),
   });
 
-  // Autosave com sincronização em nuvem
-  const { status: autoSaveStatus } = useAutoSave(
-    form,
-    async (data) => {
-      // Não salvar se os dados não mudaram do paciente original
-      if (JSON.stringify(data) === JSON.stringify({
-        name: patient.name,
-        email: patient.email ?? "",
-        phone: patient.phone ?? "",
-        birthDate: patient.birthDate ?? "",
-        cpf: patient.cpf ?? "",
-        occupation: patient.occupation ?? "",
-        mainComplaint: patient.mainComplaint ?? "",
-        medicalHistory: patient.medicalHistory ?? "",
-        medications: patient.medications ?? "",
-        notes: patient.notes ?? "",
-        sessionValue: patient.sessionValue ?? "",
-        status: patient.status,
-      })) return;
-
-      // Salvar automaticamente
-      return new Promise((resolve, reject) => {
-        updateMutation.mutate({ id: patient.id, ...data }, {
-          onSuccess: () => resolve(),
-          onError: (e) => reject(e),
-        });
-      });
-    },
-    {
-      debounceMs: 2000,
-      storageKey: `patient-edit-${patient.id}`,
-      onError: (error) => toast.error(`Erro ao salvar: ${error.message}`),
-    }
-  );
-
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -379,12 +343,6 @@ function EditPatientDialog({
           <DialogTitle>Editar Paciente</DialogTitle>
         </DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); updateMutation.mutate({ id: patient.id, ...form }); }} className="space-y-4 pt-2">
-          {/* Indicador de autosave */}
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
-            {autoSaveStatus === "saving" && <span>💾 Salvando...</span>}
-            {autoSaveStatus === "saved" && <span>✅ Salvo</span>}
-            {autoSaveStatus === "error" && <span>❌ Erro ao salvar</span>}
-          </div>
           <div className="space-y-1.5">
             <Label>Nome *</Label>
             <Input value={form.name} onChange={set("name")} required />
