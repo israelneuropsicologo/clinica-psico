@@ -1,6 +1,7 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { StatusBadge } from "@/components/StatusBadge";
 import RichTextEditor from "@/components/RichTextEditor";
+import PDFExportButton from "@/components/PDFExportButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -61,6 +62,7 @@ export default function SessionDetail() {
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
 
   const existingNote = notes?.[0];
+  const trpcUtils = trpc.useUtils();
 
   useEffect(() => {
     if (existingNote) {
@@ -80,12 +82,17 @@ export default function SessionDetail() {
       toast.success("Prontuário salvo!");
       setEditingNoteId(data.id);
       refetchNotes();
+      trpcUtils.clinicalNotes.byPatient.invalidate({ patientId: session?.patientId });
     },
     onError: (e) => toast.error(e.message),
   });
 
   const updateNote = trpc.clinicalNotes.update.useMutation({
-    onSuccess: () => { toast.success("Prontuário atualizado!"); refetchNotes(); },
+    onSuccess: () => {
+      toast.success("Prontuário atualizado!");
+      refetchNotes();
+      trpcUtils.clinicalNotes.byPatient.invalidate({ patientId: session?.patientId });
+    },
     onError: (e) => toast.error(e.message),
   });
 
@@ -131,6 +138,13 @@ export default function SessionDetail() {
     analyzeAI.mutate({ noteId: noteIdToUse, content: noteContent.replace(/<[^>]*>/g, ""), patientHistory: history });
   };
 
+  const generateSessionPDFMutation = trpc.reports.generateSessionPDF.useMutation();
+
+  const handleExportSessionPDF = async () => {
+    const result = await generateSessionPDFMutation.mutateAsync({ sessionId });
+    return result;
+  };
+
   if (!session) {
     return (
       <DashboardLayout>
@@ -156,6 +170,10 @@ export default function SessionDetail() {
             <p className="text-muted-foreground text-sm">{formatDate(session.scheduledAt)}</p>
           </div>
           <div className="flex items-center gap-2">
+            <PDFExportButton
+              label="Exportar PDF"
+              onExportPDF={handleExportSessionPDF}
+            />
             <StatusBadge status={session.status} />
           </div>
         </div>

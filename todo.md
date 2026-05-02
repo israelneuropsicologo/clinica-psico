@@ -304,3 +304,20 @@
 - [x] Executar 8 testes E2E com sucesso 100%
 - [x] Validar suite completa: 60 testes passando, 5 skipped
 - [x] Integração ponta a ponta 100% funcional e validada ✅
+
+
+## Fase 26: Correção de Bugs Críticos (Reportados)
+- [ ] Bug: Campo de anotações clínicas não fica visível após digitação
+- [ ] Bug: IA vendo dados antigos de anotações deletadas
+- [ ] Bug: PDF exportando "PACIENTE #1" em vez do nome real do paciente
+- [ ] Teste: Validar salvamento de anotações clínicas
+- [ ] Teste: Validar que IA não usa dados deletados
+- [ ] Teste: Validar PDF com nome correto do paciente
+
+
+## Fase 26: Correção de Bugs Críticos
+- [x] Campo de anotações clínicas não salvando - RichTextEditor sincroniza conteúdo com useEffect quando prop muda
+- [x] IA vendo dados antigos de anotações deletadas - Invalidação de cache ao salvar/atualizar notas (trpcUtils.clinicalNotes.byPatient.invalidate)
+- [x] PDF exportando "PACIENTE #1" em vez do nome real - Nova rota generateSessionPDF com dados corretos do paciente
+- [x] Todos os 60 testes passando (incluindo 8 testes E2E de integração)
+- [x] Integração ponta a ponta validada (site → clinica-psico)

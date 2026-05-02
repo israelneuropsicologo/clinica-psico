@@ -329,6 +329,97 @@ export const reportsRouter = router({
       throw new TRPCError({ code: "BAD_REQUEST" });
     }),
 
+  // Gerar PDF de prontuário de uma sessão
+  generateSessionPDF: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const session = await getSessionById(input.sessionId, ctx.user.id);
+        if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Sessão não encontrada" });
+
+        const patient = await getPatientById(session.patientId, ctx.user.id);
+        if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
+
+        const clinicalNotes = await getClinicalNotesBySession(input.sessionId, ctx.user.id);
+
+        // Criar PDF com dados da sessão
+        const { PDFDocument, rgb } = await import("pdf-lib");
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([595, 842]); // A4
+        const { height } = page.getSize();
+        let y = height - 50;
+
+        // Título
+        page.drawText(`Prontuário - ${patient.name}`, {
+          x: 50,
+          y,
+          size: 18,
+          color: rgb(0, 0, 0),
+        });
+        y -= 30;
+
+        // Informações da sessão
+        page.drawText(`Data: ${new Date(session.scheduledAt).toLocaleDateString("pt-BR")}`, {
+          x: 50,
+          y,
+          size: 12,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+        y -= 20;
+
+        page.drawText(`Status: ${session.status}`, {
+          x: 50,
+          y,
+          size: 12,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+        y -= 30;
+
+        // Anotações clínicas
+        if (clinicalNotes.length > 0) {
+          const note = clinicalNotes[0];
+          page.drawText("Anotações Clínicas:", {
+            x: 50,
+            y,
+            size: 14,
+            color: rgb(0, 0, 0),
+          });
+          y -= 20;
+
+          // Remover tags HTML do conteúdo
+          const cleanContent = note.content.replace(/<[^>]*>/g, "");
+          const lines = cleanContent.split("\n").slice(0, 10); // Primeiras 10 linhas
+          for (const line of lines) {
+            if (y < 50) break;
+            page.drawText(line.substring(0, 80), {
+              x: 50,
+              y,
+              size: 10,
+              color: rgb(0, 0, 0),
+            });
+            y -= 15;
+          }
+        }
+
+        const pdfBuffer = await pdfDoc.save();
+        return {
+          success: true,
+          filename: `prontuario_${patient.name?.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`,
+          data: Buffer.from(pdfBuffer).toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar PDF: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
+    }),
+
   // Gerar PDF de relatório de pacientes
   generatePatientPDF: protectedProcedure
     .input(

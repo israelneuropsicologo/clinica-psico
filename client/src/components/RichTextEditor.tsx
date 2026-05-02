@@ -1,4 +1,5 @@
 import { useEditor, EditorContent } from "@tiptap/react";
+import { useEffect } from "react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
@@ -49,6 +50,13 @@ export default function RichTextEditor({
       onChange(editor.getHTML());
     },
   });
+
+  // Sincronizar conteúdo quando a prop muda (ex: ao carregar nota existente)
+  useEffect(() => {
+    if (editor && content && editor.getHTML() !== content) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!editor) return null;
 
