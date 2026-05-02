@@ -28,6 +28,7 @@ import {
   updateTransaction,
 } from "./db";
 import { invokeLLM } from "./_core/llm";
+import { generatePatientReport, generateFinancialReport, type ReportFilters } from "./_core/reportGenerator";
 import { notifyOwner } from "./_core/notification";
 import { storagePut } from "./storage";
 import { COOKIE_NAME } from "@shared/const";

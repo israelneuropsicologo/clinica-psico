@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { CalendarDays, Clock, Plus, User, Video, MapPin } from "lucide-react";
 import ExportButton from "@/components/ExportButton";
+import PDFExportButton from "@/components/PDFExportButton";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useState } from "react";
 import { useLocation } from "wouter";
@@ -33,6 +34,13 @@ export default function Sessions() {
     status: statusFilter,
   });
 
+  const generatePatientPDFMutation = trpc.reports.generatePatientPDF.useMutation();
+
+  const handleExportPatientPDF = async () => {
+    const result = await generatePatientPDFMutation.mutateAsync({});
+    return result;
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -44,6 +52,11 @@ export default function Sessions() {
             </p>
           </div>
           <div className="flex gap-2">
+            <PDFExportButton
+              label="Exportar PDF"
+              disabled={!sessions || sessions.length === 0}
+              onExportPDF={handleExportPatientPDF}
+            />
             <ExportButton
               label="Exportar"
               onExport={async (format) => {

@@ -22,6 +22,7 @@ import { Plus, Search, User, Phone, Mail, Calendar } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import PDFExportButton from "@/components/PDFExportButton";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
@@ -34,6 +35,15 @@ export default function Patients() {
     status: statusFilter,
   });
 
+  const generatePDFMutation = trpc.reports.generatePatientPDF.useMutation();
+
+  const handleExportPDF = async () => {
+    const result = await generatePDFMutation.mutateAsync({
+      status: statusFilter === "all" ? undefined : (statusFilter as "active" | "inactive"),
+    });
+    return result;
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -45,10 +55,16 @@ export default function Patients() {
               {isLoading ? "Carregando..." : `${patients?.length ?? 0} paciente(s) encontrado(s)`}
             </p>
           </div>
-          <Button onClick={() => setShowCreate(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Paciente
-          </Button>
+          <div className="flex gap-2">
+            <PDFExportButton
+              label="Exportar PDF"
+              onExportPDF={handleExportPDF}
+            />
+            <Button onClick={() => setShowCreate(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Novo Paciente
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

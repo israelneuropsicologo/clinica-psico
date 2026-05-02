@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, router } from "../\_core/trpc";
 import {
   getSessions,
   getSessionById,
@@ -9,6 +9,7 @@ import {
   getDocumentsByPatient,
 } from "../db";
 import { TRPCError } from "@trpc/server";
+import { generatePatientReport, generateFinancialReport } from "../_core/reportGenerator";
 
 /**
  * Reports Router - Exportação de relatórios em PDF e Excel
@@ -326,5 +327,67 @@ export const reportsRouter = router({
       }
 
       throw new TRPCError({ code: "BAD_REQUEST" });
+    }),
+
+  // Gerar PDF de relatório de pacientes
+  generatePatientPDF: protectedProcedure
+    .input(
+      z.object({
+        status: z.enum(["active", "inactive", "all"]).optional(),
+        leadSource: z.enum(["manual", "chatbot", "website", "all"]).optional(),
+        leadStatus: z.enum(["lead", "prospect", "customer", "all"]).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const pdfBuffer = await generatePatientReport({
+          userId: ctx.user.id,
+          status: input.status || "all",
+          leadSource: input.leadSource || "all",
+          leadStatus: input.leadStatus || "all",
+        });
+
+        return {
+          success: true,
+          filename: `relatorio_pacientes_${new Date().toISOString().split("T")[0]}.pdf`,
+          data: pdfBuffer.toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar PDF: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
+    }),
+
+  // Gerar PDF de relatório financeiro
+  generateFinancialPDF: protectedProcedure
+    .input(
+      z.object({
+        from: z.number().optional(),
+        to: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const pdfBuffer = await generateFinancialReport({
+          userId: ctx.user.id,
+          startDate: input.from ? new Date(input.from) : undefined,
+          endDate: input.to ? new Date(input.to) : undefined,
+        });
+
+        return {
+          success: true,
+          filename: `relatorio_financeiro_${new Date().toISOString().split("T")[0]}.pdf`,
+          data: pdfBuffer.toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar PDF: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
     }),
 });

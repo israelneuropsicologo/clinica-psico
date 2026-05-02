@@ -622,7 +622,7 @@ export const webhooksRouter = router({
     }),
 
   /**
-   * Obter status da integração
+   * Obter status da integracao
    */
   getStatus: protectedProcedure.query(async ({ ctx }) => {
     const logs = await getWebhookLogs(ctx.user.id, 10);

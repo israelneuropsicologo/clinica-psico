@@ -171,14 +171,41 @@
 - [x] Retry automático com backoff exponencial
 - [x] 36 testes Vitest passando
 
+## Fase 16: Endpoints tRPC para Geração de PDF
+- [x] Adicionar mutations tRPC: generatePatientPDF, generateFinancialPDF
+- [x] Retornar PDF em base64 para download no cliente
+- [x] Suportar filtros (status, leadSource, leadStatus)
+- [x] Tratamento de erros com mensagens descritivas
+
+## Fase 17: UI Frontend para Download de PDF
+- [x] Criar componente PDFExportButton com suporte a base64
+- [x] Adicionar botão "Exportar PDF" em Pacientes
+- [x] Adicionar botão "Exportar PDF" em Sessões
+- [x] Adicionar botão "Exportar PDF" em Financeiro
+- [x] Estados de carregamento e feedback com toast
+- [x] Decodificação segura de base64 para download
+- [x] Corrigir uso de hooks React (instanciar mutations no topo dos componentes)
+
+## Fase 18: Testes para Endpoints de PDF
+- [x] Criar suite de testes Vitest para reports router
+- [x] Testar generatePatientPDF com diferentes filtros
+- [x] Testar generateFinancialPDF com e sem data range
+- [x] Testar exportSessions em JSON e CSV
+- [x] Testar exportFinancial em JSON e CSV
+- [x] Testar generateReportSummary para diferentes tipos
+- [x] Validar formato base64 dos PDFs
+- [x] Validar JSON e CSV gerados
+- [x] 11 testes passando (47 testes totais)
+
 ## Próximas Fases (Planejadas)
-- [ ] Testar integração ponta a ponta (site → clinica-psico)
-- [ ] Sincronização de ChatBot (leads automáticos)
+- [x] Sincronização de ChatBot (leads automáticos) - webhook já implementado
+- [ ] Validar integração ponta a ponta (site → clinica-psico)
 - [ ] Dashboard avançado com gráficos de conversão
-- [ ] Gerador de relatórios PDF com filtros
-- [ ] Integração com Google Calendar
+- [ ] Integração com Google Calendar (helper já existe)
 - [ ] Notificações em tempo real via WebSocket
+- [ ] Testar sincronização de ChatBot leads com teste Vitest
 
 
 ## 🐛 Bugs Encontrados
 - [x] Erro SQL na inserção de pacientes - campos com nomes incorretos (userld, externalCustomerld) - CORRIGIDO
+- [x] Erro no esbuild: "Expected '(' but found 'status'" em webhooks.ts:615 - CORRIGIDO (encoding UTF-8 no comentário)

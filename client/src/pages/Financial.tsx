@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ExportButton from "@/components/ExportButton";
+import PDFExportButton from "@/components/PDFExportButton";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import {
@@ -56,6 +57,13 @@ export default function Financial() {
   });
   const { data: summary } = trpc.financial.summary.useQuery({ period });
 
+  const generateFinancialPDFMutation = trpc.reports.generateFinancialPDF.useMutation();
+
+  const handleExportFinancialPDF = async () => {
+    const result = await generateFinancialPDFMutation.mutateAsync({});
+    return result;
+  };
+
   const totalIncome = transactions?.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0) ?? 0;
   const totalExpense = transactions?.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0) ?? 0;
   const balance = totalIncome - totalExpense;
@@ -75,6 +83,10 @@ export default function Financial() {
             <p className="text-muted-foreground text-sm mt-1">Controle de receitas e despesas</p>
           </div>
           <div className="flex gap-2">
+            <PDFExportButton
+              label="Exportar PDF"
+              onExportPDF={handleExportFinancialPDF}
+            />
             <ExportButton
               label="Exportar"
               onExport={async (format) => {
