@@ -11,7 +11,7 @@ import ExportButton from "@/components/ExportButton";
 import PDFExportButton from "@/components/PDFExportButton";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 
@@ -30,7 +30,6 @@ export default function Sessions() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
   const [selectedSessions, setSelectedSessions] = useState<Set<number>>(new Set());
-  const [patientNames, setPatientNames] = useState<Record<number, string>>({});
   const [, navigate] = useLocation();
 
   const { data: sessions, isLoading, refetch } = trpc.sessions.list.useQuery({
@@ -39,30 +38,6 @@ export default function Sessions() {
 
   const generatePatientPDFMutation = trpc.reports.generatePatientPDF.useMutation();
   const trpcUtils = trpc.useUtils();
-
-  // Buscar nomes dos pacientes quando as sessões mudarem
-  useEffect(() => {
-    if (!sessions) return;
-    const uniquePatientIds = [...new Set(sessions.map(s => s.patientId))];
-    const missingIds = uniquePatientIds.filter(id => !patientNames[id]);
-    
-    if (missingIds.length === 0) return;
-    
-    // Buscar dados dos pacientes
-    Promise.all(
-      missingIds.map(patientId =>
-        trpcUtils.patients.getById.fetch({ id: patientId })
-          .then(patient => ({ patientId, name: patient.name }))
-          .catch(() => ({ patientId, name: `Paciente #${patientId}` }))
-      )
-    ).then(results => {
-      const newNames: Record<number, string> = {};
-      results.forEach(({ patientId, name }) => {
-        newNames[patientId] = name;
-      });
-      setPatientNames(prev => ({ ...prev, ...newNames }));
-    });
-  }, [sessions, patientNames, trpcUtils]);
   const deleteMultipleMutation = trpc.sessions.deleteMultiple.useMutation({
     onSuccess: () => {
       toast.success(`${selectedSessions.size} sessão(ões) deletada(s)!`);
@@ -229,9 +204,7 @@ export default function Sessions() {
                         className="min-w-0 cursor-pointer"
                         onClick={() => navigate(`/sessions/${session.id}`)}
                       >
-                        <p className="font-semibold text-sm">
-                          {patientNames[session.patientId] || `Paciente #${session.patientId}`}
-                        </p>
+                        <p className="font-semibold text-sm">Paciente #{session.patientId}</p>
                         <div className="flex items-center gap-3 mt-0.5 flex-wrap text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <CalendarDays className="h-3 w-3" />
@@ -243,23 +216,9 @@ export default function Sessions() {
                           </span>
                           <span className="flex items-center gap-1">
                             {session.modality === "online" ? (
-                              <>🎥 Online</>
+                              <><Video className="h-3 w-3" /> Online</>
                             ) : (
-                              <>🏥 Presencial</>
-                            )}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            {session.isPaid === "paid" ? (
-                              <>💰 Pago</>
-                            ) : (
-                              <>⏳ Pendente</>
-                            )}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            {session.source === "website" ? (
-                              <>🌐 Site</>
-                            ) : (
-                              <>✋ Manual</>
+                              <><MapPin className="h-3 w-3" /> Presencial</>
                             )}
                           </span>
                         </div>

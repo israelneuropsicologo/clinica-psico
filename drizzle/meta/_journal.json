@@ -99,13 +99,6 @@
       "when": 1777736917220,
       "tag": "0013_large_johnny_blaze",
       "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "5",
-      "when": 1777752907844,
-      "tag": "0014_early_havok",
-      "breakpoints": true
     }
   ]
 }

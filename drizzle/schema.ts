@@ -72,7 +72,6 @@ export const sessions = mysqlTable("sessions", {
     .default("individual")
     .notNull(),
   modality: mysqlEnum("modality", ["in_person", "online"]).default("in_person").notNull(),
-  source: mysqlEnum("source", ["website", "manual"]).default("manual").notNull(),
   sessionValue: decimal("sessionValue", { precision: 10, scale: 2 }),
   isPaid: mysqlEnum("isPaid", ["pending", "paid", "waived"]).default("pending").notNull(),
   cancelReason: text("cancelReason"),

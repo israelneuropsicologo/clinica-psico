@@ -339,14 +339,6 @@
 - [x] Indicador visual de pacientes selecionados
 - [x] Integração com estado React (useState para selectedPatients)
 
-## Fase 29: Seletor de Múltiplas Sessões
-- [x] Adicionar checkboxes para seleção individual de sessões
-- [x] Adicionar checkbox "Selecionar todas" para marcar/desmarcar todas
-- [x] Criar procedimento tRPC `deleteMultiple` para deletar múltiplas sessões
-- [x] Implementar botão "Deletar Selecionadas" com confirmação
-- [x] Indicador visual de sessões selecionadas
-- [x] Integração com estado React (useState para selectedSessions)
-
 ## Fase 27: Sistema de Sincronização Multi-Conta
 - [x] Tabela `user_links` criada no schema (primaryUserId, linkedUserId)
 - [x] Funções de sincronização implementadas em db.ts:
@@ -402,28 +394,3 @@ await trpc.userSync.linkUsers.mutate({
 ```
 
 3. Ambas as contas verão os mesmos pacientes e sessões
-
-
-## Fase 30: Melhorias na Exibição de Sessões
-- [ ] Adicionar nome real do paciente em vez de "Paciente #ID" nas listas
-- [ ] Adicionar emoji 🎥 para sessões virtuais e 🏥 para presenciais
-- [ ] Adicionar emoji 💰 para sessões pagas e ⏳ para pendentes
-- [ ] Adicionar emoji 🌐 para agendamentos do site e ✋ para agendamentos manuais
-- [ ] Atualizar schema para rastrear origem do agendamento (site vs manual)
-- [ ] Atualizar UI de Sessões com novos emojis e nome do paciente
-- [ ] Testar exibição em diferentes resoluções
-
-## Fase 31: Validação de Integração Site-Sistema
-- [ ] Documentar endpoints de integração entre site e clinica-psico
-- [ ] Validar autenticação por token/OAuth entre sistemas
-- [ ] Criar dashboard de status de integração
-- [ ] Adicionar logs de sincronização
-- [ ] Testar fluxo completo: site → clinica-psico
-
-## Fase 32: Sincronização Automática de ChatBot
-- [ ] Verificar se webhook de ChatBot já está implementado
-- [ ] Adicionar campos de ChatBot ao schema de pacientes (origem, interações)
-- [ ] Implementar sincronização automática de leads do ChatBot
-- [ ] Criar paciente automaticamente quando agendamento é feito no site
-- [ ] Sincronizar informações de contato (email, telefone, nome)
-- [ ] Testar agendamento completo: ChatBot → Paciente → Sessão

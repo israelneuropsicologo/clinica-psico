@@ -176,7 +176,7 @@ const patientsRouter = router({
       
       let deletedCount = 0;
       for (const pattern of testPatterns) {
-        const testPatients = await (db as any).select().from(patients).where(
+        const testPatients = await db.select().from(patients).where(
           and(
             eq(patients.userId, ctx.user.id),
             like(patients.name, `%${pattern}%`)
