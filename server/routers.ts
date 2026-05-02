@@ -17,6 +17,8 @@ import {
   getPatientById,
   getPatientCount,
   getPatients,
+  getPatientsShared,
+  getPatientByIdShared,
   getSessionById,
   getSessions,
   getSessionsThisMonth,
@@ -58,7 +60,7 @@ const patientsRouter = router({
   getById: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
-      const patient = await getPatientById(input.id, ctx.user.id);
+      const patient = await getPatientByIdShared(input.id, ctx.user.id);
       if (!patient) throw new TRPCError({ code: "NOT_FOUND" });
       return patient;
     }),

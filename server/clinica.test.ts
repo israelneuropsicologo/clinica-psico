@@ -48,6 +48,10 @@ vi.mock("./db", () => ({
   getPatients: vi.fn().mockResolvedValue([
     { id: 1, name: "João da Silva", status: "active", userId: 1 },
   ]),
+  getPatientsShared: vi.fn().mockResolvedValue([
+    { id: 1, name: "João da Silva", status: "active", userId: 1 },
+  ]),
+  getPatientByIdShared: vi.fn().mockResolvedValue({ id: 1, name: "João da Silva", userId: 1 }),
   getPatientById: vi.fn().mockResolvedValue({ id: 1, name: "João da Silva", userId: 1 }),
   createPatient: vi.fn().mockResolvedValue(1),
   updatePatient: vi.fn().mockResolvedValue(undefined),
