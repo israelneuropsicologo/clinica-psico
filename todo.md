@@ -178,8 +178,10 @@
 - [x] Logging de todas as operações para auditoria LGPD
 
 ### Testes Vitest
-- [ ] Testes para validação cruzada de customer_id
-- [ ] Testes para sincronização de pacientes
-- [ ] Testes para sincronização de agendamentos com validação de pagamento
-- [ ] Testes para sincronização de transações
-- [ ] Testes para tratamento de erros e retry
+- [x] Testes para validação cruzada de customer_id
+- [x] Testes para sincronização de pacientes
+- [x] Testes para sincronização de agendamentos com validação de pagamento
+- [x] Testes para sincronização de transações
+- [x] Testes para tratamento de erros e retry
+- [x] Testes para criptografia (encryptCPF, decryptCPF, maskCPF)
+- [x] Testes para LGPD logging (eventos, filtros, exportação)
