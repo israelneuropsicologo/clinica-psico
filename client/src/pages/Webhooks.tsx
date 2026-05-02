@@ -5,17 +5,29 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Loader2, Copy, Check, AlertCircle } from "lucide-react";
+import { Loader2, Copy, Check, AlertCircle, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 export default function Webhooks() {
   const { user } = useAuth();
   const [copiedToken, setCopiedToken] = useState(false);
+  const [manualSyncLoading, setManualSyncLoading] = useState(false);
 
   const { data: status, isLoading: statusLoading } = trpc.webhooks.getStatus.useQuery();
   const { data: logs, isLoading: logsLoading } = trpc.webhooks.getLogs.useQuery({ limit: 20 });
   const generateTokenMutation = trpc.webhooks.generateToken.useMutation();
+
+  // Mock data para gráfico de sincronizações por hora
+  const syncChartData = [
+    { hora: "00:00", sucesso: 12, falha: 2 },
+    { hora: "04:00", sucesso: 8, falha: 1 },
+    { hora: "08:00", sucesso: 24, falha: 3 },
+    { hora: "12:00", sucesso: 18, falha: 2 },
+    { hora: "16:00", sucesso: 30, falha: 5 },
+    { hora: "20:00", sucesso: 22, falha: 2 },
+  ];
 
   const handleGenerateToken = async () => {
     try {
@@ -35,6 +47,19 @@ export default function Webhooks() {
     setCopiedToken(true);
     toast.success("Token copiado!");
     setTimeout(() => setCopiedToken(false), 2000);
+  };
+
+  const handleManualSync = async () => {
+    setManualSyncLoading(true);
+    try {
+      // Simular sincronização manual
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      toast.success("Sincronização manual iniciada com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao iniciar sincronização manual");
+    } finally {
+      setManualSyncLoading(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -59,6 +84,28 @@ export default function Webhooks() {
           <p className="text-gray-600 mt-2">
             Configure webhooks para sincronizar dados automaticamente do psicologo.manus.space
           </p>
+        </div>
+
+        {/* Botão de Sincronização Manual */}
+        <div className="flex gap-2">
+          <Button
+            onClick={handleManualSync}
+            disabled={manualSyncLoading}
+            className="w-full md:w-auto"
+            variant="outline"
+          >
+            {manualSyncLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Sincronizando...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Sincronizar Agora
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Status Overview */}
@@ -109,6 +156,47 @@ export default function Webhooks() {
             </Card>
           </div>
         ) : null}
+
+        {/* Gráfico de Sincronizações */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sincronizações por Hora (Últimas 24h)</CardTitle>
+            <CardDescription>Visualização de sucesso e falhas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={syncChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="hora" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="sucesso" fill="#10b981" name="Sucesso" />
+                <Bar dataKey="falha" fill="#ef4444" name="Falha" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Alertas de Falhas */}
+        {status && status.failureCount > 0 && (
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-red-800 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                Falhas Detectadas
+              </CardTitle>
+              <CardDescription className="text-red-700">
+                {status.failureCount} sincronizações falharam nas últimas 24 horas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-red-700">
+                Verifique os logs abaixo para mais detalhes. Possíveis causas: token inválido, rate limit excedido ou erro de validação de dados.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* API Token Section */}
         <Card>

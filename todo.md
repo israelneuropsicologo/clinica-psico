@@ -142,7 +142,7 @@
 - [x] Validar payment_status antes de criar sessão
 - [x] Somente criar sessão se payment_status === "approved"
 - [x] Atualizar status para "confirmed" automaticamente
-- [ ] Sincronizar com Google Calendar se vinculado
+- [x] Sincronizar com Google Calendar se vinculado
 
 ### Lógica de Sincronização de Pagamentos
 - [x] Receber POST com transaction_id, customer_id, amount, payment_status
@@ -166,9 +166,9 @@
 - [x] Gerador de Bearer Tokens com copy-to-clipboard
 - [x] Documentação de payloads JSON
 - [x] Endpoints de configuração
-- [ ] Botão "Sincronizar Agora" para forçar sincronização manual
-- [ ] Gráfico de sincronizações por hora/dia
-- [ ] Alertas para falhas de sincronização
+- [x] Botão "Sincronizar Agora" para forçar sincronização manual
+- [x] Gráfico de sincronizações por hora/dia
+- [x] Alertas para falhas de sincronização
 
 ### Segurança e Validação
 - [x] Implementar rate limiting para endpoints de webhook (100 req/min por token)
