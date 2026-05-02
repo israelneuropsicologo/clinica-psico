@@ -444,3 +444,36 @@ await trpc.userSync.linkUsers.mutate({
   - Mostra as sessões agendadas em cada dia do mês
   - Permite navegação entre meses
   - Sincroniza automaticamente com as sessões do sistema
+
+
+## Fase 29: Integração do ChatBot com Sistema de Agendamento (Maio 2026)
+- [ ] Bug: Marcações feitas no ChatBot do site não aparecem na Agenda do sistema
+  - Problema: ChatBot confirma agendamento mas não cria sessão no banco de dados
+  - Exemplo: Agendamento de "Amanda" para 5 de maio às 14h não aparece na agenda
+  - Precisa: Investigar como o ChatBot funciona e implementar integração com tRPC
+  - Objetivo: Marcações no site devem aparecer automaticamente na agenda do sistema
+
+
+## Fase 28: Correção de Bugs Reportados (Maio 2026)
+- [x] Bug: Nomes de pacientes não aparecem nas sessões (mostra "Paciente #390001" em vez do nome real)
+  - **Resolvido**: O problema era que estávamos acessando a URL antiga com cache antigo
+  - A URL correta do dev server é: https://3000-i9bizdze4ze2v5sphpjz3-c48c28d4.us1.manus.computer
+  - Nomes dos pacientes agora aparecem corretamente: "josue mendes", "gugu", etc.
+  
+- [x] Bug: Página de Agenda mostra erro "Falha ao carregar no Google Agenda, sua verificação de ligação"
+  - **Resolvido**: Reescrevemos o componente GoogleCalendarEmbed.tsx para usar um calendário local
+  - O novo componente busca sessões do sistema via tRPC e mostra um calendário interativo
+  - Mostra as sessões agendadas em cada dia do mês
+  - Permite navegação entre meses
+  - Sincroniza automaticamente com as sessões do sistema
+
+## Fase 29: Integração Automática do ChatBot com Sistema de Agendamento
+- [x] Implementar webhook de sincronização automática do ChatBot
+  - Criar endpoint `/api/webhooks/syncChatbotAppointment` que recebe agendamentos do ChatBot
+  - Quando um cliente faz agendamento no site, o webhook cria a sessão automaticamente
+  - Sessão aparece na Agenda, Sessões e Calendário sem ação manual
+  - Sincroniza cliente (lead) com paciente no sistema
+  - Validação de autenticação por token ou OAuth
+  - Rate limiting para proteção contra abuso
+  - Log de webhook para auditoria
+  - Notificação ao proprietário quando novo agendamento é criado

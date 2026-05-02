@@ -35,7 +35,7 @@ export default function Calendar() {
         </Card>
 
         {/* Google Calendar Embed */}
-        <GoogleCalendarEmbed calendarId="israelmengo@gmail.com" height="700px" />
+        <GoogleCalendarEmbed calendarId="israelneuropsicologo@gmail.com" height="700px" />
       </div>
     </DashboardLayout>
   );

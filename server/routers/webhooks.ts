@@ -633,6 +633,168 @@ export const webhooksRouter = router({
     }),
 
   /**
+   * Sincronizar agendamento do ChatBot (webhook POST)
+   * Cria automaticamente uma sessão quando o cliente agenda via ChatBot
+   */
+  syncChatbotAppointment: publicProcedure
+    .input(
+      z.object({
+        customer_id: z.string(),
+        customer_name: z.string(),
+        customer_email: z.string().email(),
+        customer_phone: z.string().optional(),
+        appointment_date: z.string(), // ISO 8601 format
+        appointment_time: z.string(), // HH:mm format
+        service_type: z.string().default("consultation"),
+        notes: z.string().optional(),
+        session_type: z.enum(["presencial", "online"]).default("presencial"),
+        token: z.string().optional(),
+        signature: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Validar token e obter userId
+        let userId: number;
+
+        if (input.token) {
+          const apiToken = await validateApiToken(input.token);
+          if (!apiToken) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Token inválido ou expirado",
+            });
+          }
+          userId = apiToken.userId;
+        } else if (ctx.user) {
+          userId = ctx.user.id;
+        } else {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Token ou autenticação OAuth requerida",
+          });
+        }
+
+        // Verificar rate limit
+        const rateLimitKey = `chatbot-appointment-${userId}`;
+        if (!checkRateLimit(rateLimitKey, 100, 60)) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "Limite de requisições excedido",
+          });
+        }
+
+        // Buscar ou criar paciente
+        let patientId: number;
+        const existingPatient = await getPatientByExternalId(userId, input.customer_id);
+
+        if (existingPatient) {
+          patientId = existingPatient.id;
+          // Atualizar status para customer se era apenas lead
+          if (existingPatient.leadStatus === "lead") {
+            await updatePatient(patientId, userId, {
+              leadStatus: "customer",
+              interactionCount: (existingPatient.interactionCount || 0) + 1,
+              lastInteractionAt: new Date(),
+            });
+          }
+        } else {
+          // Criar novo paciente como customer (agendamento confirmado)
+          patientId = await createPatient({
+            userId,
+            externalCustomerId: input.customer_id,
+            name: input.customer_name,
+            email: input.customer_email,
+            phone: input.customer_phone || null,
+            status: "active",
+            leadSource: "chatbot",
+            leadStatus: "customer",
+            interactionCount: 1,
+            lastInteractionAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+
+        // Parsear data e hora
+        const appointmentDateTime = new Date(`${input.appointment_date}T${input.appointment_time}`);
+        if (isNaN(appointmentDateTime.getTime())) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Data ou hora inválida",
+          });
+        }
+
+        // Criar sessão
+        const sessionData: InsertSession = {
+          userId,
+          patientId,
+          scheduledAt: appointmentDateTime,
+          sessionType: input.session_type,
+          status: "agendada",
+          notes: input.notes || `Agendamento via ChatBot - ${input.service_type}`,
+          paymentStatus: "pendente",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const sessionId = await createSession(sessionData);
+
+        // Log LGPD
+        logLGPDEvent({
+          userId,
+          eventType: LGPDEventType.PATIENT_CREATED,
+          resourceType: "session",
+          resourceId: sessionId,
+          action: "CREATE",
+          dataClassification: "CONFIDENTIAL",
+          description: `Agendamento via ChatBot: ${input.customer_name} em ${input.appointment_date} às ${input.appointment_time}`,
+          status: "SUCCESS",
+        });
+
+        // Notificar proprietário
+        await notifyOwner({
+          title: "Nova Consulta Agendada via ChatBot",
+          content: `${input.customer_name} agendou uma consulta para ${input.appointment_date} às ${input.appointment_time} (${input.session_type})`,
+        });
+
+        // Log de webhook
+        await logWebhook(userId, "chatbot_appointment", input.customer_id, input, "success");
+
+        return {
+          success: true,
+          sessionId,
+          patientId,
+          message: "Agendamento sincronizado com sucesso",
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        let userId = 0;
+        try {
+          if (input.token) {
+            const apiToken = await validateApiToken(input.token);
+            if (apiToken) userId = apiToken.userId;
+          } else if (ctx.user) {
+            userId = ctx.user.id;
+          }
+        } catch {}
+
+        if (userId > 0) {
+          await logWebhook(
+            userId,
+            "chatbot_appointment",
+            input.customer_id,
+            input,
+            "failed",
+            errorMessage
+          );
+        }
+
+        throw error;
+      }
+    }),
+
+  /**
    * Obter status da integracao
    */
   getStatus: protectedProcedure.query(async ({ ctx }) => {
