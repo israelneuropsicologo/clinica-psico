@@ -1,4 +1,6 @@
 import { validateApiToken } from "../db-webhooks";
+import { checkRateLimit } from "./rateLimiter";
+import { verifyWebhookSignature } from "./hmacValidator";
 
 /**
  * Middleware para validar Bearer Token em webhooks
@@ -15,7 +17,29 @@ export async function validateWebhookToken(authHeader?: string) {
     throw new Error("Invalid or expired token");
   }
 
+  // Verificar rate limit
+  const rateLimitCheck = checkRateLimit(token);
+  if (!rateLimitCheck.allowed) {
+    throw new Error(`Rate limit exceeded. Maximum 100 requests per minute. Remaining: ${rateLimitCheck.remaining}`);
+  }
+
   return apiToken;
+}
+
+/**
+ * Valida assinatura HMAC do webhook
+ */
+export function validateWebhookSignature(
+  payload: Record<string, unknown>,
+  signature: string,
+  secret: string
+): boolean {
+  try {
+    return verifyWebhookSignature(payload, signature, secret);
+  } catch (error) {
+    console.error("[Webhook Auth] Erro ao validar assinatura:", error);
+    return false;
+  }
 }
 
 /**

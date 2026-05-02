@@ -201,3 +201,25 @@ export const webhookLogs = mysqlTable("webhook_logs", {
 
 export type WebhookLog = typeof webhookLogs.$inferSelect;
 export type InsertWebhookLog = typeof webhookLogs.$inferInsert;
+
+// ─── LGPD Audit Logs (Registro de Auditoria) ────────────────────────────────
+export const lgpdAuditLogs = mysqlTable("lgpd_audit_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id
+  eventType: varchar("eventType", { length: 50 }).notNull(), // PATIENT_CREATED, PATIENT_DELETED, etc
+  resourceType: varchar("resourceType", { length: 50 }).notNull(), // patient, transaction, document, etc
+  resourceId: varchar("resourceId", { length: 255 }).notNull(), // ID do recurso afetado
+  action: varchar("action", { length: 20 }).notNull(), // CREATE, READ, UPDATE, DELETE, EXPORT
+  dataClassification: varchar("dataClassification", { length: 50 }).notNull(), // PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED
+  description: text("description").notNull(),
+  details: text("details"), // JSON com detalhes adicionais
+  ipAddress: varchar("ipAddress", { length: 45 }), // IPv4 ou IPv6
+  userAgent: text("userAgent"),
+  status: varchar("status", { length: 20 }).notNull(), // SUCCESS, FAILED
+  errorMessage: text("errorMessage"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type LGPDAuditLog = typeof lgpdAuditLogs.$inferSelect;
+export type InsertLGPDAuditLog = typeof lgpdAuditLogs.$inferInsert;

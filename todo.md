@@ -171,11 +171,11 @@
 - [ ] Alertas para falhas de sincronização
 
 ### Segurança e Validação
-- [ ] Implementar rate limiting para endpoints de webhook
-- [ ] Validar assinatura HMAC dos webhooks (se aplicável)
-- [ ] Criptografar dados sensíveis (CPF, CRP) em trânsito
-- [ ] Implementar retry automático para falhas de rede
-- [ ] Logging de todas as operações para auditoria LGPD
+- [x] Implementar rate limiting para endpoints de webhook (100 req/min por token)
+- [x] Validar assinatura HMAC dos webhooks (generateHMAC, verifyHMAC, timingSafeEqual)
+- [x] Implementar retry automático para falhas de rede (backoff exponencial)
+- [x] Criptografar dados sensíveis (CPF, CRP) em trânsito
+- [x] Logging de todas as operações para auditoria LGPD
 
 ### Testes Vitest
 - [ ] Testes para validação cruzada de customer_id
