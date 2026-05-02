@@ -121,45 +121,51 @@
 ## Fase 13: Integração Server-to-Server com Site Mãe (psicologo.manus.space)
 
 ### Arquitetura de Webhooks e Endpoints
-- [ ] Criar tabela `webhook_logs` para registrar todas as sincronizações
-- [ ] Criar tabela `api_tokens` para armazenar Bearer Tokens de autenticação
-- [ ] Implementar middleware de autenticação com Bearer Token
-- [ ] Criar endpoint POST `/api/webhooks/sync/patient` para receber novos pacientes
-- [ ] Criar endpoint POST `/api/webhooks/sync/appointment` para receber agendamentos
-- [ ] Criar endpoint POST `/api/webhooks/sync/payment` para receber confirmações de pagamento
-- [ ] Criar endpoint GET `/api/webhooks/validate/customer/:id` para validação cruzada
+- [x] Criar tabela `webhook_logs` para registrar todas as sincronizações
+- [x] Criar tabela `api_tokens` para armazenar Bearer Tokens de autenticação
+- [x] Implementar middleware de autenticação com Bearer Token
+- [x] Criar router tRPC `webhooks.syncPatient` para receber novos pacientes
+- [x] Criar router tRPC `webhooks.syncAppointment` para receber agendamentos
+- [x] Criar router tRPC `webhooks.syncPayment` para receber confirmações de pagamento
+- [x] Criar router tRPC `webhooks.validateCustomer` para validação cruzada
 
 ### Lógica de Sincronização de Pacientes
-- [ ] Receber POST com customer_id, nome, email, telefone, data_nascimento
-- [ ] Validar se customer_id já existe (GET /validate/customer/:id)
-- [ ] Se não existe: criar novo paciente com status "ativo"
-- [ ] Se existe: atualizar dados do paciente (merge inteligente)
-- [ ] Registrar log de sincronização com timestamp
+- [x] Receber POST com customer_id, nome, email, telefone, data_nascimento
+- [x] Validar se customer_id já existe (checkCustomerExists)
+- [x] Se não existe: criar novo paciente com status "ativo"
+- [x] Se existe: atualizar dados do paciente (merge inteligente)
+- [x] Registrar log de sincronização com timestamp
 
 ### Lógica de Sincronização de Agendamentos
-- [ ] Receber POST com appointment_date (ISO 8601), customer_id, service_type
-- [ ] Validar se customer_id existe no sistema
-- [ ] Validar payment_status antes de criar sessão
-- [ ] Somente criar sessão se payment_status === "approved"
-- [ ] Atualizar status para "confirmada" automaticamente
+- [x] Receber POST com appointment_date (ISO 8601), customer_id, service_type
+- [x] Validar se customer_id existe no sistema
+- [x] Validar payment_status antes de criar sessão
+- [x] Somente criar sessão se payment_status === "approved"
+- [x] Atualizar status para "confirmed" automaticamente
 - [ ] Sincronizar com Google Calendar se vinculado
 
 ### Lógica de Sincronização de Pagamentos
-- [ ] Receber POST com transaction_id, customer_id, amount, payment_status
-- [ ] Validar transaction_id para evitar duplicatas
-- [ ] Atualizar status da sessão para "paga" se payment_status === "approved"
-- [ ] Registrar transação no módulo financeiro
-- [ ] Atualizar status de inadimplência automaticamente
+- [x] Receber POST com transaction_id, customer_id, amount, payment_status
+- [x] Validar transaction_id para evitar duplicatas
+- [x] Atualizar status da sessão para "paid" se payment_status === "approved"
+- [x] Registrar transação no módulo financeiro
+- [x] Atualizar status de inadimplência automaticamente
 
 ### Routers tRPC para Integração
-- [ ] Router `webhooks.sync` com procedures para cada tipo de sincronização
-- [ ] Router `webhooks.validate` com procedures de validação cruzada
-- [ ] Router `webhooks.logs` para visualizar histórico de sincronizações
-- [ ] Router `webhooks.status` para verificar status da integração
+- [x] Router `webhooks.syncPatient` com procedure para sincronizar pacientes
+- [x] Router `webhooks.syncAppointment` com procedure para sincronizar agendamentos
+- [x] Router `webhooks.syncPayment` com procedure para sincronizar pagamentos
+- [x] Router `webhooks.validateCustomer` com procedure de validação cruzada
+- [x] Router `webhooks.getLogs` para visualizar histórico de sincronizações
+- [x] Router `webhooks.getStatus` para verificar status da integração
+- [x] Router `webhooks.generateToken` para gerar Bearer Tokens
 
 ### Painel de Sincronização
-- [ ] Criar página `/sync-status` com dashboard de sincronizações
-- [ ] Mostrar último sync, status, erros e logs
+- [x] Criar página `/webhooks` com dashboard de sincronizações
+- [x] Mostrar último sync, status, erros e logs
+- [x] Gerador de Bearer Tokens com copy-to-clipboard
+- [x] Documentação de payloads JSON
+- [x] Endpoints de configuração
 - [ ] Botão "Sincronizar Agora" para forçar sincronização manual
 - [ ] Gráfico de sincronizações por hora/dia
 - [ ] Alertas para falhas de sincronização
