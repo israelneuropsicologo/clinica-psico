@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -84,7 +83,6 @@ export default function Patients() {
   };
 
   return (
-    <DashboardLayout>
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -245,7 +243,6 @@ export default function Patients() {
           }} />
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
   );
 }
 
