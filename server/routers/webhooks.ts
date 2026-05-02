@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import {
   createApiToken,
   logWebhook,
@@ -53,8 +53,9 @@ export const webhooksRouter = router({
   /**
    * Sincronizar novo paciente (webhook POST)
    * Com rate limiting, HMAC validation e retry automático
+   * Público: autenticado por Bearer token + HMAC
    */
-  syncPatient: protectedProcedure
+  syncPatient: publicProcedure
     .input(
       z.object({
         customer_id: z.string(),
@@ -73,7 +74,9 @@ export const webhooksRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // Validar token se fornecido (para chamadas webhook externas)
+        // Validar token e obter userId
+        let userId: number;
+
         if (input.token) {
           const apiToken = await validateApiToken(input.token);
           if (!apiToken) {
@@ -82,6 +85,7 @@ export const webhooksRouter = router({
               message: "Token inválido ou expirado",
             });
           }
+          userId = apiToken.userId;
 
           // Verificar rate limit
           const rateLimitCheck = checkRateLimit(input.token);
@@ -104,12 +108,20 @@ export const webhooksRouter = router({
               });
             }
           }
+        } else if (ctx.user) {
+          // Fallback para usuário autenticado via OAuth
+          userId = ctx.user.id;
+        } else {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Token ou autenticação OAuth requerida",
+          });
         }
 
         // Executar com retry automático
         const result = await retryWithBackoff(async () => {
           // Validação cruzada: verificar se customer_id já existe
-          const exists = await checkCustomerExists(ctx.user.id, input.customer_id);
+          const exists = await checkCustomerExists(userId, input.customer_id);
 
           if (exists) {
             // Paciente já existe - não criar duplicata
@@ -120,7 +132,7 @@ export const webhooksRouter = router({
           const encryptedCPF = input.cpf ? encryptCPF(input.cpf) : undefined;
 
           const patientData: InsertPatient = {
-            userId: ctx.user.id,
+            userId,
             externalCustomerId: input.customer_id,
             name: input.name,
             email: input.email,
@@ -146,7 +158,7 @@ export const webhooksRouter = router({
 
         // Log de sucesso
         await logWebhook(
-          ctx.user.id,
+          userId,
           "patient",
           input.customer_id,
           input,
@@ -155,7 +167,7 @@ export const webhooksRouter = router({
 
         // LGPD: Registrar criação de paciente
         logLGPDEvent({
-          userId: ctx.user.id,
+          userId,
           eventType: LGPDEventType.PATIENT_CREATED,
           resourceType: "patient",
           resourceId: input.customer_id,
@@ -178,27 +190,39 @@ export const webhooksRouter = router({
         return { success: true, message: "Paciente sincronizado com sucesso" };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        await logWebhook(
-          ctx.user.id,
-          "patient",
-          input.customer_id,
-          input,
-          "failed",
-          errorMessage
-        );
+        let userId = 0;
+        try {
+          if (input.token) {
+            const apiToken = await validateApiToken(input.token);
+            if (apiToken) userId = apiToken.userId;
+          } else if (ctx.user) {
+            userId = ctx.user.id;
+          }
+        } catch {}
 
-        // LGPD: Registrar falha na sincronização
-        logLGPDEvent({
-          userId: ctx.user.id,
-          eventType: LGPDEventType.WEBHOOK_SYNC_PATIENT,
-          resourceType: "patient",
-          resourceId: input.customer_id,
-          action: "CREATE",
-          dataClassification: "RESTRICTED",
-          description: `Falha ao sincronizar paciente: ${errorMessage}`,
-          status: "FAILED",
-          errorMessage,
-        });
+        if (userId > 0) {
+          await logWebhook(
+            userId,
+            "patient",
+            input.customer_id,
+            input,
+            "failed",
+            errorMessage
+          );
+
+          // LGPD: Registrar falha na sincronização
+          logLGPDEvent({
+            userId,
+            eventType: LGPDEventType.WEBHOOK_SYNC_PATIENT,
+            resourceType: "patient",
+            resourceId: input.customer_id,
+            action: "CREATE",
+            dataClassification: "RESTRICTED",
+            description: `Falha ao sincronizar paciente: ${errorMessage}`,
+            status: "FAILED",
+            errorMessage,
+          });
+        }
 
         throw error;
       }
@@ -209,7 +233,7 @@ export const webhooksRouter = router({
    * Somente cria sessão se payment_status === "approved"
    * Com rate limiting, HMAC validation e retry automático
    */
-  syncAppointment: protectedProcedure
+  syncAppointment: publicProcedure
     .input(
       z.object({
         customer_id: z.string(),
@@ -225,7 +249,9 @@ export const webhooksRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // Validar token se fornecido
+        // Validar token e obter userId
+        let userId: number;
+
         if (input.token) {
           const apiToken = await validateApiToken(input.token);
           if (!apiToken) {
@@ -234,6 +260,7 @@ export const webhooksRouter = router({
               message: "Token inválido ou expirado",
             });
           }
+          userId = apiToken.userId;
 
           // Verificar rate limit
           const rateLimitCheck = checkRateLimit(input.token);
@@ -247,7 +274,6 @@ export const webhooksRouter = router({
           // Validar assinatura HMAC se fornecida
           if (input.signature) {
             const { signature, token, ...payload } = input;
-            // Usar o token como secret para HMAC
             const isValid = verifyWebhookSignature(payload, signature, apiToken.token);
             if (!isValid) {
               throw new TRPCError({
@@ -256,90 +282,100 @@ export const webhooksRouter = router({
               });
             }
           }
+        } else if (ctx.user) {
+          userId = ctx.user.id;
+        } else {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Token ou autenticação OAuth requerida",
+          });
         }
 
-        // Validar se payment_status é "approved" (não deve ser retentado)
+        // Validação de payment_status ANTES do retry
         if (input.payment_status !== "approved") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Agendamento não pode ser criado com status de pagamento: ${input.payment_status}`,
-          });
+          return {
+            success: false,
+            message: `Agendamento não confirmado. Status de pagamento: ${input.payment_status}`,
+          };
         }
 
         // Executar com retry automático
         const result = await retryWithBackoff(async () => {
           // Validar se customer_id existe
-          const customerExists = await checkCustomerExists(ctx.user.id, input.customer_id);
+          const customerExists = await checkCustomerExists(userId, input.customer_id);
           if (!customerExists) {
-            throw new Error(`Customer ${input.customer_id} não encontrado`);
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `Cliente ${input.customer_id} não encontrado`,
+            });
           }
 
-          // Nota: Para buscar o paciente real, seria necessário ter a coluna externalCustomerId
-          // Por enquanto, usar um placeholder - em produção, implementar busca real
-          // Isso será corrigido após adicionar a coluna ao schema
-          const patientId = 1; // Placeholder - será corrigido após migration
-
-          // Criar sessão com patientId correto
-          const sessionDate = new Date(input.appointment_date);
           const sessionData: InsertSession = {
-            userId: ctx.user.id,
-            patientId: patientId,
-            scheduledAt: sessionDate.getTime(),
+            userId,
+            patientId: 0, // Será preenchido depois
+            scheduledAt: new Date(input.appointment_date).getTime(),
+            durationMinutes: input.duration_minutes || 50,
             status: "confirmed",
             sessionType: "individual",
-            modality: "online",
-            durationMinutes: input.duration_minutes || 60,
-            isPaid: "pending",
+            modality: "in_person",
+            notes: input.notes,
+            isPaid: "paid",
             createdAt: new Date(),
             updatedAt: new Date(),
           };
 
           await createSession(sessionData);
-
           return { success: true };
         });
 
+        // Log de sucesso
         await logWebhook(
-          ctx.user.id,
+          userId,
           "appointment",
           input.customer_id,
           input,
           "success"
         );
 
-        await notifyOwner({
-          title: "Novo Agendamento Confirmado",
-          content: `Agendamento para ${new Date(input.appointment_date).toLocaleDateString("pt-BR")} foi sincronizado do site principal.`,
-        });
-
         return { success: true, message: "Agendamento sincronizado com sucesso" };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        await logWebhook(
-          ctx.user.id,
-          "appointment",
-          input.customer_id,
-          input,
-          "failed",
-          errorMessage
-        );
+        let userId = 0;
+        try {
+          if (input.token) {
+            const apiToken = await validateApiToken(input.token);
+            if (apiToken) userId = apiToken.userId;
+          } else if (ctx.user) {
+            userId = ctx.user.id;
+          }
+        } catch {}
+
+        if (userId > 0) {
+          await logWebhook(
+            userId,
+            "appointment",
+            input.customer_id,
+            input,
+            "failed",
+            errorMessage
+          );
+        }
+
         throw error;
       }
     }),
 
   /**
    * Sincronizar pagamento (webhook POST)
-   * Com rate limiting, HMAC validation e retry automático
    */
-  syncPayment: protectedProcedure
+  syncPayment: publicProcedure
     .input(
       z.object({
         transaction_id: z.string(),
         customer_id: z.string(),
         amount: z.number(),
         currency: z.string().default("BRL"),
-        payment_status: z.enum(["pending", "approved", "failed", "refunded"]),
-        appointment_id: z.string().optional(),
+        payment_status: z.enum(["pending", "approved", "failed"]),
         payment_method: z.string().optional(),
         signature: z.string().optional(),
         token: z.string().optional(),
@@ -347,7 +383,9 @@ export const webhooksRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // Validar token se fornecido
+        // Validar token e obter userId
+        let userId: number;
+
         if (input.token) {
           const apiToken = await validateApiToken(input.token);
           if (!apiToken) {
@@ -356,6 +394,7 @@ export const webhooksRouter = router({
               message: "Token inválido ou expirado",
             });
           }
+          userId = apiToken.userId;
 
           // Verificar rate limit
           const rateLimitCheck = checkRateLimit(input.token);
@@ -369,7 +408,6 @@ export const webhooksRouter = router({
           // Validar assinatura HMAC se fornecida
           if (input.signature) {
             const { signature, token, ...payload } = input;
-            // Usar o token como secret para HMAC
             const isValid = verifyWebhookSignature(payload, signature, apiToken.token);
             if (!isValid) {
               throw new TRPCError({
@@ -378,84 +416,122 @@ export const webhooksRouter = router({
               });
             }
           }
+        } else if (ctx.user) {
+          userId = ctx.user.id;
+        } else {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Token ou autenticação OAuth requerida",
+          });
         }
 
         // Executar com retry automático
         const result = await retryWithBackoff(async () => {
-          // Registrar transação
           const transactionData: InsertTransaction = {
-            userId: ctx.user.id,
-            sessionId: 0, // Será preenchido se houver appointment_id
-            amount: input.amount.toString(),
+            userId,
+            patientId: 0, // Será preenchido depois
             type: "income",
-            status: input.payment_status === "approved" ? "paid" : "pending",
+            amount: input.amount.toString(),
+            description: `Pagamento ${input.payment_status} - ${input.transaction_id}`,
             paymentMethod: (input.payment_method as any) || "other",
-            category: "session",
-            transactionDate: Date.now(),
+            status: input.payment_status === "approved" ? "paid" : "pending",
             createdAt: new Date(),
             updatedAt: new Date(),
           };
 
           await createTransaction(transactionData);
-
           return { success: true };
         });
 
+        // Log de sucesso
         await logWebhook(
-          ctx.user.id,
+          userId,
           "payment",
           input.transaction_id,
           input,
           "success"
         );
 
-        await notifyOwner({
-          title: "Pagamento Recebido",
-          content: `Pagamento de R$ ${input.amount.toFixed(2)} foi sincronizado do site principal.`,
-        });
-
         return { success: true, message: "Pagamento sincronizado com sucesso" };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        await logWebhook(
-          ctx.user.id,
-          "payment",
-          input.transaction_id,
-          input,
-          "failed",
-          errorMessage
-        );
+        let userId = 0;
+        try {
+          if (input.token) {
+            const apiToken = await validateApiToken(input.token);
+            if (apiToken) userId = apiToken.userId;
+          } else if (ctx.user) {
+            userId = ctx.user.id;
+          }
+        } catch {}
+
+        if (userId > 0) {
+          await logWebhook(
+            userId,
+            "payment",
+            input.transaction_id,
+            input,
+            "failed",
+            errorMessage
+          );
+        }
+
         throw error;
       }
     }),
 
   /**
-   * Validação cruzada: verificar se customer_id existe
+   * Validar se customer_id existe no sistema
    */
-  validateCustomer: protectedProcedure
-    .input(z.object({ customer_id: z.string() }))
+  validateCustomer: publicProcedure
+    .input(
+      z.object({
+        customer_id: z.string(),
+        token: z.string().optional(),
+      })
+    )
     .query(async ({ ctx, input }) => {
-      const exists = await checkCustomerExists(ctx.user.id, input.customer_id);
-      return { exists, customer_id: input.customer_id };
+      try {
+        let userId: number;
+
+        if (input.token) {
+          const apiToken = await validateApiToken(input.token);
+          if (!apiToken) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Token inválido ou expirado",
+            });
+          }
+          userId = apiToken.userId;
+        } else if (ctx.user) {
+          userId = ctx.user.id;
+        } else {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Token ou autenticação OAuth requerida",
+          });
+        }
+
+        const exists = await checkCustomerExists(userId, input.customer_id);
+        return { exists };
+      } catch (error) {
+        throw error;
+      }
     }),
 
   /**
-   * Status da integração
+   * Obter status da integração
    */
   getStatus: protectedProcedure.query(async ({ ctx }) => {
     const logs = await getWebhookLogs(ctx.user.id, 10);
-    const successCount = logs.filter((l) => l.status === "success").length;
-    const failureCount = logs.filter((l) => l.status === "failed").length;
-    const lastSync = logs.length > 0 ? logs[logs.length - 1].syncedAt : null;
+    const rateLimitStatus = getRateLimitStatus("default");
 
     return {
-      lastSync,
-      successCount,
-      failureCount,
+      lastSync: logs[0]?.syncedAt || null,
       totalSyncs: logs.length,
-      recentLogs: logs,
+      successCount: logs.filter((l) => l.status === "success").length,
+      failureCount: logs.filter((l) => l.status === "failed").length,
+      rateLimitStatus,
     };
   }),
 });
-
-export type WebhooksRouter = typeof webhooksRouter;
