@@ -34,13 +34,19 @@ function makeCtx(user: AuthenticatedUser | null = makeUser()): TrpcContext {
 }
 
 vi.mock("./db", () => ({
+  getDb: vi.fn().mockResolvedValue(null),
   getSessions: vi.fn().mockResolvedValue([
     { id: 1, patientId: 1, scheduledAt: Date.now(), status: "scheduled", userId: 1, notes: "Test session" },
   ]),
   getTransactions: vi.fn().mockResolvedValue([
     { id: 1, userId: 1, amount: 200, type: "income", category: "session", createdAt: new Date() },
   ]),
-  getPatientById: vi.fn().mockResolvedValue({ id: 1, name: "João da Silva", userId: 1 }),
+  getPatientById: vi.fn().mockResolvedValue({ id: 1, name: "Joao da Silva", userId: 1 }),
+  getPatients: vi.fn().mockResolvedValue([
+    { id: 1, name: "Joao da Silva", userId: 1, leadStatus: "lead" },
+    { id: 2, name: "Maria Silva", userId: 1, leadStatus: "prospect" },
+    { id: 3, name: "Pedro Santos", userId: 1, leadStatus: "customer" },
+  ]),
   getClinicalNotesBySession: vi.fn().mockResolvedValue([]),
   getDocumentsByPatient: vi.fn().mockResolvedValue([]),
 }));
@@ -207,6 +213,44 @@ describe("reports router", () => {
       expect(result.data).toBeTruthy();
       expect(result.count).toBeGreaterThanOrEqual(0);
       expect(result.generatedAt).toBeTruthy();
+    });
+  });
+});
+
+
+describe("dashboard router", () => {
+  let caller: ReturnType<typeof appRouter.createCaller>;
+
+  beforeEach(() => {
+    caller = appRouter.createCaller(makeCtx());
+  });
+
+  describe("conversionFunnel", () => {
+    it("should return conversion funnel metrics", async () => {
+  });
+});
+
+  describe("conversionFunnel", () => {
+    it("should return conversion funnel metrics with correct structure", async () => {
+      const result = await caller.dashboard.conversionFunnel();
+
+      expect(result).toHaveProperty("leads");
+      expect(result).toHaveProperty("prospects");
+      expect(result).toHaveProperty("customers");
+      expect(result).toHaveProperty("conversionRate");
+      
+      expect(typeof result.leads).toBe("number");
+      expect(typeof result.prospects).toBe("number");
+      expect(typeof result.customers).toBe("number");
+      expect(typeof result.conversionRate).toBe("number");
+      
+    });
+
+    it("should return valid conversion rate between 0 and 100", async () => {
+      const result = await caller.dashboard.conversionFunnel();
+
+      expect(result.conversionRate).toBeGreaterThanOrEqual(0);
+      expect(result.conversionRate).toBeLessThanOrEqual(100);
     });
   });
 });

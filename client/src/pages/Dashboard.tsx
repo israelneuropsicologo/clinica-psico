@@ -1,4 +1,3 @@
-import DashboardLayout from "@/components/DashboardLayout";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
@@ -10,6 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 import {
   AreaChart,
   Area,
@@ -20,6 +20,10 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
 
 function formatCurrency(value: number) {
@@ -54,8 +58,11 @@ const monthlyData = [
   { mes: "Jun", receita: 4900 },
 ];
 
+// Conversion data will be fetched from backend
+
 export default function Dashboard() {
   const { data: metrics, isLoading } = trpc.dashboard.metrics.useQuery();
+  const { data: conversionData, isLoading: conversionLoading } = trpc.dashboard.conversionFunnel.useQuery();
   const [, navigate] = useLocation();
 
   return (
@@ -102,6 +109,70 @@ export default function Dashboard() {
             alert={Boolean(metrics?.overdueCount && metrics.overdueCount > 0)}
           />
         </div>
+
+        {/* Conversion Funnel */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              Funil de Conversão de Leads
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {conversionLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <div className="text-muted-foreground">Carregando...</div>
+              </div>
+            ) : !conversionData || conversionData.total === 0 ? (
+              <div className="h-64 flex items-center justify-center text-center">
+                <div>
+                  <p className="text-muted-foreground text-sm">Nenhum lead registrado</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: "Leads", value: conversionData.leads, color: "#3b82f6" },
+                        { name: "Prospects", value: conversionData.prospects, color: "#06b6d4" },
+                        { name: "Customers", value: conversionData.customers, color: "#10b981" },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      <Cell fill="#3b82f6" />
+                      <Cell fill="#06b6d4" />
+                      <Cell fill="#10b981" />
+                    </Pie>
+                    <Tooltip formatter={(value) => `${value} leads`} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+                  <div>
+                    <p className="text-muted-foreground">Taxa Conversão</p>
+                    <p className="font-bold text-lg">{conversionData.conversionRate}%</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Leads Ativos</p>
+                    <p className="font-bold text-lg">{conversionData.leads}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Novos Clientes</p>
+                    <p className="font-bold text-lg">{conversionData.customers}</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

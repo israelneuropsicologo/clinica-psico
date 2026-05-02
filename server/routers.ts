@@ -33,6 +33,7 @@ import { notifyOwner } from "./_core/notification";
 import { storagePut } from "./storage";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { getDb } from "./db";
 import { systemRouter } from "./_core/systemRouter";
 import { reportsRouter } from "./routers/reports";
 import { settingsRouter } from "./routers/settings";
@@ -433,6 +434,36 @@ const dashboardRouter = router({
       getUpcomingSessions(ctx.user.id, 5),
     ]);
     return { patientCount, sessionsThisMonth, monthlyRevenue, overdueCount, upcomingSessions };
+  }),
+
+  conversionFunnel: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) {
+      return {
+        leads: 0,
+        prospects: 0,
+        customers: 0,
+        conversionRate: 0,
+      };
+    }
+
+    // Get patients by lead status
+    const allPatients = await getPatients(ctx.user.id);
+    
+    const leads = allPatients.filter((p) => p.leadStatus === "lead").length;
+    const prospects = allPatients.filter((p) => p.leadStatus === "prospect").length;
+    const customers = allPatients.filter((p) => p.leadStatus === "customer").length;
+    
+    const total = leads + prospects + customers;
+    const conversionRate = total > 0 ? Math.round((customers / total) * 100) : 0;
+
+    return {
+      leads,
+      prospects,
+      customers,
+      conversionRate,
+      total,
+    };
   }),
 });
 

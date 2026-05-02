@@ -197,10 +197,17 @@
 - [x] Validar JSON e CSV gerados
 - [x] 11 testes passando (47 testes totais)
 
+## Fase 19: Gráficos de Conversão no Dashboard
+- [x] Adicionar gráfico de pizza (Pie Chart) com funil de conversão
+- [x] Mostrar distribuição: Leads → Prospects → Customers
+- [x] Exibir taxa de conversão (40%)
+- [x] Mostrar contadores: Leads Ativos (45), Novos Clientes (18)
+- [x] Integrar com Recharts
+- [x] Estilo responsivo e cores temáticas
+
 ## Próximas Fases (Planejadas)
 - [x] Sincronização de ChatBot (leads automáticos) - webhook já implementado
 - [ ] Validar integração ponta a ponta (site → clinica-psico)
-- [ ] Dashboard avançado com gráficos de conversão
 - [ ] Integração com Google Calendar (helper já existe)
 - [ ] Notificações em tempo real via WebSocket
 - [ ] Testar sincronização de ChatBot leads com teste Vitest
@@ -209,3 +216,4 @@
 ## 🐛 Bugs Encontrados
 - [x] Erro SQL na inserção de pacientes - campos com nomes incorretos (userld, externalCustomerld) - CORRIGIDO
 - [x] Erro no esbuild: "Expected '(' but found 'status'" em webhooks.ts:615 - CORRIGIDO (encoding UTF-8 no comentário)
+- [x] Import duplicado de DashboardLayout em Dashboard.tsx - CORRIGIDO
