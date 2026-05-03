@@ -872,3 +872,13 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Adicionar tratamento de valores undefined/null em pdfLayoutHelper.ts
 - [x] Testar todos os 6 tipos de documentos — 13 testes passando (100%)
 - [x] Criar suite completa de testes em documentGenerators.test.ts
+
+
+## Fase 55: Correcao de Formatacao de PDFs nos Geradores de Documentos
+
+- [x] Investigar problema de quebra de texto em caracteres individuais nos PDFs
+- [x] Identificar causa: maxCharsPerLine muito alto (100 caracteres)
+- [x] Reduzir maxCharsPerLine de 100 para 70 em drawText
+- [x] Reduzir maxCharsPerLine de 95 para 65 em drawBulletList
+- [x] Testar todos os 6 tipos de documentos — 13 testes passando (100%)
+- [x] Verificar que textos agora quebram corretamente em linhas

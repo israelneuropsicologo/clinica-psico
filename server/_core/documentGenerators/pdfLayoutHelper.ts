@@ -166,7 +166,7 @@ export class ProfessionalPDFLayout {
    */
   drawText(text: string | undefined | null, fontSize = 11, isBold = false): void {
     if (!text) return;
-    const lines = this.wrapText(text, 100);
+    const lines = this.wrapText(text, 70);
     for (const line of lines) {
       this.page.drawText(line, {
         x: this.marginX,
@@ -183,7 +183,7 @@ export class ProfessionalPDFLayout {
    */
   drawBulletList(items: string[]): void {
     for (const item of items) {
-      const lines = this.wrapText(item, 95);
+      const lines = this.wrapText(item, 65);
       let isFirstLine = true;
 
       for (const line of lines) {
