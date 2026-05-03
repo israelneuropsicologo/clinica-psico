@@ -942,3 +942,48 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Corrigir query de listagem de sessoes com pagamento pendente
 - [x] Adicionar refetch automatico apos marcar como pago
 - [x] Testar atualizacao em tempo real
+
+
+## Fase 59: Integracao com Chatbot e Agendamento Direto do Site
+
+### Webhook para Leads do Chatbot
+- [x] Criar endpoint tRPC `webhooks.createChatbotLead` para receber leads
+- [x] Receber dados: nome, email, telefone, mensagem, data_interacao
+- [x] Criar paciente com leadSource="chatbot" e leadStatus="lead"
+- [x] Validar dados de entrada (email, telefone)
+- [x] Registrar log de sincronizacao
+- [x] Retornar confirmacao com ID do paciente criado
+
+### Webhook para Agendamento Direto
+- [x] Criar endpoint tRPC `webhooks.createDirectBooking` para receber agendamentos
+- [x] Receber dados: nome, email, telefone, data_sessao, horario, mensagem
+- [x] Criar paciente com leadSource="direct_booking" e leadStatus="prospect"
+- [x] Criar sessao automaticamente com status="pending"
+- [x] Definir sessionValue com valor padrao
+- [x] Registrar log de sincronizacao
+- [x] Retornar confirmacao com ID da sessao
+
+### Validacoes e Seguranca
+- [x] Validar Bearer token nos webhooks
+- [x] Implementar rate limiting (100 req/min por token)
+- [x] Evitar duplicatas: verificar se email ja existe
+- [x] Se email existe: atualizar leadStatus para "prospect" se vem agendamento
+- [x] Criptografar dados sensíveis em transito
+
+### Interface de Gerenciamento
+- [x] Criar aba "Leads do Chatbot" no dashboard
+- [x] Mostrar lista de leads recentes com data, email, mensagem
+- [x] Botao "Converter para Paciente" para cada lead
+- [x] Botao "Descartar" para leads nao interessados
+- [x] Criar aba "Agendamentos Diretos" no dashboard
+- [x] Mostrar lista de agendamentos pendentes de confirmacao
+- [x] Botao "Confirmar Agendamento" para cada um
+- [x] Botao "Recusar" para agendamentos
+
+### Testes
+- [x] Testar webhook de chatbot com dados validos
+- [x] Testar webhook de agendamento com dados validos
+- [x] Testar validacoes de email duplicado
+- [x] Testar rate limiting
+- [x] Testar criacao de paciente e sessao automatica
+- [x] Testar atualizacao de leadStatus

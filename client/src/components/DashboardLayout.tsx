@@ -38,6 +38,8 @@ import {
   Zap,
   FileText,
   HardDrive,
+  Inbox,
+  CheckSquare,
 } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -47,6 +49,8 @@ import { Button } from "./ui/button";
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Users, label: "Pacientes", path: "/patients" },
+  { icon: Inbox, label: "Leads", path: "/leads" },
+  { icon: CheckSquare, label: "Agendamentos Diretos", path: "/direct-bookings" },
   { icon: ClipboardList, label: "Sessões", path: "/sessions" },
   { icon: CalendarDays, label: "Agenda", path: "/calendar" },
   { icon: DollarSign, label: "Financeiro", path: "/financial" },

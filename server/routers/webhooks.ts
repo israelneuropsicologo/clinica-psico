@@ -799,6 +799,178 @@ export const webhooksRouter = router({
     }),
 
   /**
+   * Criar lead do chatbot (webhook)
+   */
+  createChatbotLead: publicProcedure
+    .input(
+      z.object({
+        name: z.string().min(1),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        message: z.string().optional(),
+        token: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        let userId: number;
+
+        if (input.token) {
+          const apiToken = await validateApiToken(input.token);
+          if (!apiToken) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Token inválido ou expirado",
+            });
+          }
+          userId = apiToken.userId;
+
+          const rateLimitCheck = checkRateLimit(input.token);
+          if (!rateLimitCheck.allowed) {
+            throw new TRPCError({
+              code: "TOO_MANY_REQUESTS",
+              message: `Rate limit excedido. Máximo 100 requisições por minuto.`,
+            });
+          }
+        } else {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Token requerido",
+          });
+        }
+
+        // Verificar se paciente já existe
+        const existingPatient = await checkCustomerExists(userId, input.email);
+        if (existingPatient) {
+          await logWebhook(userId, "chatbot_lead", input.email, input, "success", "Lead já existente");
+          return {
+            success: true,
+            patientId: existingPatient.id,
+            isNew: false,
+            message: "Paciente já existe no sistema",
+          };
+        }
+
+        // Criar novo lead
+        const patientData: InsertPatient = {
+          userId,
+          name: input.name,
+          email: input.email,
+          phone: input.phone || null,
+          leadSource: "chatbot",
+          leadStatus: "lead",
+          status: "active",
+          interactionCount: 1,
+          lastInteractionAt: new Date(),
+        };
+
+        const patient = await createPatient(patientData);
+        await logWebhook(userId, "chatbot_lead", input.email, input, "success", "Lead criado com sucesso");
+
+        return {
+          success: true,
+          patientId: patient.id,
+          isNew: true,
+          message: "Lead criado com sucesso",
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw error;
+      }
+    }),
+
+  /**
+   * Criar agendamento direto do site (webhook)
+   */
+  createDirectBooking: publicProcedure
+    .input(
+      z.object({
+        name: z.string().min(1),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        scheduledAt: z.string(), // ISO date string
+        message: z.string().optional(),
+        sessionValue: z.number().optional().default(150),
+        token: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        let userId: number;
+
+        if (input.token) {
+          const apiToken = await validateApiToken(input.token);
+          if (!apiToken) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Token inválido ou expirado",
+            });
+          }
+          userId = apiToken.userId;
+
+          const rateLimitCheck = checkRateLimit(input.token);
+          if (!rateLimitCheck.allowed) {
+            throw new TRPCError({
+              code: "TOO_MANY_REQUESTS",
+              message: `Rate limit excedido. Máximo 100 requisições por minuto.`,
+            });
+          }
+        } else {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Token requerido",
+          });
+        }
+
+        // Verificar se paciente já existe
+        let patient = await checkCustomerExists(userId, input.email);
+        if (!patient) {
+          // Criar novo paciente com status prospect
+          const patientData: InsertPatient = {
+            userId,
+            name: input.name,
+            email: input.email,
+            phone: input.phone || null,
+            leadSource: "direct_booking",
+            leadStatus: "prospect",
+            status: "active",
+            interactionCount: 1,
+            lastInteractionAt: new Date(),
+          };
+          patient = await createPatient(patientData);
+        } else {
+          // Atualizar status para prospect se ainda era lead
+          if (patient.leadStatus === "lead") {
+            await updatePatient(patient.id, { leadStatus: "prospect" });
+          }
+        }
+
+        // Criar sessão
+        const sessionData: InsertSession = {
+          userId,
+          patientId: patient.id,
+          scheduledAt: new Date(input.scheduledAt),
+          status: "pending",
+          sessionValue: input.sessionValue,
+          isPaid: "pending",
+        };
+
+        const session = await createSession(sessionData);
+        await logWebhook(userId, "direct_booking", input.email, input, "success", "Agendamento criado com sucesso");
+
+        return {
+          success: true,
+          patientId: patient.id,
+          sessionId: session.id,
+          message: "Agendamento criado com sucesso",
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw error;
+      }
+    }),
+
+  /**
    * Obter status da integracao
    */
   getStatus: protectedProcedure.query(async ({ ctx }) => {

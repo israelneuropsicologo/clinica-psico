@@ -16,6 +16,8 @@ import Webhooks from "./pages/Webhooks";
 import Home from "./pages/Home";
 import { Documents } from "./pages/Documents";
 import Backups from "./pages/Backups";
+import { Leads } from "./pages/Leads";
+import { DirectBookings } from "./pages/DirectBookings";
 
 // App Router - v1.0.3
 function Router() {
@@ -32,6 +34,8 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/documents" component={Documents} />
       <Route path="/backups" component={Backups} />
+      <Route path="/leads" component={Leads} />
+      <Route path="/direct-bookings" component={DirectBookings} />
       <Route path="/webhooks" component={Webhooks} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
