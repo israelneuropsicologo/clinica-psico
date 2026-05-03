@@ -506,3 +506,32 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Corrigir termos do gráfico de funil: "Customers" → "Pacientes", "Leads" → "Contatos", "Prospects" → "Interessados"; labels do gráfico em português correto
 - [x] Corrigir seção "Próximas Consultas": exibir nome real do paciente em vez de "Paciente nº XXXXXX"
 - [x] Corrigir labels das métricas abaixo do gráfico: "Conversão de taxas" → "Taxa de Conversão", "Líderes Ativos" → "Contatos Ativos"
+
+## Fase 33: Perfil Completo do Paciente (Maio 2026)
+
+### Banco de Dados
+- [x] Adicionar campos de contato ao patients: phone2, address, city, state, zipCode, emergencyContact, emergencyPhone
+- [x] Adicionar campos de saúde ao patients: bloodType, allergies, medications, medicalHistory, disabilities
+- [x] Criar tabela anamnese: queixa principal, histórico familiar, histórico pessoal, objetivos terapêuticos, diagnóstico CID, abordagem terapêutica
+- [x] Criar tabela patient_documents: nome, tipo, fileKey, fileUrl, mimeType, tamanho, sessaoId (opcional)
+- [x] Criar tabela session_recordings: sessionId, fileKey, fileUrl, duration, transcription
+- [x] Criar tabela timeline_analyses: patientId, type (global/session/next), content JSON, createdAt
+- [x] Gerar migration SQL e aplicar ao banco
+
+### Backend (tRPC)
+- [x] Procedure: anamnese.get / anamnese.upsert
+- [x] Procedure: documents.list / documents.upload / documents.delete
+- [x] Procedure: recordings.list / recordings.upload / recordings.delete / recordings.transcribe
+- [x] Procedure: timeline.generate (IA) / timeline.get / timeline.list
+- [x] Atualizar patients.update para incluir campos de contato e saúde
+
+### Frontend
+- [x] Refatorar página do paciente com abas: Perfil, Contato, Saúde, Anamnese, Prontuário, Documentos, Gravações, Linha do Tempo
+- [x] Aba Perfil: nome, data nascimento, gênero, CPF, email, foto
+- [x] Aba Contato: telefone, endereço, cidade, estado, CEP, contato de emergência
+- [x] Aba Saúde: tipo sanguíneo, alergias, medicamentos em uso, histórico médico, deficiências
+- [x] Aba Anamnese: queixa principal, histórico familiar, histórico pessoal, objetivos, CID, abordagem
+- [x] Aba Prontuário: lista de prontuários das sessões (já existente, integrar)
+- [x] Aba Documentos: upload de arquivos (PDF, imagem, doc), listagem com download
+- [x] Aba Gravações: upload de áudio por sessão, player de áudio, transcrição automática via IA
+- [x] Aba Linha do Tempo: análise global IA, análise do último atendimento, orientação próxima sessão, gráfico evolução do sofrimento

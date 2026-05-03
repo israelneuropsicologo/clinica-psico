@@ -12,6 +12,10 @@ const statusLabels: Record<string, string> = {
   pending: "Pendente",
   paid: "Pago",
   overdue: "Em atraso",
+  lead: "Lead",
+  prospect: "Interessado",
+  customer: "Paciente",
+  lost: "Perdido",
 };
 
 interface StatusBadgeProps {

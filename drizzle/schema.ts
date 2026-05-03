@@ -281,5 +281,67 @@ export type InsertUserLink = typeof userLinks.$inferInsert;
 // dueDate: timestamp (data de vencimento)
 // status: enum (pending, paid, overdue, cancelled, refunded)
 
+// ─── Anamnese (Ficha de Anamnese do Paciente) ────────────────────────────────
+export const anamnese = mysqlTable("anamnese", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  patientId: int("patientId").notNull().unique(),
+  // Dados de saúde
+  bloodType: varchar("bloodType", { length: 10 }),
+  allergies: text("allergies"),
+  chronicConditions: text("chronicConditions"),
+  disabilities: text("disabilities"),
+  // Anamnese clínica
+  mainComplaintDetail: text("mainComplaintDetail"),
+  familyHistory: text("familyHistory"),
+  personalHistory: text("personalHistory"),
+  previousTreatments: text("previousTreatments"),
+  therapeuticGoals: text("therapeuticGoals"),
+  cidCode: varchar("cidCode", { length: 20 }),
+  therapeuticApproach: varchar("therapeuticApproach", { length: 100 }),
+  riskFactors: text("riskFactors"),
+  protectiveFactors: text("protectiveFactors"),
+  additionalNotes: text("additionalNotes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Anamnese = typeof anamnese.$inferSelect;
+export type InsertAnamnese = typeof anamnese.$inferInsert;
+
+// ─── Session Recordings (Gravações de Sessões) ────────────────────────────────
+export const sessionRecordings = mysqlTable("session_recordings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  patientId: int("patientId").notNull(),
+  sessionId: int("sessionId"),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileKey: varchar("fileKey", { length: 512 }).notNull(),
+  fileUrl: varchar("fileUrl", { length: 1024 }).notNull(),
+  mimeType: varchar("mimeType", { length: 128 }).notNull(),
+  fileSize: int("fileSize"),
+  durationSeconds: int("durationSeconds"),
+  transcription: text("transcription"),
+  transcriptionStatus: mysqlEnum("transcriptionStatus", ["pending", "processing", "done", "error"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SessionRecording = typeof sessionRecordings.$inferSelect;
+export type InsertSessionRecording = typeof sessionRecordings.$inferInsert;
+
+// ─── Timeline Analyses (Análises IA da Linha do Tempo) ────────────────────────
+export const timelineAnalyses = mysqlTable("timeline_analyses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  patientId: int("patientId").notNull(),
+  analysisType: mysqlEnum("analysisType", ["global", "last_session", "next_session"]).notNull(),
+  content: text("content").notNull(), // JSON stringified
+  sessionCount: int("sessionCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TimelineAnalysis = typeof timelineAnalyses.$inferSelect;
+export type InsertTimelineAnalysis = typeof timelineAnalyses.$inferInsert;
+
 // ─── Session with Patient (for API responses) ──────────────────────────────
 export type SessionWithPatient = Session & { patient?: Patient };
