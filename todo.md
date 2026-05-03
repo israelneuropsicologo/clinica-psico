@@ -882,3 +882,14 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Reduzir maxCharsPerLine de 95 para 65 em drawBulletList
 - [x] Testar todos os 6 tipos de documentos — 13 testes passando (100%)
 - [x] Verificar que textos agora quebram corretamente em linhas
+
+
+## Fase 56: Correcao Final de Quebra de Texto em Caracteres
+
+- [x] Diagnosticar causa raiz: recommendations passadas como string em vez de array
+- [x] Converter recommendations para array dividindo por quebra de linha
+- [x] Aplicar fix em generateLaudo (Laudo Psicologico)
+- [x] Aplicar fix em generateRelatorio (Relatorio Psicologico)
+- [x] Aplicar fix em generateRelatorioMultiprofissional (Relatorio Multiprofissional)
+- [x] Testar todos os 6 tipos de documentos — 13 testes passando (100%)
+- [x] Verificar que recomendacoes agora aparecem como items com bullet points

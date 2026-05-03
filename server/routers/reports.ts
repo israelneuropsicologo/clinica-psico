@@ -905,7 +905,10 @@ export const reportsRouter = router({
           presentingProblem: input.presentingProblem,
           clinicalAssessment: input.clinicalAssessment,
           diagnosis: input.diagnosis,
-          recommendations: input.recommendations,
+          recommendations: input.recommendations
+            .split("\n")
+            .map((r) => r.trim())
+            .filter((r) => r.length > 0),
           city: s?.clinicCity || "Rio de Janeiro",
           date: dateStr,
         };
@@ -1035,7 +1038,10 @@ export const reportsRouter = router({
           mainComplaint: input.mainComplaint,
           clinicalEvolution: input.clinicalEvolution,
           currentStatus: input.currentStatus,
-          recommendations: input.recommendations,
+          recommendations: input.recommendations
+            .split("\n")
+            .map((r) => r.trim())
+            .filter((r) => r.length > 0),
           city: s?.clinicCity || "Rio de Janeiro",
           date: dateStr,
         };
@@ -1106,7 +1112,10 @@ export const reportsRouter = router({
           multidisciplinaryApproach: input.multidisciplinaryApproach,
           interventionsPerformed: input.interventionsPerformed,
           clinicalEvolution: input.clinicalEvolution,
-          recommendations: input.recommendations,
+          recommendations: input.recommendations
+            .split("\n")
+            .map((r) => r.trim())
+            .filter((r) => r.length > 0),
           city: s?.clinicCity || "Rio de Janeiro",
           date: dateStr,
         };
