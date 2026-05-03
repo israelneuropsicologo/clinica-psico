@@ -708,3 +708,12 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Alterar schema: `emotionalState` e `predominantMood` de `varchar(100)` para `text`
 - [x] Gerar migração SQL (`drizzle-kit generate`) e aplicar no banco de dados via Node.js
 - [x] Testar fluxo completo: IA preenche → auto-save dispara → HTTP 200 OK — sem erros
+
+## Fase 47: Preencher com IA — Apenas Campos Vazios
+
+- [x] Analisar o fluxo atual do autoFill (frontend + backend)
+- [x] Implementar lógica no frontend: funções `isEmpty` e `isDefaultEnum` verificam se o campo já tem conteúdo antes de aplicar o valor da IA
+- [x] Campos de texto: preservados se não estiverem vazios
+- [x] Campos enum (mood, selfHarmRisk, etc.): preservados se já tiverem valor diferente do padrão ("neutral", "absent")
+- [x] Toast atualizado para "Campos vazios preenchidos pela IA! Revise e salve."
+- [x] Testar: campo "Anotações Gerais" com texto existente → clicar em "Preencher com IA" → texto preservado ✔
