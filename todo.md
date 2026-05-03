@@ -214,6 +214,8 @@
 ## Próximas Fases (Planejadas)
 - [x] Sincronização de ChatBot (leads automáticos) - webhook já implementado
 - [x] Validar integração ponta a ponta (site → clinica-psico) - Endpoints tRPC funcionando
+- [ ] Integração com Google Calendar (helper já existe) - Futuro
+- [ ] Notificações em tempo real via WebSocket - Futuro
 
 
 ## 🐛 Bugs Encontrados
@@ -246,9 +248,9 @@
 - [x] Validação de entrada (email, campos obrigatórios)
 
 ## Funcionalidades Futuras (Não Implementadas)
-- [x] Integração com Google Calendar (helper já existe)
-- [x] Notificações em tempo real via WebSocket (usando tRPC subscriptions)
-- [x] Agendamento de relatórios automáticos (7 AM diariamente)
+- [ ] Integração com Google Calendar (helper já existe)
+- [ ] Notificações em tempo real via WebSocket
+- [ ] Agendamento de relatórios automáticos
 
 ## 🐛 Bugs Encontrados e Corrigidos
 - [x] Erro SQL na inserção de pacientes - campos com nomes incorretos (userld, externalCustomerld) - CORRIGIDO
@@ -305,10 +307,10 @@
 
 
 ## Fase 26: Correção de Bugs Críticos (Reportados)
-- [x] Bug: Campo de anotações clínicas não fica visível após digitação (CORRIGIDO)
+- [ ] Bug: Campo de anotações clínicas não fica visível após digitação
 - [ ] Bug: IA vendo dados antigos de anotações deletadas
 - [ ] Bug: PDF exportando "PACIENTE #1" em vez do nome real do paciente
-- [x] Teste: Validar salvamento de anotações clínicas
+- [ ] Teste: Validar salvamento de anotações clínicas
 - [ ] Teste: Validar que IA não usa dados deletados
 - [ ] Teste: Validar PDF com nome correto do paciente
 
@@ -419,8 +421,8 @@ await trpc.userSync.linkUsers.mutate({
 - [ ] Sincronizar automaticamente clientes do ChatBot do site
 
 ## Fase 31: Integração Google Calendar
-- [x] Configurar autenticação Google OAuth para Google Calendar API
-- [x] Criar procedimento tRPC para sincronizar eventos do Google Calendar
+- [ ] Configurar autenticação Google OAuth para Google Calendar API
+- [ ] Criar procedimento tRPC para sincronizar eventos do Google Calendar
 - [ ] Integrar Google Calendar embarcado na página Agenda
 - [ ] Mapear eventos do Google Calendar para sessões do sistema
 - [ ] Implementar sincronização automática de eventos
