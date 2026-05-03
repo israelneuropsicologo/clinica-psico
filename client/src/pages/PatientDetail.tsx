@@ -363,11 +363,16 @@ export default function PatientDetail() {
 
           {/* ── DOCUMENTOS ── */}
           <TabsContent value="documents" className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-2">
               <p className="text-sm text-muted-foreground">{documents?.length ?? 0} documento(s)</p>
-              <Button size="sm" onClick={() => setShowUpload(true)} className="gap-1.5">
-                <Upload className="h-3.5 w-3.5" /> Anexar Documento
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => setShowDocumentSelector(true)} className="gap-1.5">
+                  <FileText className="h-3.5 w-3.5" /> Novo Documento
+                </Button>
+                <Button size="sm" onClick={() => setShowUpload(true)} className="gap-1.5">
+                  <Upload className="h-3.5 w-3.5" /> Anexar Documento
+                </Button>
+              </div>
             </div>
             {!documents?.length ? (
               <Card>

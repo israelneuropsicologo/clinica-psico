@@ -751,3 +751,61 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Modal de preenchimento com 5 seções, campos editáveis pré-preenchidos com dados do paciente e do profissional
 - [x] Download automático do PDF ao confirmar
 - [x] Testado: PDF gerado com sucesso (3837 bytes), toast de confirmação exibido
+
+## Fase 51: 6 Tipos de Documentos Psicológicos com Geração IA
+
+### Backend — Geradores de PDF
+- [x] Criar `declaracaoGenerator.ts` — Registro objetivo de presença/atendimento
+- [x] Criar `atestadoGenerator.ts` — Certificação clínica com diagnóstico
+- [x] Criar `laudoGenerator.ts` — Avaliação técnica completa com diagnóstico
+- [x] Criar `parecerGenerator.ts` — Opinião técnica sem avaliação direta
+- [x] Criar `relatorioGenerator.ts` — Descritivo informativo
+- [x] Criar `relatorioMultiprofissionalGenerator.ts` — Trabalho conjunto com outros profissionais
+- [x] Cada gerador retorna PDF em base64 com estrutura profissional
+
+### Backend — tRPC Procedures
+- [x] Procedure `reports.generateDeclaracao` com IA
+- [x] Procedure `reports.generateAtestado` com IA
+- [x] Procedure `reports.generateLaudo` com IA
+- [x] Procedure `reports.generateParecer` com IA
+- [x] Procedure `reports.generateRelatorio` com IA
+- [x] Procedure `reports.generateRelatorioMultiprofissional` com IA
+- [x] Cada procedure chama LLM com prompt específico do tipo de documento
+
+### Frontend — Componente DocumentTypeSelector
+- [x] Criar componente `DocumentTypeSelector.tsx` com 6 cards (grid 2x3)
+- [x] Card 1: Declaração — "Registro objetivo"
+- [x] Card 2: Atestado Psicológico — "Certificação clínica"
+- [x] Card 3: Laudo Psicológico — "Avaliação técnica"
+- [x] Card 4: Parecer Psicológico — "Opinião técnica"
+- [x] Card 5: Relatório Psicológico — "Descritivo informativo"
+- [x] Card 6: Relatório Multiprofissional — "Trabalho conjunto"
+- [x] Cada card com ícone, título, descrição e botão "CRIAR"
+
+### Frontend — Modais de Preenchimento
+- [x] Modal genérico para todos os tipos (DocumentGenerationModal.tsx)
+- [x] Modal para Declaração (campos: data, tipo de atendimento, observações)
+- [x] Modal para Atestado (campos: diagnóstico, período, restrições)
+- [x] Modal para Laudo (campos: queixa, avaliação, diagnóstico, recomendações)
+- [x] Modal para Parecer (campos: questão clínica, análise, conclusão)
+- [x] Modal para Relatório (campos: período, evolução, recomendações)
+- [x] Modal para Relatório Multiprofissional (campos: profissionais envolvidos, trabalho realizado)
+- [x] Cada modal com botão "Gerar e Baixar PDF"
+
+### Frontend — Integração com IA
+- [x] Hook `useDocumentGeneration` para gerenciar geração e download
+- [x] Ao clicar "Gerar e Baixar PDF", chamar mutation tRPC correspondente
+- [x] Passar dados do modal + histórico do paciente para IA
+- [x] Download automático do PDF ao confirmar
+- [x] Toast de sucesso "Documento gerado com sucesso!"
+- [x] Componente DocumentsTab.tsx integrando tudo na aba Documentos
+- [x] Botão "Novo Documento" na aba Documentos do paciente
+
+### Testes
+- [ ] Testar geração de Declaração
+- [ ] Testar geração de Atestado
+- [ ] Testar geração de Laudo
+- [ ] Testar geração de Parecer
+- [ ] Testar geração de Relatório
+- [ ] Testar geração de Relatório Multiprofissional
+- [ ] Verificar qualidade dos PDFs gerados

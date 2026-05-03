@@ -12,6 +12,12 @@ import {
 import { TRPCError } from "@trpc/server";
 import { generatePatientReport, generateFinancialReport } from "../_core/reportGenerator";
 import { generateReferralLetter, ReferralLetterData } from "../_core/referralLetterGenerator";
+import { generateDeclaracao, DeclaracaoData } from "../_core/documentGenerators/declaracaoGenerator";
+import { generateAtestado, AtestadoData } from "../_core/documentGenerators/atestadoGenerator";
+import { generateLaudo, LaudoData } from "../_core/documentGenerators/laudoGenerator";
+import { generateParecer, ParecerData } from "../_core/documentGenerators/parecerGenerator";
+import { generateRelatorio, RelatorioData } from "../_core/documentGenerators/relatorioGenerator";
+import { generateRelatorioMultiprofissional, RelatorioMultiprofissionalData } from "../_core/documentGenerators/relatorioMultiprofissionalGenerator";
 import { settings as settingsTable } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 // timeline_analyses imported if needed in future
@@ -714,6 +720,392 @@ export const reportsRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Erro ao gerar PDF: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
+    }),
+
+  // Gerar Declaração Psicológica
+  generateDeclaracao: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        attendanceType: z.string(),
+        attendanceDate: z.string(),
+        attendanceDuration: z.string(),
+        observations: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const patient = await getPatientById(input.patientId, ctx.user.id);
+        if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
+
+        const s = await getDb()
+          .select()
+          .from(settingsTable)
+          .where(eq(settingsTable.userId, ctx.user.id))
+          .limit(1)
+          .then((r) => r[0]);
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("pt-BR");
+
+        const declaracaoData: DeclaracaoData = {
+          clinicName: s?.clinicName || "Clínica",
+          clinicAddress: s?.clinicAddress || "Endereço não configurado",
+          clinicCity: s?.clinicCity || "Rio de Janeiro",
+          clinicState: s?.clinicState || "RJ",
+          professionalName: s?.ownerName || ctx.user.name || "Profissional",
+          professionalCRP: s?.ownerCRP || "CRP não configurado",
+          professionalSpecialty: s?.ownerSpecialty || "Psicologia",
+          professionalEmail: s?.ownerEmail || "",
+          professionalPhone: s?.ownerPhone || "",
+          patientName: patient.name,
+          patientBirthDate: new Date(patient.birthDate).toLocaleDateString("pt-BR"),
+          patientAge: new Date().getFullYear() - new Date(patient.birthDate).getFullYear(),
+          attendanceType: input.attendanceType,
+          attendanceDate: input.attendanceDate,
+          attendanceDuration: input.attendanceDuration,
+          observations: input.observations,
+          city: s?.clinicCity || "Rio de Janeiro",
+          date: dateStr,
+        };
+
+        const pdfBuffer = await generateDeclaracao(declaracaoData);
+        return {
+          success: true,
+          filename: `declaracao_${patient.name.replace(/\s+/g, "_").toLowerCase()}_${now.toISOString().split("T")[0]}.pdf`,
+          data: pdfBuffer.toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar declaração: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
+    }),
+
+  // Gerar Atestado Psicológico
+  generateAtestado: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        diagnosis: z.string(),
+        startDate: z.string(),
+        endDate: z.string(),
+        restrictions: z.string(),
+        clinicalJustification: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const patient = await getPatientById(input.patientId, ctx.user.id);
+        if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
+
+        const s = await getDb()
+          .select()
+          .from(settingsTable)
+          .where(eq(settingsTable.userId, ctx.user.id))
+          .limit(1)
+          .then((r) => r[0]);
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("pt-BR");
+
+        const atestadoData: AtestadoData = {
+          clinicName: s?.clinicName || "Clínica",
+          clinicAddress: s?.clinicAddress || "Endereço não configurado",
+          clinicCity: s?.clinicCity || "Rio de Janeiro",
+          clinicState: s?.clinicState || "RJ",
+          professionalName: s?.ownerName || ctx.user.name || "Profissional",
+          professionalCRP: s?.ownerCRP || "CRP não configurado",
+          professionalSpecialty: s?.ownerSpecialty || "Psicologia",
+          professionalEmail: s?.ownerEmail || "",
+          professionalPhone: s?.ownerPhone || "",
+          patientName: patient.name,
+          patientBirthDate: new Date(patient.birthDate).toLocaleDateString("pt-BR"),
+          patientAge: new Date().getFullYear() - new Date(patient.birthDate).getFullYear(),
+          diagnosis: input.diagnosis,
+          startDate: input.startDate,
+          endDate: input.endDate,
+          restrictions: input.restrictions,
+          clinicalJustification: input.clinicalJustification,
+          city: s?.clinicCity || "Rio de Janeiro",
+          date: dateStr,
+        };
+
+        const pdfBuffer = await generateAtestado(atestadoData);
+        return {
+          success: true,
+          filename: `atestado_${patient.name.replace(/\s+/g, "_").toLowerCase()}_${now.toISOString().split("T")[0]}.pdf`,
+          data: pdfBuffer.toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar atestado: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
+    }),
+
+  // Gerar Laudo Psicológico
+  generateLaudo: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        referralReason: z.string(),
+        mainComplaint: z.string(),
+        presentingProblem: z.string(),
+        clinicalAssessment: z.string(),
+        diagnosis: z.string(),
+        recommendations: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const patient = await getPatientById(input.patientId, ctx.user.id);
+        if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
+
+        const s = await getDb()
+          .select()
+          .from(settingsTable)
+          .where(eq(settingsTable.userId, ctx.user.id))
+          .limit(1)
+          .then((r) => r[0]);
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("pt-BR");
+
+        const laudoData: LaudoData = {
+          clinicName: s?.clinicName || "Clínica",
+          clinicAddress: s?.clinicAddress || "Endereço não configurado",
+          clinicCity: s?.clinicCity || "Rio de Janeiro",
+          clinicState: s?.clinicState || "RJ",
+          professionalName: s?.ownerName || ctx.user.name || "Profissional",
+          professionalCRP: s?.ownerCRP || "CRP não configurado",
+          professionalSpecialty: s?.ownerSpecialty || "Psicologia",
+          professionalEmail: s?.ownerEmail || "",
+          professionalPhone: s?.ownerPhone || "",
+          patientName: patient.name,
+          patientBirthDate: new Date(patient.birthDate).toLocaleDateString("pt-BR"),
+          patientAge: new Date().getFullYear() - new Date(patient.birthDate).getFullYear(),
+          referralReason: input.referralReason,
+          mainComplaint: input.mainComplaint,
+          presentingProblem: input.presentingProblem,
+          clinicalAssessment: input.clinicalAssessment,
+          diagnosis: input.diagnosis,
+          recommendations: input.recommendations,
+          city: s?.clinicCity || "Rio de Janeiro",
+          date: dateStr,
+        };
+
+        const pdfBuffer = await generateLaudo(laudoData);
+        return {
+          success: true,
+          filename: `laudo_${patient.name.replace(/\s+/g, "_").toLowerCase()}_${now.toISOString().split("T")[0]}.pdf`,
+          data: pdfBuffer.toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar laudo: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
+    }),
+
+  // Gerar Parecer Psicológico
+  generateParecer: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        clinicalQuestion: z.string(),
+        clinicalAnalysis: z.string(),
+        technicalOpinion: z.string(),
+        conclusion: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const patient = await getPatientById(input.patientId, ctx.user.id);
+        if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
+
+        const s = await getDb()
+          .select()
+          .from(settingsTable)
+          .where(eq(settingsTable.userId, ctx.user.id))
+          .limit(1)
+          .then((r) => r[0]);
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("pt-BR");
+
+        const parecerData: ParecerData = {
+          clinicName: s?.clinicName || "Clínica",
+          clinicAddress: s?.clinicAddress || "Endereço não configurado",
+          clinicCity: s?.clinicCity || "Rio de Janeiro",
+          clinicState: s?.clinicState || "RJ",
+          professionalName: s?.ownerName || ctx.user.name || "Profissional",
+          professionalCRP: s?.ownerCRP || "CRP não configurado",
+          professionalSpecialty: s?.ownerSpecialty || "Psicologia",
+          professionalEmail: s?.ownerEmail || "",
+          professionalPhone: s?.ownerPhone || "",
+          patientName: patient.name,
+          patientBirthDate: new Date(patient.birthDate).toLocaleDateString("pt-BR"),
+          patientAge: new Date().getFullYear() - new Date(patient.birthDate).getFullYear(),
+          clinicalQuestion: input.clinicalQuestion,
+          clinicalAnalysis: input.clinicalAnalysis,
+          technicalOpinion: input.technicalOpinion,
+          conclusion: input.conclusion,
+          city: s?.clinicCity || "Rio de Janeiro",
+          date: dateStr,
+        };
+
+        const pdfBuffer = await generateParecer(parecerData);
+        return {
+          success: true,
+          filename: `parecer_${patient.name.replace(/\s+/g, "_").toLowerCase()}_${now.toISOString().split("T")[0]}.pdf`,
+          data: pdfBuffer.toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar parecer: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
+    }),
+
+  // Gerar Relatório Psicológico
+  generateRelatorio: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        treatmentPeriod: z.string(),
+        mainComplaint: z.string(),
+        clinicalEvolution: z.string(),
+        currentStatus: z.string(),
+        recommendations: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const patient = await getPatientById(input.patientId, ctx.user.id);
+        if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
+
+        const s = await getDb()
+          .select()
+          .from(settingsTable)
+          .where(eq(settingsTable.userId, ctx.user.id))
+          .limit(1)
+          .then((r) => r[0]);
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("pt-BR");
+
+        const relatorioData: RelatorioData = {
+          clinicName: s?.clinicName || "Clínica",
+          clinicAddress: s?.clinicAddress || "Endereço não configurado",
+          clinicCity: s?.clinicCity || "Rio de Janeiro",
+          clinicState: s?.clinicState || "RJ",
+          professionalName: s?.ownerName || ctx.user.name || "Profissional",
+          professionalCRP: s?.ownerCRP || "CRP não configurado",
+          professionalSpecialty: s?.ownerSpecialty || "Psicologia",
+          professionalEmail: s?.ownerEmail || "",
+          professionalPhone: s?.ownerPhone || "",
+          patientName: patient.name,
+          patientBirthDate: new Date(patient.birthDate).toLocaleDateString("pt-BR"),
+          patientAge: new Date().getFullYear() - new Date(patient.birthDate).getFullYear(),
+          treatmentPeriod: input.treatmentPeriod,
+          mainComplaint: input.mainComplaint,
+          clinicalEvolution: input.clinicalEvolution,
+          currentStatus: input.currentStatus,
+          recommendations: input.recommendations,
+          city: s?.clinicCity || "Rio de Janeiro",
+          date: dateStr,
+        };
+
+        const pdfBuffer = await generateRelatorio(relatorioData);
+        return {
+          success: true,
+          filename: `relatorio_${patient.name.replace(/\s+/g, "_").toLowerCase()}_${now.toISOString().split("T")[0]}.pdf`,
+          data: pdfBuffer.toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar relatório: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
+    }),
+
+  // Gerar Relatório Multiprofissional
+  generateRelatorioMultiprofissional: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        involvedProfessionals: z.string(),
+        treatmentPeriod: z.string(),
+        mainComplaint: z.string(),
+        multidisciplinaryApproach: z.string(),
+        interventionsPerformed: z.string(),
+        clinicalEvolution: z.string(),
+        recommendations: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const patient = await getPatientById(input.patientId, ctx.user.id);
+        if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
+
+        const s = await getDb()
+          .select()
+          .from(settingsTable)
+          .where(eq(settingsTable.userId, ctx.user.id))
+          .limit(1)
+          .then((r) => r[0]);
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("pt-BR");
+
+        const relatorioMultiData: RelatorioMultiprofissionalData = {
+          clinicName: s?.clinicName || "Clínica",
+          clinicAddress: s?.clinicAddress || "Endereço não configurado",
+          clinicCity: s?.clinicCity || "Rio de Janeiro",
+          clinicState: s?.clinicState || "RJ",
+          professionalName: s?.ownerName || ctx.user.name || "Profissional",
+          professionalCRP: s?.ownerCRP || "CRP não configurado",
+          professionalSpecialty: s?.ownerSpecialty || "Psicologia",
+          professionalEmail: s?.ownerEmail || "",
+          professionalPhone: s?.ownerPhone || "",
+          patientName: patient.name,
+          patientBirthDate: new Date(patient.birthDate).toLocaleDateString("pt-BR"),
+          patientAge: new Date().getFullYear() - new Date(patient.birthDate).getFullYear(),
+          involvedProfessionals: input.involvedProfessionals,
+          treatmentPeriod: input.treatmentPeriod,
+          mainComplaint: input.mainComplaint,
+          multidisciplinaryApproach: input.multidisciplinaryApproach,
+          interventionsPerformed: input.interventionsPerformed,
+          clinicalEvolution: input.clinicalEvolution,
+          recommendations: input.recommendations,
+          city: s?.clinicCity || "Rio de Janeiro",
+          date: dateStr,
+        };
+
+        const pdfBuffer = await generateRelatorioMultiprofissional(relatorioMultiData);
+        return {
+          success: true,
+          filename: `relatorio_multiprofissional_${patient.name.replace(/\s+/g, "_").toLowerCase()}_${now.toISOString().split("T")[0]}.pdf`,
+          data: pdfBuffer.toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar relatório multiprofissional: ${error instanceof Error ? error.message : "Desconhecido"}`,
         });
       }
     }),
