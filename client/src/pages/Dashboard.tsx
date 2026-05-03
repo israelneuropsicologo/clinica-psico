@@ -136,15 +136,14 @@ export default function Dashboard() {
                   <PieChart key="conversion-pie-chart">
                     <Pie
                       data={[
-                        { name: "Contatos", value: conversionData.leads, color: "#3b82f6" },
-                        { name: "Interessados", value: conversionData.prospects, color: "#06b6d4" },
-                        { name: "Pacientes", value: conversionData.customers, color: "#10b981" },
+                        { name: "Contatos", value: conversionData.leads },
+                        { name: "Interessados", value: conversionData.prospects },
+                        { name: "Pacientes", value: conversionData.customers },
                       ]}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={80}
+                      outerRadius={90}
                       fill="#8884d8"
                       dataKey="value"
                     >
