@@ -809,3 +809,10 @@ await trpc.userSync.linkUsers.mutate({
 - [ ] Testar geração de Relatório
 - [ ] Testar geração de Relatório Multiprofissional
 - [ ] Verificar qualidade dos PDFs gerados
+
+
+## Bug Fix: NotFoundError ao abrir página do paciente
+
+- [x] Identificado: `DocumentGenerationModal` com handler `onOpenChange` incorreto causando conflito no ciclo de vida do React
+- [x] Corrigido: Mudado de `onOpenChange={onClose}` para `onOpenChange={(open) => { if (!open) onClose(); }}`
+- [x] Testado: Página do paciente carrega sem erros, sem precisar recarregar
