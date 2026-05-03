@@ -586,3 +586,8 @@ await trpc.userSync.linkUsers.mutate({
 - [ ] Migrar schema: expandir tabela clinical_notes com todos os novos campos
 - [ ] Navegação paginada (1 de 8, Anterior/Próxima) entre sub-abas
 - [ ] Botão Salvar e Gerar PDF no prontuário
+
+## Fase 35: Correções Críticas (Bugs Reportados - Maio 2026)
+- [ ] Corrigir crash "removeChild" / "Ocorreu um erro inesperado" ao abrir Sessões e Pacientes no site publicado
+- [ ] Corrigir erro de escrita "Pronúncia" → "Prontuário" onde aparecer no código
+- [ ] Corrigir botão Análise IA não gerando resposta no Prontuário

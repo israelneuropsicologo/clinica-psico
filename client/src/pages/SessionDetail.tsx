@@ -23,7 +23,7 @@ import {
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
-import { Streamdown } from "streamdown";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("pt-BR", {
@@ -358,7 +358,7 @@ export default function SessionDetail() {
                   </div>
                 ) : aiResult ? (
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <Streamdown>{aiResult}</Streamdown>
+                    <MarkdownRenderer>{aiResult}</MarkdownRenderer>
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">

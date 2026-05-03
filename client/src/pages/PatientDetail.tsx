@@ -41,7 +41,7 @@ import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Streamdown } from "streamdown";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(ts: number | Date) {
@@ -1170,7 +1170,7 @@ function ClinicalNoteEditor({ note, onBack }: { note: Record<string, unknown>; o
                   </CardHeader>
                   <CardContent>
                     <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
-                      <Streamdown>{aiFeedback}</Streamdown>
+                      <MarkdownRenderer>{aiFeedback}</MarkdownRenderer>
                     </div>
                   </CardContent>
                 </Card>
