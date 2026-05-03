@@ -976,6 +976,10 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
         ...(isEmpty(prev.clinicalHypotheses) && data.clinicalHypotheses !== undefined && { clinicalHypotheses: String(data.clinicalHypotheses) }),
         ...(isEmpty(prev.supervisionNotes) && data.supervisionNotes !== undefined && { supervisionNotes: String(data.supervisionNotes) }),
         ...(isEmpty(prev.sessionNumber) && data.sessionNumber !== undefined && { sessionNumber: String(data.sessionNumber) }),
+        ...(isEmpty(prev.currentMedications) && (data as Record<string, unknown>).currentMedications !== undefined && { currentMedications: String((data as Record<string, unknown>).currentMedications) }),
+        ...(isEmpty(prev.generalPresentation) && (data as Record<string, unknown>).generalPresentation !== undefined && { generalPresentation: String((data as Record<string, unknown>).generalPresentation) }),
+        ...(isEmpty(prev.referrals) && (data as Record<string, unknown>).referrals !== undefined && { referrals: String((data as Record<string, unknown>).referrals) }),
+        ...(isEmpty(prev.privateObservations) && (data as Record<string, unknown>).privateObservations !== undefined && { privateObservations: String((data as Record<string, unknown>).privateObservations) }),
       }));
       toast.success("Campos vazios preenchidos pela IA! Revise e salve.");
     },

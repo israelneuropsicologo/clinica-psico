@@ -596,9 +596,13 @@ Retorne um JSON com exatamente esta estrutura:
   "selfHarmRisk": "absent|low|moderate|high|extreme",
   "thirdPartyRisk": "absent|low|moderate|high|extreme",
   "suicideRisk": "absent|low|moderate|high|extreme",
+  "currentMedications": "medicações em uso pelo paciente (ou 'Nenhuma' se não houver)",
+  "generalPresentation": "apresentação geral do paciente: aparência, comportamento, postura, contato visual, etc.",
   "countertransference": "observações de contratransferência",
   "clinicalHypotheses": "hipóteses clínicas",
-  "supervisionNotes": "pontos para levar à supervisão"
+  "supervisionNotes": "pontos para levar à supervisão",
+  "referrals": "encaminhamentos realizados ou sugeridos (ou vazio se não houver)",
+  "privateObservations": "observações privadas do terapeuta (não incluídas em relatórios)"
 }`,
           },
           {
@@ -640,8 +644,12 @@ Retorne um JSON com exatamente esta estrutura:
                 countertransference: { type: "string" },
                 clinicalHypotheses: { type: "string" },
                 supervisionNotes: { type: "string" },
+                currentMedications: { type: "string" },
+                generalPresentation: { type: "string" },
+                referrals: { type: "string" },
+                privateObservations: { type: "string" },
               },
-              required: ["content", "emotionalState", "predominantMood", "mood", "sufferingLevel", "mainDemand", "topicsAddressed", "relevantNarrative", "clinicalAssessment", "technicalAnalysis", "techniquesUsed", "plannedInterventions", "therapeuticPlan", "homework", "treatmentResponse", "goalsProgress", "observedInsights", "observedResistances", "nextSessionGoals", "treatmentPlanAdjustments", "selfHarmRisk", "thirdPartyRisk", "suicideRisk", "countertransference", "clinicalHypotheses", "supervisionNotes"],
+              required: ["content", "emotionalState", "predominantMood", "mood", "sufferingLevel", "mainDemand", "topicsAddressed", "relevantNarrative", "clinicalAssessment", "technicalAnalysis", "techniquesUsed", "plannedInterventions", "therapeuticPlan", "homework", "treatmentResponse", "goalsProgress", "observedInsights", "observedResistances", "nextSessionGoals", "treatmentPlanAdjustments", "selfHarmRisk", "thirdPartyRisk", "suicideRisk", "countertransference", "clinicalHypotheses", "supervisionNotes", "currentMedications", "generalPresentation", "referrals", "privateObservations"],
               additionalProperties: false,
             },
           },

@@ -717,3 +717,12 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Campos enum (mood, selfHarmRisk, etc.): preservados se já tiverem valor diferente do padrão ("neutral", "absent")
 - [x] Toast atualizado para "Campos vazios preenchidos pela IA! Revise e salve."
 - [x] Testar: campo "Anotações Gerais" com texto existente → clicar em "Preencher com IA" → texto preservado ✔
+
+## Fase 48: Corrigir Campos Faltantes no Preenchimento com IA
+
+- [x] Mapear todos os campos do formulário vs campos gerados pela IA — identificados: `currentMedications` e `generalPresentation` faltando
+- [x] Adicionar `currentMedications`, `generalPresentation`, `referrals`, `privateObservations` ao prompt da IA e ao JSON schema
+- [x] Atualizar frontend: aplicar novos campos no `autoFillMutation.onSuccess` com lógica de "apenas vazios"
+- [x] Testar: campos "Medicações em Uso" e "Apresentação Geral" agora preenchidos pela IA — OK
+- [x] Campos com conteúdo existente preservados — OK
+- [x] Auto-save após preenchimento funcionando sem erros — OK
