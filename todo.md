@@ -339,6 +339,16 @@
 - [x] Indicador visual de pacientes selecionados
 - [x] Integração com estado React (useState para selectedPatients)
 
+## Fase 59: Correção de Integração de Agendamentos Diretos
+- [x] Identificado problema: `getDirectBookings` retornava pacientes em vez de sessões
+- [x] Corrigido `getDirectBookings` para retornar sessões com status="pending" e leadSource="direct_booking"
+- [x] Adicionados imports faltantes em webhooks.ts (getDb, sessions, patients, zod)
+- [x] Corrigidos nomes de tabelas (sessions, patients em vez de sessionsTable, patientsTable)
+- [x] Página DirectBookings.tsx agora carrega sem erros
+- [x] Criado teste abrangente: webhooks-direct-booking.test.ts com 8 testes
+- [x] Validado que webhook `createDirectBooking` cria paciente E sessão corretamente
+- [x] Servidor reiniciado e funcionando normalmente
+
 ## Fase 27: Sistema de Sincronização Multi-Conta
 - [x] Tabela `user_links` criada no schema (primaryUserId, linkedUserId)
 - [x] Funções de sincronização implementadas em db.ts:

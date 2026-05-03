@@ -8,9 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
 export function Leads() {
-  const { data: patients, isLoading, refetch } = trpc.patients.list.useQuery({
-    leadStatus: "lead",
-  });
+  const { data: patients, isLoading, refetch } = trpc.webhooks.getLeads.useQuery({});
 
   const convertLead = trpc.patients.update.useMutation({
     onSuccess: () => {

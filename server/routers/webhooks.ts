@@ -8,7 +8,8 @@ import {
   validateApiToken,
   getPatientByExternalId,
 } from "../db-webhooks";
-import { createPatient, updatePatient, createSession, createTransaction } from "../db";
+import { createPatient, updatePatient, createSession, createTransaction, getDb } from "../db";
+import { sessions, patients } from "../../drizzle/schema";
 import { notifyOwner } from "../_core/notification";
 import { checkRateLimit, getRateLimitStatus } from "../_core/rateLimiter";
 import { retryWithBackoff } from "../_core/retryHelper";
@@ -18,6 +19,8 @@ import { logLGPDEvent, LGPDEventType } from "../_core/lgpdLogger";
 import type { InsertPatient, InsertSession, InsertTransaction } from "../../drizzle/schema";
 import { TRPCError } from "@trpc/server";
 import { eq, and } from "drizzle-orm";
+import z from "zod";
+
 
 export const webhooksRouter = router({
   /**
@@ -968,6 +971,71 @@ export const webhooksRouter = router({
         const errorMessage = error instanceof Error ? error.message : String(error);
         throw error;
       }
+    }),
+
+  /**
+   * Listar leads do chatbot
+   */
+  getLeads: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().default(50),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível" });
+
+      const leads = await db
+        .select()
+        .from(patientsTable)
+        .where(and(eq(patientsTable.userId, ctx.user.id), eq(patientsTable.leadSource, "chatbot")))
+        .limit(input.limit);
+
+      return leads;
+    }),
+
+  /**
+   * Listar agendamentos diretos do site
+   */
+  getDirectBookings: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().default(50),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível" });
+
+      // Buscar sessões pendentes que foram criadas por agendamentos diretos
+      const bookings = await db
+        .select({
+          id: sessions.id,
+          patientId: sessions.patientId,
+          scheduledAt: sessions.scheduledAt,
+          status: sessions.status,
+          sessionValue: sessions.sessionValue,
+          isPaid: sessions.isPaid,
+          patient: {
+            id: patients.id,
+            name: patients.name,
+            email: patients.email,
+            phone: patients.phone,
+          },
+        })
+        .from(sessions)
+        .innerJoin(patients, eq(sessions.patientId, patients.id))
+        .where(
+          and(
+            eq(sessions.userId, ctx.user.id),
+            eq(patients.leadSource, "direct_booking"),
+            eq(sessions.status, "pending")
+          )
+        )
+        .limit(input.limit);
+
+      return bookings;
     }),
 
   /**

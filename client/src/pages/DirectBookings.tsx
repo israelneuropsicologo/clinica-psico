@@ -7,9 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
 export function DirectBookings() {
-  const { data: sessions, isLoading, refetch } = trpc.sessions.list.useQuery({
-    status: "pending",
-  });
+  const { data: sessions, isLoading, refetch } = trpc.webhooks.getDirectBookings.useQuery({});
 
   const updateSession = trpc.sessions.update.useMutation({
     onSuccess: () => {
