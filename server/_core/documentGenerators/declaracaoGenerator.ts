@@ -1,4 +1,5 @@
-import { PDFDocument, rgb, degrees } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
+import { ProfessionalPDFLayout } from "./pdfLayoutHelper";
 
 export interface DeclaracaoData {
   clinicName: string;
@@ -13,9 +14,9 @@ export interface DeclaracaoData {
   patientName: string;
   patientBirthDate: string;
   patientAge: number;
-  attendanceType: string; // "presença", "atendimento", "consulta", etc.
+  attendanceType: string;
   attendanceDate: string;
-  attendanceDuration: string; // "1 hora", "50 minutos", etc.
+  attendanceDuration: string;
   observations: string;
   city: string;
   date: string;
@@ -24,202 +25,53 @@ export interface DeclaracaoData {
 export async function generateDeclaracao(data: DeclaracaoData): Promise<Buffer> {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // A4
-  const { width, height } = page.getSize();
 
-  // Header with clinic info (blue background) - EXPANDED HEIGHT
-  page.drawRectangle({
-    x: 0,
-    y: height - 130,
-    width: width,
-    height: 130,
-    color: rgb(0.1, 0.4, 0.7), // Blue
+  const layout = new ProfessionalPDFLayout(page);
+
+  // Draw professional header
+  layout.drawHeader({
+    title: "DECLARAÇÃO",
+    subtitle: "Registro Objetivo",
+    headerInfo: {
+      clinicName: data.clinicName,
+      clinicCity: data.clinicCity,
+      clinicState: data.clinicState,
+      professionalName: data.professionalName,
+      professionalCRP: data.professionalCRP,
+      professionalEmail: data.professionalEmail,
+      professionalPhone: data.professionalPhone,
+      patientName: data.patientName,
+      patientAge: data.patientAge,
+      patientBirthDate: data.patientBirthDate,
+    },
+    city: data.clinicCity,
+    date: data.date,
   });
 
-  page.drawText(data.clinicName, {
-    x: 40,
-    y: height - 40,
-    size: 20,
-    color: rgb(1, 1, 1),
-    maxWidth: width - 80,
-  });
-
-  page.drawText(`${data.clinicAddress}, ${data.clinicCity}, ${data.clinicState}`, {
-    x: 40,
-    y: height - 60,
-    size: 10,
-    color: rgb(1, 1, 1),
-  });
-
-  page.drawText(`${data.professionalName} | CRP: ${data.professionalCRP}`, {
-    x: 40,
-    y: height - 75,
-    size: 10,
-    color: rgb(1, 1, 1),
-  });
-
-  page.drawText(`${data.professionalEmail} | ${data.professionalPhone}`, {
-    x: 40,
-    y: height - 90,
-    size: 9,
-    color: rgb(1, 1, 1),
-  });
-
-  // Patient info in header (NEW)
-  page.drawText(`Paciente: ${data.patientName} | ${data.patientAge} anos | Nascimento: ${data.patientBirthDate}`, {
-    x: 40,
-    y: height - 110,
-    size: 9,
-    color: rgb(1, 1, 1),
-  });
-
-  // Title
-  page.drawText("DECLARAÇÃO", {
-    x: 40,
-    y: height - 160,
-    size: 18,
-    color: rgb(0.1, 0.4, 0.7),
-  });
-
-  // Divider line
-  page.drawLine({
-    start: { x: 40, y: height - 170 },
-    end: { x: width - 40, y: height - 170 },
-    color: rgb(0.1, 0.4, 0.7),
-    thickness: 2,
-  });
-
-  let yPosition = height - 200;
-
-  // Section 1: Declaration Content (removed identification section since it's now in header)
-  // This section is now the main content
+  // Draw title
+  layout.drawTitle("DECLARAÇÃO", "Registro Objetivo de Atendimento");
 
   // Section 1: Declaration Content
-  yPosition -= 20;
-  page.drawText("1. DECLARAÇÃO", {
-    x: 40,
-    y: yPosition,
-    size: 12,
-    color: rgb(0.1, 0.4, 0.7),
-  });
-
-  yPosition -= 20;
+  layout.drawSectionHeader(1, "DECLARAÇÃO");
   const declarationText = `Declaro para os devidos fins que ${data.patientName}, paciente sob minha responsabilidade profissional, compareceu a ${data.attendanceType} em ${data.attendanceDate}, com duração de ${data.attendanceDuration}.`;
-  const lines = wrapText(declarationText, 100);
-  for (const line of lines) {
-    page.drawText(line, {
-      x: 40,
-      y: yPosition,
-      size: 11,
-      color: rgb(0, 0, 0),
-    });
-    yPosition -= 15;
-  }
+  layout.drawText(declarationText);
 
   // Section 2: Observations
   if (data.observations) {
-    yPosition -= 10;
-    page.drawText("2. OBSERVAÇÕES", {
-      x: 40,
-      y: yPosition,
-      size: 12,
-      color: rgb(0.1, 0.4, 0.7),
-    });
-
-    yPosition -= 15;
-    const obsLines = wrapText(data.observations, 100);
-    for (const line of obsLines) {
-      page.drawText(line, {
-        x: 40,
-        y: yPosition,
-        size: 11,
-        color: rgb(0, 0, 0),
-      });
-      yPosition -= 15;
-    }
+    layout.drawSectionHeader(2, "OBSERVAÇÕES");
+    layout.drawText(data.observations);
   }
 
   // Section 3: Closing
-  yPosition -= 30;
-  page.drawText("3. FECHAMENTO", {
-    x: 40,
-    y: yPosition,
-    size: 12,
-    color: rgb(0.1, 0.4, 0.7),
-  });
+  layout.drawSectionHeader(3, "FECHAMENTO");
+  layout.drawText("Coloco-me à disposição para esclarecimentos adicionais que se façam necessários.");
 
-  yPosition -= 20;
-  const closingText = "Coloco-me à disposição para esclarecimentos adicionais que se façam necessários.";
-  const closingLines = wrapText(closingText, 100);
-  for (const line of closingLines) {
-    page.drawText(line, {
-      x: 40,
-      y: yPosition,
-      size: 11,
-      color: rgb(0, 0, 0),
-    });
-    yPosition -= 15;
-  }
+  // Draw date and location
+  layout.drawDateLocation(data.city, data.date);
 
-  // Date and location
-  yPosition -= 30;
-  page.drawText(`${data.city}, ${data.date}`, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  // Signature line
-  yPosition -= 60;
-  page.drawLine({
-    start: { x: 40, y: yPosition },
-    end: { x: 200, y: yPosition },
-    color: rgb(0, 0, 0),
-    thickness: 1,
-  });
-
-  yPosition -= 15;
-  page.drawText(data.professionalName, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  yPosition -= 15;
-  page.drawText(`CRP: ${data.professionalCRP}`, {
-    x: 40,
-    y: yPosition,
-    size: 10,
-    color: rgb(0, 0, 0),
-  });
-
-  // Footer
-  page.drawText("Documento gerado pelo E-Saúde | Gestão Clínica — Uso exclusivo do profissional", {
-    x: 40,
-    y: 20,
-    size: 8,
-    color: rgb(0.5, 0.5, 0.5),
-  });
+  // Draw footer with signature
+  layout.drawFooter(data.professionalName, data.professionalCRP);
 
   const pdfBytes = await pdfDoc.save();
   return Buffer.from(pdfBytes);
-}
-
-function wrapText(text: string, maxCharsPerLine: number): string[] {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let currentLine = "";
-
-  for (const word of words) {
-    if ((currentLine + word).length > maxCharsPerLine) {
-      if (currentLine) lines.push(currentLine.trim());
-      currentLine = word;
-    } else {
-      currentLine += (currentLine ? " " : "") + word;
-    }
-  }
-
-  if (currentLine) lines.push(currentLine.trim());
-  return lines;
 }
