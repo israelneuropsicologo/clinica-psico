@@ -740,7 +740,10 @@ export const reportsRouter = router({
         const patient = await getPatientById(input.patientId, ctx.user.id);
         if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
-        const s = await getDb()
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível" });
+        
+        const s = await db
           .select()
           .from(settingsTable)
           .where(eq(settingsTable.userId, ctx.user.id))
@@ -803,7 +806,10 @@ export const reportsRouter = router({
         const patient = await getPatientById(input.patientId, ctx.user.id);
         if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
-        const s = await getDb()
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível" });
+        
+        const s = await db
           .select()
           .from(settingsTable)
           .where(eq(settingsTable.userId, ctx.user.id))
@@ -868,7 +874,10 @@ export const reportsRouter = router({
         const patient = await getPatientById(input.patientId, ctx.user.id);
         if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
-        const s = await getDb()
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível" });
+        
+        const s = await db
           .select()
           .from(settingsTable)
           .where(eq(settingsTable.userId, ctx.user.id))
@@ -932,7 +941,10 @@ export const reportsRouter = router({
         const patient = await getPatientById(input.patientId, ctx.user.id);
         if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
-        const s = await getDb()
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível" });
+        
+        const s = await db
           .select()
           .from(settingsTable)
           .where(eq(settingsTable.userId, ctx.user.id))
@@ -995,7 +1007,10 @@ export const reportsRouter = router({
         const patient = await getPatientById(input.patientId, ctx.user.id);
         if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
-        const s = await getDb()
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível" });
+        
+        const s = await db
           .select()
           .from(settingsTable)
           .where(eq(settingsTable.userId, ctx.user.id))
@@ -1061,7 +1076,10 @@ export const reportsRouter = router({
         const patient = await getPatientById(input.patientId, ctx.user.id);
         if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
-        const s = await getDb()
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível" });
+        
+        const s = await db
           .select()
           .from(settingsTable)
           .where(eq(settingsTable.userId, ctx.user.id))

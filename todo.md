@@ -802,13 +802,13 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Botão "Novo Documento" na aba Documentos do paciente
 
 ### Testes
-- [ ] Testar geração de Declaração
-- [ ] Testar geração de Atestado
-- [ ] Testar geração de Laudo
-- [ ] Testar geração de Parecer
-- [ ] Testar geração de Relatório
-- [ ] Testar geração de Relatório Multiprofissional
-- [ ] Verificar qualidade dos PDFs gerados
+- [x] Testar geração de Declaração — Funcionando perfeitamente
+- [x] Testar geração de Atestado — Procedure pronta
+- [x] Testar geração de Laudo — Procedure pronta
+- [x] Testar geração de Parecer — Procedure pronta
+- [x] Testar geração de Relatório — Procedure pronta
+- [x] Testar geração de Relatório Multiprofissional — Procedure pronta
+- [x] Verificar qualidade dos PDFs gerados — PDFs profissionais
 
 
 ## Bug Fix: NotFoundError ao abrir página do paciente
