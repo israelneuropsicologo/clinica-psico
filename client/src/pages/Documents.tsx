@@ -100,13 +100,16 @@ export function Documents() {
         <p className="text-muted-foreground">
           Gere documentos profissionais para seus pacientes
         </p>
+        <p className="text-sm text-muted-foreground/70 mt-1">
+          Selecione um tipo de documento para começar
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {DOCUMENT_TYPES.map((doc) => (
           <Card
             key={doc.id}
-            className={`p-6 cursor-pointer transition-all border-2 hover:shadow-lg ${doc.color}`}
+            className={`p-6 cursor-pointer transition-all duration-300 border-2 hover:shadow-lg hover:scale-105 ${doc.color}`}
           >
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="text-blue-600">{doc.icon}</div>
