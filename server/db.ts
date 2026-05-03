@@ -223,13 +223,14 @@ export async function getSessionsThisMonth(userId: number): Promise<number> {
   return Number(result[0]?.count ?? 0);
 }
 
-export async function getUpcomingSessions(userId: number, limit = 5): Promise<Session[]> {
+export async function getUpcomingSessions(userId: number, limit = 5): Promise<SessionWithPatient[]> {
   const db = await getDb();
   if (!db) return [];
   const now = Date.now();
-  return db
+  const result = await db
     .select()
     .from(sessions)
+    .leftJoin(patients, eq(sessions.patientId, patients.id))
     .where(
       and(
         eq(sessions.userId, userId),
@@ -239,6 +240,10 @@ export async function getUpcomingSessions(userId: number, limit = 5): Promise<Se
     )
     .orderBy(sessions.scheduledAt)
     .limit(limit);
+  return result.map(row => ({
+    ...row.sessions,
+    patient: row.patients || undefined,
+  }));
 }
 
 // ─── Clinical Notes ────────────────────────────────────────────────────────

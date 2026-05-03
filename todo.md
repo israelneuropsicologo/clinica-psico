@@ -501,3 +501,8 @@ await trpc.userSync.linkUsers.mutate({
   - IA funcionando corretamente em múltiplas sessões com diferentes tipos de queixas
 - [x] Checkpoint salvo com todas as correções confirmadas
 
+
+## Fase 32: Correções no Dashboard (Maio 2026)
+- [x] Corrigir termos do gráfico de funil: "Customers" → "Pacientes", "Leads" → "Contatos", "Prospects" → "Interessados"; labels do gráfico em português correto
+- [x] Corrigir seção "Próximas Consultas": exibir nome real do paciente em vez de "Paciente nº XXXXXX"
+- [x] Corrigir labels das métricas abaixo do gráfico: "Conversão de taxas" → "Taxa de Conversão", "Líderes Ativos" → "Contatos Ativos"

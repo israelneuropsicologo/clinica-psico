@@ -115,7 +115,7 @@ export default function Dashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />
-              Funil de Conversão de Leads
+              Funil de Conversão de Pacientes
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -136,9 +136,9 @@ export default function Dashboard() {
                   <PieChart key="conversion-pie-chart">
                     <Pie
                       data={[
-                        { name: "Leads", value: conversionData.leads, color: "#3b82f6" },
-                        { name: "Prospects", value: conversionData.prospects, color: "#06b6d4" },
-                        { name: "Customers", value: conversionData.customers, color: "#10b981" },
+                        { name: "Contatos", value: conversionData.leads, color: "#3b82f6" },
+                        { name: "Interessados", value: conversionData.prospects, color: "#06b6d4" },
+                        { name: "Pacientes", value: conversionData.customers, color: "#10b981" },
                       ]}
                       cx="50%"
                       cy="50%"
@@ -152,22 +152,22 @@ export default function Dashboard() {
                       <Cell fill="#06b6d4" />
                       <Cell fill="#10b981" />
                     </Pie>
-                    <Tooltip formatter={(value) => `${value} leads`} />
+                    <Tooltip formatter={(value) => [`${value}`, "Quantidade"]} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
                   <div>
-                    <p className="text-muted-foreground">Taxa Conversão</p>
+                    <p className="text-muted-foreground">Taxa de Conversão</p>
                     <p className="font-bold text-lg">{conversionData.conversionRate}%</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Leads Ativos</p>
+                    <p className="text-muted-foreground">Contatos Ativos</p>
                     <p className="font-bold text-lg">{conversionData.leads}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Novos Clientes</p>
+                    <p className="text-muted-foreground">Novos Pacientes</p>
                     <p className="font-bold text-lg">{conversionData.customers}</p>
                   </div>
                 </div>
@@ -272,7 +272,7 @@ export default function Dashboard() {
                         <Users className="h-4 w-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium">Paciente #{session.patientId}</p>
+                        <p className="text-sm font-medium">{session.patient?.name ?? `Paciente #${session.patientId}`}</p>
                         <p className="text-xs text-muted-foreground">{formatDate(session.scheduledAt)}</p>
                       </div>
                     </div>
