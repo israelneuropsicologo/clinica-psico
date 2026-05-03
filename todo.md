@@ -726,3 +726,14 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Testar: campos "Medicações em Uso" e "Apresentação Geral" agora preenchidos pela IA — OK
 - [x] Campos com conteúdo existente preservados — OK
 - [x] Auto-save após preenchimento funcionando sem erros — OK
+
+## Fase 49: Correção Definitiva do Erro ao Preencher com IA
+
+- [x] Reproduzir o erro: IA retornava `{"content": "texto narrativo..."}` ignorando os outros campos
+- [x] Causa raiz: `response_format: json_schema` com `strict: true` não era suportado pelo modelo LLM — modelo retornava apenas `content`
+- [x] Correção 1: Mudar `response_format` de `json_schema` para `json_object` (mais amplamente suportado)
+- [x] Correção 2: Reescrever o prompt do sistema para ser mais explícito — listar TODOS os campos com nomes exatos e instrução forte de não colocar tudo em `content`
+- [x] Correção 3: Parser JSON mais robusto — extrai JSON de markdown code blocks e texto misto
+- [x] Correção 4: `updateClinicalNote` filtra campos `undefined` antes de passar ao Drizzle (evita NOT NULL constraint errors)
+- [x] Testado: campos "Medicações em Uso" e "Apresentação Geral" agora preenchidos corretamente — HTTP 200 OK
+- [x] Campos existentes preservados — OK

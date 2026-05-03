@@ -561,99 +561,53 @@ Responda em português brasileiro profissional.`,
         messages: [
           {
             role: "system",
-            content: `Você é um psicólogo clínico experiente preenchendo um prontuário de sessão. Com base no histórico do paciente, gere um preenchimento REALISTA e CONTEXTUALIZADO para todos os campos do prontuário.
+            content: `Você é um assistente de psicólogo clínico. Sua tarefa é preencher um prontuário de sessão psicológica em formato JSON estruturado.
 
-IMPORTANTE:
-- Use linguagem técnica de psicologia clínica
-- Seja específico e contextualizado ao histórico do paciente
-- Gere conteúdo que o psicólogo possa aproveitar diretamente ou com pequenos ajustes
-- Responda APENAS com JSON válido, sem texto adicional
-- Os campos de risco devem ser um dos valores: "absent", "low", "moderate", "high", "extreme"
-- Os campos de humor devem ser um dos valores: "very_bad", "bad", "neutral", "good", "very_good"
+REGRAS OBRIGATÓRIAS:
+1. Retorne APENAS um objeto JSON válido, sem texto antes ou depois
+2. TODOS os campos abaixo devem ser preenchidos com conteúdo específico e contextualizado
+3. NÃO coloque todo o conteúdo em um único campo - cada campo tem seu propósito específico
+4. Use linguagem técnica de psicologia clínica em português
+5. Baseie-se no histórico do paciente fornecido
 
-Retorne um JSON com exatamente esta estrutura:
-{
-  "content": "anotações clínicas gerais da sessão (2-4 parágrafos)",
-  "emotionalState": "descrição do estado emocional observado",
-  "predominantMood": "humor predominante",
-  "mood": "very_bad|bad|neutral|good|very_good",
-  "sufferingLevel": 0-10,
-  "mainDemand": "demanda principal trazida pelo paciente",
-  "topicsAddressed": "temas abordados na sessão",
-  "relevantNarrative": "narrativa relevante do paciente",
-  "clinicalAssessment": "avaliação clínica do terapeuta",
-  "technicalAnalysis": "análise técnica aprofundada",
-  "techniquesUsed": "técnicas terapêuticas utilizadas",
-  "plannedInterventions": "intervenções planejadas",
-  "therapeuticPlan": "plano terapêutico para as próximas sessões",
-  "homework": "tarefa de casa proposta",
-  "treatmentResponse": "como o paciente respondeu ao tratamento",
-  "goalsProgress": "progresso em relação aos objetivos terapêuticos",
-  "observedInsights": "insights observados durante a sessão",
-  "observedResistances": "resistências ou dificuldades observadas",
-  "nextSessionGoals": "objetivos para a próxima sessão",
-  "treatmentPlanAdjustments": "ajustes sugeridos no plano de tratamento",
-  "selfHarmRisk": "absent|low|moderate|high|extreme",
-  "thirdPartyRisk": "absent|low|moderate|high|extreme",
-  "suicideRisk": "absent|low|moderate|high|extreme",
-  "currentMedications": "medicações em uso pelo paciente (ou 'Nenhuma' se não houver)",
-  "generalPresentation": "apresentação geral do paciente: aparência, comportamento, postura, contato visual, etc.",
-  "countertransference": "observações de contratransferência",
-  "clinicalHypotheses": "hipóteses clínicas",
-  "supervisionNotes": "pontos para levar à supervisão",
-  "referrals": "encaminhamentos realizados ou sugeridos (ou vazio se não houver)",
-  "privateObservations": "observações privadas do terapeuta (não incluídas em relatórios)"
-}`,
+CAMPOS DO JSON (todos obrigatórios):
+- "content": texto narrativo geral da sessão (2-3 parágrafos resumindo o encontro)
+- "generalPresentation": aparência física, postura, comportamento motor, contato visual do paciente nesta sessão
+- "currentMedications": medicações psiquiátricas ou relevantes em uso (escreva "Nenhuma" se não houver)
+- "emotionalState": estado emocional observado durante a sessão (ex: "ansioso com momentos de relaxamento")
+- "predominantMood": humor predominante descrito clinicamente (ex: "eutímico com leve disforia")
+- "mood": classificação do humor - DEVE ser exatamente um destes valores: "very_bad", "bad", "neutral", "good", "very_good"
+- "sufferingLevel": número inteiro de 0 a 10 indicando nível de sofrimento
+- "mainDemand": o que o paciente trouxe como demanda principal para esta sessão
+- "topicsAddressed": tópicos e temas discutidos durante a sessão
+- "relevantNarrative": falas ou narrativas significativas do paciente (pode incluir citações)
+- "clinicalAssessment": avaliação clínica do terapeuta sobre o estado do paciente
+- "technicalAnalysis": análise técnica aprofundada usando referencial teórico
+- "techniquesUsed": técnicas terapêuticas aplicadas nesta sessão
+- "plannedInterventions": intervenções planejadas para esta e próximas sessões
+- "therapeuticPlan": plano terapêutico atualizado
+- "homework": tarefa de casa proposta ao paciente
+- "treatmentResponse": como o paciente está respondendo ao tratamento
+- "goalsProgress": progresso nos objetivos terapêuticos estabelecidos
+- "observedInsights": insights do paciente observados durante a sessão
+- "observedResistances": resistências, defesas ou dificuldades observadas
+- "nextSessionGoals": objetivos específicos para a próxima sessão
+- "treatmentPlanAdjustments": ajustes necessários no plano de tratamento
+- "selfHarmRisk": risco de autolesão - DEVE ser exatamente: "absent", "low", "moderate", "high" ou "extreme"
+- "thirdPartyRisk": risco a terceiros - DEVE ser exatamente: "absent", "low", "moderate", "high" ou "extreme"
+- "suicideRisk": risco de suicídio - DEVE ser exatamente: "absent", "low", "moderate", "high" ou "extreme"
+- "countertransference": observações de contratransferência do terapeuta
+- "clinicalHypotheses": hipóteses clínicas e diagnósticas
+- "supervisionNotes": pontos relevantes para levar à supervisão
+- "referrals": encaminhamentos realizados (escreva "Nenhum" se não houver)
+- "privateObservations": observações privadas do terapeuta`,
           },
           {
             role: "user",
             content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}. Gere o preenchimento do prontuário.`,
           },
         ],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "prontuario_autofill",
-            strict: true,
-            schema: {
-              type: "object",
-              properties: {
-                content: { type: "string" },
-                emotionalState: { type: "string" },
-                predominantMood: { type: "string" },
-                mood: { type: "string" },
-                sufferingLevel: { type: "number" },
-                mainDemand: { type: "string" },
-                topicsAddressed: { type: "string" },
-                relevantNarrative: { type: "string" },
-                clinicalAssessment: { type: "string" },
-                technicalAnalysis: { type: "string" },
-                techniquesUsed: { type: "string" },
-                plannedInterventions: { type: "string" },
-                therapeuticPlan: { type: "string" },
-                homework: { type: "string" },
-                treatmentResponse: { type: "string" },
-                goalsProgress: { type: "string" },
-                observedInsights: { type: "string" },
-                observedResistances: { type: "string" },
-                nextSessionGoals: { type: "string" },
-                treatmentPlanAdjustments: { type: "string" },
-                selfHarmRisk: { type: "string" },
-                thirdPartyRisk: { type: "string" },
-                suicideRisk: { type: "string" },
-                countertransference: { type: "string" },
-                clinicalHypotheses: { type: "string" },
-                supervisionNotes: { type: "string" },
-                currentMedications: { type: "string" },
-                generalPresentation: { type: "string" },
-                referrals: { type: "string" },
-                privateObservations: { type: "string" },
-              },
-              required: ["content", "emotionalState", "predominantMood", "mood", "sufferingLevel", "mainDemand", "topicsAddressed", "relevantNarrative", "clinicalAssessment", "technicalAnalysis", "techniquesUsed", "plannedInterventions", "therapeuticPlan", "homework", "treatmentResponse", "goalsProgress", "observedInsights", "observedResistances", "nextSessionGoals", "treatmentPlanAdjustments", "selfHarmRisk", "thirdPartyRisk", "suicideRisk", "countertransference", "clinicalHypotheses", "supervisionNotes", "currentMedications", "generalPresentation", "referrals", "privateObservations"],
-              additionalProperties: false,
-            },
-          },
-        },
+        response_format: { type: "json_object" },
       });
 
       const rawContent = response.choices[0]?.message?.content;
@@ -661,9 +615,22 @@ Retorne um JSON com exatamente esta estrutura:
 
       let filled: Record<string, unknown>;
       try {
-        filled = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
-      } catch {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao processar resposta da IA" });
+        if (typeof rawContent !== "string") {
+          filled = rawContent as Record<string, unknown>;
+        } else {
+          let jsonStr = rawContent.trim();
+          // Remove markdown code fences if present (```json ... ``` or ``` ... ```)
+          jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+          // If not starting with {, try to extract the first JSON object
+          if (!jsonStr.startsWith("{")) {
+            const match = jsonStr.match(/\{[\s\S]*\}/);
+            if (match) jsonStr = match[0];
+          }
+          filled = JSON.parse(jsonStr);
+        }
+      } catch (parseErr) {
+        console.error("[autoFill] Failed to parse AI response:", typeof rawContent === "string" ? rawContent.substring(0, 300) : rawContent);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao processar resposta da IA: formato inválido" });
       }
 
       // Validar e normalizar campos de enum

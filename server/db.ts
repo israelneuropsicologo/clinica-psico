@@ -278,7 +278,12 @@ export async function createClinicalNote(data: InsertClinicalNote): Promise<numb
 export async function updateClinicalNote(id: number, userId: number, data: Partial<InsertClinicalNote>): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  await db.update(clinicalNotes).set(data).where(and(eq(clinicalNotes.id, id), eq(clinicalNotes.userId, userId)));
+  // Strip undefined values to avoid Drizzle sending NULL for NOT NULL columns
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  ) as Partial<InsertClinicalNote>;
+  if (Object.keys(cleanData).length === 0) return;
+  await db.update(clinicalNotes).set(cleanData).where(and(eq(clinicalNotes.id, id), eq(clinicalNotes.userId, userId)));
 }
 
 // ─── Transactions ──────────────────────────────────────────────────────────
