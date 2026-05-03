@@ -31,12 +31,12 @@ export async function generateRelatorioMultiprofissional(
   const page = pdfDoc.addPage([595, 842]); // A4
   const { width, height } = page.getSize();
 
-  // Header with clinic info (blue background)
+  // Header with clinic info (blue background) - EXPANDED HEIGHT
   page.drawRectangle({
     x: 0,
-    y: height - 100,
+    y: height - 130,
     width: width,
-    height: 100,
+    height: 130,
     color: rgb(0.1, 0.4, 0.7),
   });
 
@@ -69,74 +69,41 @@ export async function generateRelatorioMultiprofissional(
     color: rgb(1, 1, 1),
   });
 
+  // Patient info in header (NEW)
+  page.drawText(`Paciente: ${data.patientName} | ${data.patientAge} anos | Nascimento: ${data.patientBirthDate}`, {
+    x: 40,
+    y: height - 110,
+    size: 9,
+    color: rgb(1, 1, 1),
+  });
+
   // Title
   page.drawText("RELATÓRIO MULTIPROFISSIONAL", {
     x: 40,
-    y: height - 140,
+    y: height - 160,
     size: 18,
     color: rgb(0.1, 0.4, 0.7),
   });
 
   page.drawText("Trabalho Conjunto com Outros Profissionais", {
     x: 40,
-    y: height - 160,
+    y: height - 180,
     size: 12,
     color: rgb(0.5, 0.5, 0.5),
   });
 
   // Divider line
   page.drawLine({
-    start: { x: 40, y: height - 170 },
-    end: { x: width - 40, y: height - 170 },
+    start: { x: 40, y: height - 190 },
+    end: { x: width - 40, y: height - 190 },
     color: rgb(0.1, 0.4, 0.7),
     thickness: 2,
   });
 
-  let yPosition = height - 200;
+  let yPosition = height - 220;
 
-  // Section 1: Identification
-  page.drawText("1. IDENTIFICAÇÃO", {
-    x: 40,
-    y: yPosition,
-    size: 12,
-    color: rgb(0.1, 0.4, 0.7),
-  });
-
-  yPosition -= 20;
-  page.drawText(`Paciente: ${data.patientName}`, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  yPosition -= 15;
-  page.drawText(`Data de Nascimento: ${data.patientBirthDate} (${data.patientAge} anos)`, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  yPosition -= 20;
-  page.drawText(`Profissional Responsável: ${data.professionalName}`, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  yPosition -= 15;
-  page.drawText(`CRP: ${data.professionalCRP} | Especialidade: ${data.professionalSpecialty}`, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  // Section 2: Involved Professionals
-  yPosition -= 30;
-  page.drawText("2. PROFISSIONAIS ENVOLVIDOS", {
+  // Section 1: Involved Professionals
+  page.drawText("1. PROFISSIONAIS ENVOLVIDOS", {
     x: 40,
     y: yPosition,
     size: 12,
@@ -155,9 +122,9 @@ export async function generateRelatorioMultiprofissional(
     yPosition -= 15;
   }
 
-  // Section 3: Treatment Period
+  // Section 2: Treatment Period
   yPosition -= 20;
-  page.drawText("3. PERÍODO DE ACOMPANHAMENTO", {
+  page.drawText("2. PERÍODO DE ACOMPANHAMENTO", {
     x: 40,
     y: yPosition,
     size: 12,
@@ -172,9 +139,9 @@ export async function generateRelatorioMultiprofissional(
     color: rgb(0, 0, 0),
   });
 
-  // Section 4: Main Complaint
+  // Section 3: Main Complaint
   yPosition -= 30;
-  page.drawText("4. QUEIXA PRINCIPAL", {
+  page.drawText("3. QUEIXA PRINCIPAL", {
     x: 40,
     y: yPosition,
     size: 12,
@@ -193,9 +160,9 @@ export async function generateRelatorioMultiprofissional(
     yPosition -= 15;
   }
 
-  // Section 5: Multidisciplinary Approach
+  // Section 4: Multidisciplinary Approach
   yPosition -= 20;
-  page.drawText("5. ABORDAGEM MULTIDISCIPLINAR", {
+  page.drawText("4. ABORDAGEM MULTIDISCIPLINAR", {
     x: 40,
     y: yPosition,
     size: 12,
@@ -214,9 +181,9 @@ export async function generateRelatorioMultiprofissional(
     yPosition -= 15;
   }
 
-  // Section 6: Interventions Performed
+  // Section 5: Interventions Performed
   yPosition -= 20;
-  page.drawText("6. INTERVENÇÕES REALIZADAS", {
+  page.drawText("5. INTERVENÇÕES REALIZADAS", {
     x: 40,
     y: yPosition,
     size: 12,
@@ -235,9 +202,9 @@ export async function generateRelatorioMultiprofissional(
     yPosition -= 15;
   }
 
-  // Section 7: Clinical Evolution
+  // Section 6: Clinical Evolution
   yPosition -= 20;
-  page.drawText("7. EVOLUÇÃO CLÍNICA", {
+  page.drawText("6. EVOLUÇÃO CLÍNICA", {
     x: 40,
     y: yPosition,
     size: 12,
@@ -256,9 +223,9 @@ export async function generateRelatorioMultiprofissional(
     yPosition -= 15;
   }
 
-  // Section 8: Recommendations
+  // Section 7: Recommendations
   yPosition -= 20;
-  page.drawText("8. RECOMENDAÇÕES", {
+  page.drawText("7. RECOMENDAÇÕES", {
     x: 40,
     y: yPosition,
     size: 12,
@@ -277,7 +244,7 @@ export async function generateRelatorioMultiprofissional(
     yPosition -= 15;
   }
 
-  // Section 9: Closing
+  // Section 8: Closing
   yPosition -= 30;
   const closingText = "Este relatório reflete o trabalho conjunto da equipe multiprofissional e preserva a autonomia técnica de cada profissional envolvido.";
   const closingLines = wrapText(closingText, 100);

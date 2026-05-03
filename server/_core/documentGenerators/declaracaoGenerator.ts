@@ -26,12 +26,12 @@ export async function generateDeclaracao(data: DeclaracaoData): Promise<Buffer> 
   const page = pdfDoc.addPage([595, 842]); // A4
   const { width, height } = page.getSize();
 
-  // Header with clinic info (blue background)
+  // Header with clinic info (blue background) - EXPANDED HEIGHT
   page.drawRectangle({
     x: 0,
-    y: height - 100,
+    y: height - 130,
     width: width,
-    height: 100,
+    height: 130,
     color: rgb(0.1, 0.4, 0.7), // Blue
   });
 
@@ -64,67 +64,38 @@ export async function generateDeclaracao(data: DeclaracaoData): Promise<Buffer> 
     color: rgb(1, 1, 1),
   });
 
+  // Patient info in header (NEW)
+  page.drawText(`Paciente: ${data.patientName} | ${data.patientAge} anos | Nascimento: ${data.patientBirthDate}`, {
+    x: 40,
+    y: height - 110,
+    size: 9,
+    color: rgb(1, 1, 1),
+  });
+
   // Title
   page.drawText("DECLARAÇÃO", {
     x: 40,
-    y: height - 140,
+    y: height - 160,
     size: 18,
     color: rgb(0.1, 0.4, 0.7),
   });
 
   // Divider line
   page.drawLine({
-    start: { x: 40, y: height - 150 },
-    end: { x: width - 40, y: height - 150 },
+    start: { x: 40, y: height - 170 },
+    end: { x: width - 40, y: height - 170 },
     color: rgb(0.1, 0.4, 0.7),
     thickness: 2,
   });
 
-  let yPosition = height - 180;
+  let yPosition = height - 200;
 
-  // Section 1: Identification
-  page.drawText("1. IDENTIFICAÇÃO", {
-    x: 40,
-    y: yPosition,
-    size: 12,
-    color: rgb(0.1, 0.4, 0.7),
-  });
+  // Section 1: Declaration Content (removed identification section since it's now in header)
+  // This section is now the main content
 
+  // Section 1: Declaration Content
   yPosition -= 20;
-  page.drawText(`Paciente: ${data.patientName}`, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  yPosition -= 15;
-  page.drawText(`Data de Nascimento: ${data.patientBirthDate} (${data.patientAge} anos)`, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  yPosition -= 20;
-  page.drawText(`Profissional Solicitante: ${data.professionalName}`, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  yPosition -= 15;
-  page.drawText(`CRP: ${data.professionalCRP} | Especialidade: ${data.professionalSpecialty}`, {
-    x: 40,
-    y: yPosition,
-    size: 11,
-    color: rgb(0, 0, 0),
-  });
-
-  // Section 2: Declaration Content
-  yPosition -= 30;
-  page.drawText("2. DECLARAÇÃO", {
+  page.drawText("1. DECLARAÇÃO", {
     x: 40,
     y: yPosition,
     size: 12,
@@ -144,10 +115,10 @@ export async function generateDeclaracao(data: DeclaracaoData): Promise<Buffer> 
     yPosition -= 15;
   }
 
-  // Section 3: Observations
+  // Section 2: Observations
   if (data.observations) {
     yPosition -= 10;
-    page.drawText("3. OBSERVAÇÕES", {
+    page.drawText("2. OBSERVAÇÕES", {
       x: 40,
       y: yPosition,
       size: 12,
@@ -167,9 +138,9 @@ export async function generateDeclaracao(data: DeclaracaoData): Promise<Buffer> 
     }
   }
 
-  // Section 4: Closing
+  // Section 3: Closing
   yPosition -= 30;
-  page.drawText("4. FECHAMENTO", {
+  page.drawText("3. FECHAMENTO", {
     x: 40,
     y: yPosition,
     size: 12,

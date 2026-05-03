@@ -31,9 +31,9 @@ export async function generateLaudo(data: LaudoData): Promise<Buffer> {
   // Header with clinic info (blue background)
   page.drawRectangle({
     x: 0,
-    y: height - 100,
+    y: height - 130,
     width: width,
-    height: 100,
+    height: 130,
     color: rgb(0.1, 0.4, 0.7),
   });
 
@@ -62,6 +62,14 @@ export async function generateLaudo(data: LaudoData): Promise<Buffer> {
   page.drawText(`${data.professionalEmail} | ${data.professionalPhone}`, {
     x: 40,
     y: height - 90,
+  });
+
+  // Patient info in header (NEW)
+  page.drawText(`Paciente: ${data.patientName} | ${data.patientAge} anos | Nascimento: ${data.patientBirthDate}`, {
+    x: 40,
+    y: height - 110,
+    size: 9,
+    color: rgb(1, 1, 1),
     size: 9,
     color: rgb(1, 1, 1),
   });
