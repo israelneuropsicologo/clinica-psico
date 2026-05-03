@@ -841,6 +841,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
     // Avaliação
     emotionalState: (note.emotionalState as string) ?? "",
     predominantMood: (note.predominantMood as string) ?? "",
+    mood: (note.mood as string) ?? "neutral",
     sufferingLevel: String((note.sufferingLevel as number) ?? "5"),
     currentMedications: (note.currentMedications as string) ?? "",
     generalPresentation: (note.generalPresentation as string) ?? "",
@@ -879,9 +880,16 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
   const [aiFeedback, setAiFeedback] = useState((note.aiTechnicalFeedback as string) ?? "");
   const [aiFeedbackAt, setAiFeedbackAt] = useState((note.aiTechnicalFeedbackAt as number) ?? null);
 
+  const utils = trpc.useUtils();
   const updateMutation = trpc.clinicalNotes.update.useMutation({
-    onSuccess: () => toast.success("Prontuário salvo!"),
-    onError: (e) => toast.error(e.message),
+    onSuccess: () => {
+      toast.success("Prontuário salvo!");
+      utils.clinicalNotes.byPatient.invalidate({ patientId });
+    },
+    onError: (e) => {
+      const msg = e.message?.length > 120 ? e.message.substring(0, 120) + "..." : e.message;
+      toast.error(msg || "Erro ao salvar prontuário");
+    },
   });
 
   const autoFillMutation = trpc.clinicalNotes.autoFill.useMutation({
@@ -961,6 +969,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
       nextSessionDate: form.nextSessionDate,
       nextSessionGoals: form.nextSessionGoals,
       treatmentPlanAdjustments: form.treatmentPlanAdjustments,
+      mood: form.mood as "very_bad" | "bad" | "neutral" | "good" | "very_good" | undefined,
       selfHarmRisk: form.selfHarmRisk as RiskLevel,
       thirdPartyRisk: form.thirdPartyRisk as RiskLevel,
       suicideRisk: form.suicideRisk as RiskLevel,

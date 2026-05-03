@@ -659,3 +659,13 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Atualizar label do botão para mostrar quantidade: "Exportar PDF (N)" quando há seleção
 - [x] Corrigir campo "Anotações Gerais da Sessão" exibindo HTML bruto (strip HTML ao carregar)
 - [x] Testar exportação com Josué selecionado — PDF gerado com sucesso
+
+## Fase 42: Correção de Bugs no Prontuário Clínico
+
+- [x] Investigar texto gigante ao salvar: identificado como toast de erro exibindo mensagem longa
+- [x] Truncar mensagem de erro no onError para máximo de 120 chars (evita texto gigante no toast)
+- [x] Adicionar campo `mood` ao estado inicial do formulário (estava faltando)
+- [x] Incluir campo `mood` no handleSave para ser enviado ao backend
+- [x] Adicionar `utils.clinicalNotes.byPatient.invalidate()` no onSuccess para atualizar lista após salvar
+- [x] Testar fluxo completo: Preencher com IA → revisar → Salvar — funcionando sem erros no dev
+- [x] Confirmar que cada campo do formulário salva no campo correto do banco de dados
