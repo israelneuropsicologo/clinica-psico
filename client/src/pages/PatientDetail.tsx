@@ -36,7 +36,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -893,8 +893,8 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
     selfHarmRisk: (note.selfHarmRisk as RiskLevel) ?? "absent",
     thirdPartyRisk: (note.thirdPartyRisk as RiskLevel) ?? "absent",
     suicideRisk: (note.suicideRisk as RiskLevel) ?? "absent",
-    // Geral
-    content: ((note.content as string) ?? "").replace(/<[^>]+>/g, "").trim(),
+    // Geral (Anotações Gerais da Sessão — armazenado em aiSuggestions)
+    content: ((note.aiSuggestions as string) ?? "").replace(/<[^>]+>/g, "").trim(),
     // Privado
     countertransference: (note.countertransference as string) ?? "",
     clinicalHypotheses: (note.clinicalHypotheses as string) ?? "",
@@ -906,14 +906,18 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
   const [aiFeedbackAt, setAiFeedbackAt] = useState((note.aiTechnicalFeedbackAt as number) ?? null);
 
   const utils = trpc.useUtils();
+  const [saveStatus, setSaveStatus] = React.useState<"idle" | "saving" | "saved" | "error">("idle");
+  const autoSaveTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const doSaveRef = React.useRef<(() => void) | null>(null);
+
   const updateMutation = trpc.clinicalNotes.update.useMutation({
     onSuccess: () => {
-      toast.success("Prontuário salvo!");
-      // Note: we intentionally do NOT invalidate the cache here to prevent
-      // the component from re-rendering and losing the user's edits.
-      // The cache will be refreshed when the user navigates back (onBack).
+      setSaveStatus("saved");
+      utils.clinicalNotes.byPatient.invalidate({ patientId: note.patientId as number });
+      setTimeout(() => setSaveStatus("idle"), 3000);
     },
     onError: (e) => {
+      setSaveStatus("error");
       const msg = e.message?.length > 120 ? e.message.substring(0, 120) + "..." : e.message;
       toast.error(msg || "Erro ao salvar prontuário");
     },
@@ -968,7 +972,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const handleSave = () => {
+  const doSave = React.useCallback(() => {
     updateMutation.mutate({
       id: note.id as number,
       sessionNumber: form.sessionNumber ? parseInt(form.sessionNumber) : undefined,
@@ -1005,8 +1009,28 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
       supervisionNotes: form.supervisionNotes,
       referrals: form.referrals,
       privateObservations: form.privateObservations,
-      content: form.content,
+      aiSuggestions: form.content, // Anotações Gerais da Sessão stored in aiSuggestions
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, note.id]);
+
+  // Keep ref in sync so auto-save timer always calls the latest version
+  doSaveRef.current = doSave;
+
+  // Auto-save: trigger save 2s after last change
+  React.useEffect(() => {
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      setSaveStatus("saving");
+      doSaveRef.current?.();
+    }, 2000);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [form]);
+
+  const handleSave = () => {
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    setSaveStatus("saving");
+    doSave();
   };
 
   const riskLevels: { value: RiskLevel; label: string; color: string }[] = [
@@ -1070,8 +1094,23 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
             {autoFillMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
             {autoFillMutation.isPending ? "Gerando..." : "Preencher com IA"}
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending} className="gap-1.5">
-            {updateMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+          {saveStatus === "saving" && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Loader2 className="h-3 w-3 animate-spin" /> Salvando...
+            </span>
+          )}
+          {saveStatus === "saved" && (
+            <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+              <CheckCircle2 className="h-3 w-3" /> Salvo
+            </span>
+          )}
+          {saveStatus === "error" && (
+            <span className="text-xs text-red-500 flex items-center gap-1">
+              Erro ao salvar
+            </span>
+          )}
+          <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending || saveStatus === "saving"} className="gap-1.5">
+            {(updateMutation.isPending || saveStatus === "saving") ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
             Salvar
           </Button>
         </div>

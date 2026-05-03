@@ -680,3 +680,15 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Testar digitação manual contínua sem travamento — OK
 - [x] Testar persistência: salvar, voltar, reabrir — dados persistidos corretamente
 - [x] Confirmar que o texto digitado aparece na lista de prontuários após salvar
+
+## Fase 44: Correção Definitiva do Salvamento do Prontuário
+
+- [x] Investigar por que o botão Salvar não persiste dados — causa raiz: `form.content` inicializado de `note.content` (campo legado com HTML antigo) em vez de `note.aiSuggestions`
+- [x] Corrigir inicialização: `form.content` agora usa `note.aiSuggestions` (campo correto para "Anotações Gerais da Sessão")
+- [x] Corrigir `handleSave`/`doSave`: envia `aiSuggestions: form.content` em vez de `content: form.content`
+- [x] Adicionar `import React` para habilitar `React.useState`, `React.useEffect`, `React.useCallback`, `React.useRef`
+- [x] Remover código morto `_handleSaveOld` que causava erro de sintaxe JSX na linha 1136
+- [x] Implementar auto-save com debounce de 2 segundos via `useEffect([form])` + `doSaveRef`
+- [x] Implementar indicador visual: "Salvando..." (spinner) / "✓ Salvo" (verde) / "Erro ao salvar" (vermelho)
+- [x] Testar auto-save: texto adicionado, aguardar 2s, verificar POST `/api/trpc/clinicalNotes.update` — OK
+- [x] Testar persistência: sair do editor, reabrir — dados persistidos corretamente ("Teste auto-save." visível)
