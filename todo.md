@@ -669,3 +669,14 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Adicionar `utils.clinicalNotes.byPatient.invalidate()` no onSuccess para atualizar lista após salvar
 - [x] Testar fluxo completo: Preencher com IA → revisar → Salvar — funcionando sem erros no dev
 - [x] Confirmar que cada campo do formulário salva no campo correto do banco de dados
+
+## Fase 43: Correção Crítica — Prontuário (Digitação e Persistência)
+
+- [x] Corrigir travamento ao digitar: componente `F` definido dentro de `ClinicalNoteEditor` causava desmontagem/remontagem do textarea a cada render
+- [x] Extrair componente `NoteField` para fora do `ClinicalNoteEditor` (escopo de módulo, referência estável)
+- [x] Substituir todas as 23 chamadas `<F field=.../>` por `<NoteField field=... form={form} onChange={set} />`
+- [x] Adicionar `key={activeNote.id}` no `ClinicalNoteEditor` para remontagem apenas quando a nota muda
+- [x] Remover `invalidate` do `onSuccess` do `updateMutation` (evita re-render desnecessário durante edição)
+- [x] Testar digitação manual contínua sem travamento — OK
+- [x] Testar persistência: salvar, voltar, reabrir — dados persistidos corretamente
+- [x] Confirmar que o texto digitado aparece na lista de prontuários após salvar

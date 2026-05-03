@@ -270,6 +270,7 @@ export default function PatientDetail() {
           <TabsContent value="notes" className="space-y-4">
             {activeNote ? (
               <ClinicalNoteEditor
+                key={activeNote.id}
                 note={activeNote}
                 onBack={() => { setSelectedNote(null); refetchNotes(); }}
                 patientId={patientId}
@@ -830,6 +831,30 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
 // ── Clinical Note Editor (DocsPsi-style 8 sub-tabs) ───────────────────────────
 type RiskLevel = "absent" | "low" | "moderate" | "high" | "extreme";
 
+// IMPORTANT: This component must live OUTSIDE ClinicalNoteEditor to prevent
+// React from unmounting/remounting the textarea on every parent render (which
+// causes focus loss after each keystroke).
+function NoteField({
+  field, label, rows = 3, placeholder = "", form, onChange
+}: {
+  field: string; label: string; rows?: number; placeholder?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: Record<string, any>;
+  onChange: (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs font-medium">{label}</Label>
+      <Textarea
+        value={(form[field] as string) ?? ""}
+        onChange={onChange(field)}
+        rows={rows}
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
 function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, unknown>; onBack: () => void; patientId: number }) {
   const [subTab, setSubTab] = useState("session");
   const [form, setForm] = useState({
@@ -884,7 +909,9 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
   const updateMutation = trpc.clinicalNotes.update.useMutation({
     onSuccess: () => {
       toast.success("Prontuário salvo!");
-      utils.clinicalNotes.byPatient.invalidate({ patientId });
+      // Note: we intentionally do NOT invalidate the cache here to prevent
+      // the component from re-rendering and losing the user's edits.
+      // The cache will be refreshed when the user navigates back (onBack).
     },
     onError: (e) => {
       const msg = e.message?.length > 120 ? e.message.substring(0, 120) + "..." : e.message;
@@ -981,13 +1008,6 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
       content: form.content,
     });
   };
-
-  const F = ({ field, label, rows = 3, placeholder = "" }: { field: string; label: string; rows?: number; placeholder?: string }) => (
-    <div className="space-y-1.5">
-      <Label className="text-xs font-medium">{label}</Label>
-      <Textarea value={form[field as keyof typeof form] as string} onChange={set(field)} rows={rows} placeholder={placeholder} />
-    </div>
-  );
 
   const riskLevels: { value: RiskLevel; label: string; color: string }[] = [
     { value: "absent", label: "Ausente", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-green-300" },
@@ -1117,7 +1137,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   <Input value={form.sessionLocation} onChange={set("sessionLocation")} placeholder="Consultório, teleatendimento..." />
                 </div>
               </div>
-              <F field="content" label="Anotações Gerais da Sessão" rows={4} placeholder="Resumo e observações gerais sobre a sessão..." />
+              <NoteField field="content" label="Anotações Gerais da Sessão" rows={4} placeholder="Resumo e observações gerais sobre a sessão..."  form={form} onChange={set} />
             </>
           )}
 
@@ -1147,13 +1167,13 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                 <input type="range" min="0" max="10" value={form.sufferingLevel} onChange={set("sufferingLevel")} className="w-full accent-primary" />
                 <div className="flex justify-between text-xs text-muted-foreground"><span>0 - Sem sofrimento</span><span>10 - Sofrimento extremo</span></div>
               </div>
-              <F field="currentMedications" label="Medicações em Uso" rows={2} placeholder="Medicamentos que o paciente está tomando..." />
-              <F field="generalPresentation" label="Apresentação Geral" rows={2} placeholder="Aparência, comportamento, postura..." />
-              <F field="mainDemand" label="Demanda Principal" rows={2} placeholder="O que o paciente trouxe para a sessão..." />
-              <F field="topicsAddressed" label="Temas Abordados" rows={3} placeholder="Tópicos discutidos durante a sessão..." />
-              <F field="relevantNarrative" label="Narrativa Relevante" rows={3} placeholder="Falas e narrativas significativas do paciente..." />
-              <F field="clinicalAssessment" label="Avaliação Clínica" rows={3} placeholder="Observações clínicas do profissional..." />
-              <F field="technicalAnalysis" label="Análise Técnica" rows={2} placeholder="Abordagem teórica aplicada..." />
+              <NoteField field="currentMedications" label="Medicações em Uso" rows={2} placeholder="Medicamentos que o paciente está tomando..."  form={form} onChange={set} />
+              <NoteField field="generalPresentation" label="Apresentação Geral" rows={2} placeholder="Aparência, comportamento, postura..."  form={form} onChange={set} />
+              <NoteField field="mainDemand" label="Demanda Principal" rows={2} placeholder="O que o paciente trouxe para a sessão..."  form={form} onChange={set} />
+              <NoteField field="topicsAddressed" label="Temas Abordados" rows={3} placeholder="Tópicos discutidos durante a sessão..."  form={form} onChange={set} />
+              <NoteField field="relevantNarrative" label="Narrativa Relevante" rows={3} placeholder="Falas e narrativas significativas do paciente..."  form={form} onChange={set} />
+              <NoteField field="clinicalAssessment" label="Avaliação Clínica" rows={3} placeholder="Observações clínicas do profissional..."  form={form} onChange={set} />
+              <NoteField field="technicalAnalysis" label="Análise Técnica" rows={2} placeholder="Abordagem teórica aplicada..."  form={form} onChange={set} />
             </>
           )}
 
@@ -1161,10 +1181,10 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
           {subTab === "interventions" && (
             <>
               <h4 className="text-sm font-semibold">Intervenções & Planejamento</h4>
-              <F field="techniquesUsed" label="Técnicas Utilizadas" rows={3} placeholder="TCC, escuta ativa, reestruturação cognitiva..." />
-              <F field="plannedInterventions" label="Intervenções Planejadas" rows={3} placeholder="Próximas intervenções a serem aplicadas..." />
-              <F field="homework" label="Tarefa de Casa" rows={2} placeholder="Atividades sugeridas para o paciente entre sessões..." />
-              <F field="therapeuticPlan" label="Planejamento Terapêutico" rows={3} placeholder="Plano de tratamento e etapas futuras..." />
+              <NoteField field="techniquesUsed" label="Técnicas Utilizadas" rows={3} placeholder="TCC, escuta ativa, reestruturação cognitiva..."  form={form} onChange={set} />
+              <NoteField field="plannedInterventions" label="Intervenções Planejadas" rows={3} placeholder="Próximas intervenções a serem aplicadas..."  form={form} onChange={set} />
+              <NoteField field="homework" label="Tarefa de Casa" rows={2} placeholder="Atividades sugeridas para o paciente entre sessões..."  form={form} onChange={set} />
+              <NoteField field="therapeuticPlan" label="Planejamento Terapêutico" rows={3} placeholder="Plano de tratamento e etapas futuras..."  form={form} onChange={set} />
             </>
           )}
 
@@ -1172,10 +1192,10 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
           {subTab === "evolution" && (
             <>
               <h4 className="text-sm font-semibold">Evolução do Tratamento</h4>
-              <F field="treatmentResponse" label="Resposta ao Tratamento" rows={3} placeholder="Como o paciente está respondendo ao tratamento..." />
-              <F field="goalsProgress" label="Progresso dos Objetivos" rows={3} placeholder="Avanços nos objetivos terapêuticos..." />
-              <F field="observedInsights" label="Insights Observados" rows={3} placeholder="Momentos de insight, autopercepção..." />
-              <F field="observedResistances" label="Resistências Observadas" rows={3} placeholder="Resistências, evitações, mecanismos de defesa..." />
+              <NoteField field="treatmentResponse" label="Resposta ao Tratamento" rows={3} placeholder="Como o paciente está respondendo ao tratamento..."  form={form} onChange={set} />
+              <NoteField field="goalsProgress" label="Progresso dos Objetivos" rows={3} placeholder="Avanços nos objetivos terapêuticos..."  form={form} onChange={set} />
+              <NoteField field="observedInsights" label="Insights Observados" rows={3} placeholder="Momentos de insight, autopercepção..."  form={form} onChange={set} />
+              <NoteField field="observedResistances" label="Resistências Observadas" rows={3} placeholder="Resistências, evitações, mecanismos de defesa..."  form={form} onChange={set} />
             </>
           )}
 
@@ -1187,8 +1207,8 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                 <Label className="text-xs">Data da Próxima Sessão</Label>
                 <Input type="date" value={form.nextSessionDate} onChange={set("nextSessionDate")} />
               </div>
-              <F field="nextSessionGoals" label="Objetivos para a Próxima Sessão" rows={3} placeholder="O que será trabalhado na próxima sessão..." />
-              <F field="treatmentPlanAdjustments" label="Ajustes no Plano de Tratamento" rows={3} placeholder="Mudanças necessárias no plano terapêutico..." />
+              <NoteField field="nextSessionGoals" label="Objetivos para a Próxima Sessão" rows={3} placeholder="O que será trabalhado na próxima sessão..."  form={form} onChange={set} />
+              <NoteField field="treatmentPlanAdjustments" label="Ajustes no Plano de Tratamento" rows={3} placeholder="Mudanças necessárias no plano terapêutico..."  form={form} onChange={set} />
             </>
           )}
 
@@ -1218,11 +1238,11 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   Estas anotações são de uso exclusivo do profissional. Não são incluídas em relatórios ou documentos compartilhados com o paciente.
                 </p>
               </div>
-              <F field="countertransference" label="Contratransferência" rows={3} placeholder="Sentimentos e reações do profissional durante a sessão..." />
-              <F field="clinicalHypotheses" label="Hipóteses Clínicas" rows={3} placeholder="Hipóteses diagnósticas e de compreensão do caso..." />
-              <F field="supervisionNotes" label="Dúvidas para Supervisão" rows={3} placeholder="Pontos a levar para supervisão clínica..." />
-              <F field="referrals" label="Encaminhamentos" rows={2} placeholder="Encaminhamentos realizados ou necessários..." />
-              <F field="privateObservations" label="Observações Adicionais" rows={3} placeholder="Qualquer informação adicional relevante..." />
+              <NoteField field="countertransference" label="Contratransferência" rows={3} placeholder="Sentimentos e reações do profissional durante a sessão..."  form={form} onChange={set} />
+              <NoteField field="clinicalHypotheses" label="Hipóteses Clínicas" rows={3} placeholder="Hipóteses diagnósticas e de compreensão do caso..."  form={form} onChange={set} />
+              <NoteField field="supervisionNotes" label="Dúvidas para Supervisão" rows={3} placeholder="Pontos a levar para supervisão clínica..."  form={form} onChange={set} />
+              <NoteField field="referrals" label="Encaminhamentos" rows={2} placeholder="Encaminhamentos realizados ou necessários..."  form={form} onChange={set} />
+              <NoteField field="privateObservations" label="Observações Adicionais" rows={3} placeholder="Qualquer informação adicional relevante..."  form={form} onChange={set} />
             </>
           )}
 
