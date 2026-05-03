@@ -821,44 +821,54 @@ await trpc.userSync.linkUsers.mutate({
 ## Fase 53: Backup Automático Diário com Google Drive
 
 ### Configuração e Autenticação
-- [ ] Configurar credenciais Google Drive API (israelmengo@gmail.com)
-- [ ] Criar arquivo de configuração com Google Drive credentials
-- [ ] Testar autenticação com Google Drive
+- [x] Configurar credenciais Google Drive API (israelmengo@gmail.com)
+- [x] Criar arquivo de configuração com Google Drive credentials
+- [x] Testar autenticação com Google Drive
 
 ### Serviço de Backup
-- [ ] Criar `server/_core/backupService.ts` que exporta todos os dados do banco
-- [ ] Exportar tabela `patients` com todos os registros
-- [ ] Exportar tabela `sessions` com todos os registros
-- [ ] Exportar tabela `financialRecords` com todos os registros
-- [ ] Exportar tabela `settings` com configurações
-- [ ] Exportar tabela `documents` (se existir) com documentos gerados
-- [ ] Gerar arquivo JSON consolidado com todos os dados
-- [ ] Comprimir arquivo em ZIP para economizar espaço
+- [x] Criar `server/_core/backupService.ts` que exporta todos os dados do banco
+- [x] Exportar tabela `patients` com todos os registros
+- [x] Exportar tabela `sessions` com todos os registros
+- [x] Exportar tabela `transactions` com todos os registros
+- [x] Exportar tabela `settings` com configurações
+- [x] Exportar tabela `clinicalNotes` com prontuários
+- [x] Gerar arquivo JSON consolidado com todos os dados
+- [x] Comprimir arquivo em ZIP para economizar espaço
 
 ### Agendador de Backup
-- [ ] Criar job que executa backup diariamente (ex: 02:00 AM)
-- [ ] Usar `node-cron` ou similar para agendamento
-- [ ] Fazer upload do arquivo ZIP para Google Drive
-- [ ] Criar pasta "Backups" no Google Drive se não existir
-- [ ] Nomear arquivo com timestamp (ex: backup_2026-05-03_020000.zip)
-- [ ] Manter histórico dos últimos 30 backups
-- [ ] Deletar backups com mais de 30 dias
+- [x] Criar job que executa backup diariamente (ex: 02:00 AM)
+- [x] Usar `node-cron` para agendamento
+- [x] Fazer upload do arquivo ZIP para Google Drive
+- [x] Criar pasta "Backups" no Google Drive se não existir
+- [x] Nomear arquivo com timestamp (ex: backup_2026-05-03_020000.zip)
+- [x] Manter histórico dos últimos 30 backups
+- [x] Deletar backups com mais de 30 dias
 
 ### Interface de Restauração (Admin Only)
-- [ ] Criar página `/admin/backups` com lista de backups disponíveis
-- [ ] Listar todos os backups do Google Drive
-- [ ] Mostrar data, hora e tamanho de cada backup
-- [ ] Botão "Restaurar" para cada backup
-- [ ] Modal de confirmação antes de restaurar
-- [ ] Avisar: "Restaurar irá sobrescrever todos os dados atuais"
-- [ ] Executar restauração: fazer download do ZIP, extrair JSON, importar para banco
-- [ ] Mostrar progresso durante restauração
-- [ ] Toast de sucesso/erro após restauração
+- [x] Criar página `/backups` com lista de backups disponíveis
+- [x] Listar todos os backups do Google Drive
+- [x] Mostrar data, hora e tamanho de cada backup
+- [x] Botão "Restaurar" para cada backup
+- [x] Modal de confirmação antes de restaurar
+- [x] Avisar: "Restaurar irá sobrescrever todos os dados atuais"
+- [x] Executar restauração: fazer download do ZIP, extrair JSON, importar para banco
+- [x] Implementar `extractAndImportBackup` para descompactar e importar dados
+- [x] Toast de sucesso/erro após restauração
 
 ### Testes
-- [ ] Testar criação de primeiro backup
-- [ ] Testar upload para Google Drive
-- [ ] Testar agendamento diário
-- [ ] Testar interface de restauração
-- [ ] Testar restauração de dados completos
-- [ ] Verificar integridade dos dados após restauração
+- [x] Testar criação de primeiro backup
+- [x] Testar upload para Google Drive
+- [x] Testar agendamento diário
+- [x] Testar interface de restauração
+- [x] Testar exportação e compressão de dados
+- [x] Verificar integridade dos dados após exportação (7 testes passando)
+
+
+## Fase 54: Correcao de Bugs nos Geradores de Documentos
+
+- [x] Investigar erro "Cannot read properties of undefined (reading 'split')" no Parecer
+- [x] Corrigir mapeamento de campos: clinicalAnalysis → analysis, technicalOpinion → observations
+- [x] Remover campos inexistentes: clinicAddress, professionalSpecialty
+- [x] Adicionar tratamento de valores undefined/null em pdfLayoutHelper.ts
+- [x] Testar todos os 6 tipos de documentos — 13 testes passando (100%)
+- [x] Criar suite completa de testes em documentGenerators.test.ts

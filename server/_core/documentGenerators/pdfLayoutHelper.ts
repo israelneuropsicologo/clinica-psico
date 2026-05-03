@@ -164,7 +164,8 @@ export class ProfessionalPDFLayout {
   /**
    * Draw body text with proper spacing
    */
-  drawText(text: string, fontSize = 11, isBold = false): void {
+  drawText(text: string | undefined | null, fontSize = 11, isBold = false): void {
+    if (!text) return;
     const lines = this.wrapText(text, 100);
     for (const line of lines) {
       this.page.drawText(line, {
@@ -280,8 +281,9 @@ export class ProfessionalPDFLayout {
   /**
    * Wrap text to fit within content width
    */
-  private wrapText(text: string, maxCharsPerLine: number): string[] {
-    const words = text.split(" ");
+  private wrapText(text: string | undefined | null, maxCharsPerLine: number): string[] {
+    if (!text) return [];
+    const words = text.toString().split(" ");
     const lines: string[] = [];
     let currentLine = "";
 

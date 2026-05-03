@@ -956,21 +956,19 @@ export const reportsRouter = router({
 
         const parecerData: ParecerData = {
           clinicName: s?.clinicName || "Clínica",
-          clinicAddress: s?.clinicAddress || "Endereço não configurado",
           clinicCity: s?.clinicCity || "Rio de Janeiro",
           clinicState: s?.clinicState || "RJ",
           professionalName: s?.ownerName || ctx.user.name || "Profissional",
           professionalCRP: s?.ownerCRPNumber || "CRP não configurado",
-          professionalSpecialty: s?.ownerSpecialty || "Psicologia",
           professionalEmail: s?.ownerEmail || "",
           professionalPhone: s?.ownerPhone || "",
           patientName: patient.name,
           patientBirthDate: new Date(patient.birthDate).toLocaleDateString("pt-BR"),
           patientAge: new Date().getFullYear() - new Date(patient.birthDate).getFullYear(),
           clinicalQuestion: input.clinicalQuestion,
-          clinicalAnalysis: input.clinicalAnalysis,
-          technicalOpinion: input.technicalOpinion,
+          analysis: input.clinicalAnalysis,
           conclusion: input.conclusion,
+          observations: input.technicalOpinion,
           city: s?.clinicCity || "Rio de Janeiro",
           date: dateStr,
         };
