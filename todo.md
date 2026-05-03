@@ -494,3 +494,10 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Testar com dados reais de sessão (Carlos Silva - cansço excessivo) - APROVADO
   - Resultado: Análise clara, coerente, em português correto
   - Estrutura: Resumo da Sessão, Pontos de Atenção, Sugestões para Próxima Sessão, Evolução do Paciente
+- [x] Corrigir parâmetro `thinking: { budget_tokens: 128 }` no llm.ts que causava texto garbled - CORRIGIDO
+- [x] Remover `max_tokens: 32768` hardcoded do llm.ts - CORRIGIDO
+- [x] Testar com sessão de Pedro Costa (ansiedade/insônia) - APROVADO
+  - Resultado: Análise estruturada com Pontos de Atenção, Sugestões e Evolução do Paciente
+  - IA funcionando corretamente em múltiplas sessões com diferentes tipos de queixas
+- [x] Checkpoint salvo com todas as correções confirmadas
+
