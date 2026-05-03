@@ -272,6 +272,7 @@ export default function PatientDetail() {
               <ClinicalNoteEditor
                 note={activeNote}
                 onBack={() => { setSelectedNote(null); refetchNotes(); }}
+                patientId={patientId}
               />
             ) : (
               <>
@@ -829,7 +830,7 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
 // ── Clinical Note Editor (DocsPsi-style 8 sub-tabs) ───────────────────────────
 type RiskLevel = "absent" | "low" | "moderate" | "high" | "extreme";
 
-function ClinicalNoteEditor({ note, onBack }: { note: Record<string, unknown>; onBack: () => void }) {
+function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, unknown>; onBack: () => void; patientId: number }) {
   const [subTab, setSubTab] = useState("session");
   const [form, setForm] = useState({
     // Sessão
@@ -866,6 +867,8 @@ function ClinicalNoteEditor({ note, onBack }: { note: Record<string, unknown>; o
     selfHarmRisk: (note.selfHarmRisk as RiskLevel) ?? "absent",
     thirdPartyRisk: (note.thirdPartyRisk as RiskLevel) ?? "absent",
     suicideRisk: (note.suicideRisk as RiskLevel) ?? "absent",
+    // Geral
+    content: (note.content as string) ?? "",
     // Privado
     countertransference: (note.countertransference as string) ?? "",
     clinicalHypotheses: (note.clinicalHypotheses as string) ?? "",
@@ -878,6 +881,43 @@ function ClinicalNoteEditor({ note, onBack }: { note: Record<string, unknown>; o
 
   const updateMutation = trpc.clinicalNotes.update.useMutation({
     onSuccess: () => toast.success("Prontuário salvo!"),
+    onError: (e) => toast.error(e.message),
+  });
+
+  const autoFillMutation = trpc.clinicalNotes.autoFill.useMutation({
+    onSuccess: (data) => {
+      setForm((prev) => ({
+        ...prev,
+        ...(data.content !== undefined && { content: String(data.content) }),
+        ...(data.emotionalState !== undefined && { emotionalState: String(data.emotionalState) }),
+        ...(data.predominantMood !== undefined && { predominantMood: String(data.predominantMood) }),
+        ...(data.mood !== undefined && { mood: String(data.mood) }),
+        ...(data.sufferingLevel !== undefined && { sufferingLevel: String(data.sufferingLevel) }),
+        ...(data.mainDemand !== undefined && { mainDemand: String(data.mainDemand) }),
+        ...(data.topicsAddressed !== undefined && { topicsAddressed: String(data.topicsAddressed) }),
+        ...(data.relevantNarrative !== undefined && { relevantNarrative: String(data.relevantNarrative) }),
+        ...(data.clinicalAssessment !== undefined && { clinicalAssessment: String(data.clinicalAssessment) }),
+        ...(data.technicalAnalysis !== undefined && { technicalAnalysis: String(data.technicalAnalysis) }),
+        ...(data.techniquesUsed !== undefined && { techniquesUsed: String(data.techniquesUsed) }),
+        ...(data.plannedInterventions !== undefined && { plannedInterventions: String(data.plannedInterventions) }),
+        ...(data.therapeuticPlan !== undefined && { therapeuticPlan: String(data.therapeuticPlan) }),
+        ...(data.homework !== undefined && { homework: String(data.homework) }),
+        ...(data.treatmentResponse !== undefined && { treatmentResponse: String(data.treatmentResponse) }),
+        ...(data.goalsProgress !== undefined && { goalsProgress: String(data.goalsProgress) }),
+        ...(data.observedInsights !== undefined && { observedInsights: String(data.observedInsights) }),
+        ...(data.observedResistances !== undefined && { observedResistances: String(data.observedResistances) }),
+        ...(data.nextSessionGoals !== undefined && { nextSessionGoals: String(data.nextSessionGoals) }),
+        ...(data.treatmentPlanAdjustments !== undefined && { treatmentPlanAdjustments: String(data.treatmentPlanAdjustments) }),
+        ...(data.selfHarmRisk !== undefined && { selfHarmRisk: String(data.selfHarmRisk) as RiskLevel }),
+        ...(data.thirdPartyRisk !== undefined && { thirdPartyRisk: String(data.thirdPartyRisk) as RiskLevel }),
+        ...(data.suicideRisk !== undefined && { suicideRisk: String(data.suicideRisk) as RiskLevel }),
+        ...(data.countertransference !== undefined && { countertransference: String(data.countertransference) }),
+        ...(data.clinicalHypotheses !== undefined && { clinicalHypotheses: String(data.clinicalHypotheses) }),
+        ...(data.supervisionNotes !== undefined && { supervisionNotes: String(data.supervisionNotes) }),
+        ...(data.sessionNumber !== undefined && { sessionNumber: String(data.sessionNumber) }),
+      }));
+      toast.success("Prontuário preenchido! Revise e salve.");
+    },
     onError: (e) => toast.error(e.message),
   });
 
@@ -929,6 +969,7 @@ function ClinicalNoteEditor({ note, onBack }: { note: Record<string, unknown>; o
       supervisionNotes: form.supervisionNotes,
       referrals: form.referrals,
       privateObservations: form.privateObservations,
+      content: form.content,
     });
   };
 
@@ -989,10 +1030,22 @@ function ClinicalNoteEditor({ note, onBack }: { note: Record<string, unknown>; o
             <p className="text-xs text-muted-foreground">{new Date(note.createdAt as number).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
           </div>
         </div>
-        <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending} className="gap-1.5">
-          {updateMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-          Salvar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => autoFillMutation.mutate({ patientId, sessionId: note.sessionId as number, noteId: note.id as number })}
+            disabled={autoFillMutation.isPending}
+            className="gap-1.5 border-violet-400 text-violet-600 hover:bg-violet-50 dark:border-violet-500 dark:text-violet-400 dark:hover:bg-violet-900/20"
+          >
+            {autoFillMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            {autoFillMutation.isPending ? "Gerando..." : "Preencher com IA"}
+          </Button>
+          <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending} className="gap-1.5">
+            {updateMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            Salvar
+          </Button>
+        </div>
       </div>
 
       {/* Sub-tabs */}
@@ -1055,6 +1108,7 @@ function ClinicalNoteEditor({ note, onBack }: { note: Record<string, unknown>; o
                   <Input value={form.sessionLocation} onChange={set("sessionLocation")} placeholder="Consultório, teleatendimento..." />
                 </div>
               </div>
+              <F field="content" label="Anotações Gerais da Sessão" rows={4} placeholder="Resumo e observações gerais sobre a sessão..." />
             </>
           )}
 

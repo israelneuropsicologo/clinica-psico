@@ -488,6 +488,197 @@ Responda em português brasileiro profissional.`,
       return { feedback };
     }),
 
+  autoFill: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        sessionId: z.number(),
+        noteId: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      // Buscar dados do paciente
+      const patient = await getPatientByIdShared(input.patientId, ctx.user.id);
+      if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
+
+      // Buscar anamnese do paciente
+      const { anamnese: anamneseTable, clinicalNotes: cnTable, sessions: sessionsTable } = await import("../drizzle/schema");
+      const [anamneseData] = await db.select().from(anamneseTable).where(eq(anamneseTable.patientId, input.patientId)).limit(1);
+
+      // Buscar sessões anteriores com prontuários
+      const previousNotes = await db
+        .select()
+        .from(cnTable)
+        .where(and(eq(cnTable.patientId, input.patientId), eq(cnTable.userId, ctx.user.id)))
+        .orderBy(cnTable.createdAt)
+        .limit(5);
+
+      // Buscar dados da sessão atual
+      const [currentSession] = await db
+        .select()
+        .from(sessionsTable)
+        .where(eq(sessionsTable.id, input.sessionId))
+        .limit(1);
+
+      // Montar contexto para a IA
+      const patientContext = [
+        `PACIENTE: ${patient.name}`,
+        patient.birthDate && `Data de nascimento: ${patient.birthDate}`,
+        patient.gender && `Gênero: ${patient.gender}`,
+        patient.notes && `Observações gerais: ${patient.notes}`,
+      ].filter(Boolean).join("\n");
+
+      const anamneseContext = anamneseData ? [
+        anamneseData.mainComplaint && `Queixa principal: ${anamneseData.mainComplaint}`,
+        anamneseData.currentIllnessHistory && `História da doença atual: ${anamneseData.currentIllnessHistory}`,
+        anamneseData.familyHistory && `Histórico familiar: ${anamneseData.familyHistory}`,
+        anamneseData.personalHistory && `Histórico pessoal: ${anamneseData.personalHistory}`,
+        anamneseData.therapeuticObjectives && `Objetivos terapêuticos: ${anamneseData.therapeuticObjectives}`,
+        anamneseData.cidDiagnosis && `Diagnóstico CID: ${anamneseData.cidDiagnosis}`,
+        anamneseData.therapeuticApproach && `Abordagem terapêutica: ${anamneseData.therapeuticApproach}`,
+        anamneseData.riskFactors && `Fatores de risco: ${anamneseData.riskFactors}`,
+      ].filter(Boolean).join("\n") : "Anamnese não preenchida";
+
+      const previousNotesContext = previousNotes.length > 0
+        ? previousNotes.map((n, i) => {
+            const parts = [
+              n.content && `Anotações: ${n.content}`,
+              n.emotionalState && `Estado emocional: ${n.emotionalState}`,
+              n.mainDemand && `Demanda: ${n.mainDemand}`,
+              n.sufferingLevel != null && `Sofrimento: ${n.sufferingLevel}/10`,
+              n.treatmentResponse && `Resposta ao tratamento: ${n.treatmentResponse}`,
+            ].filter(Boolean).join("; ");
+            return `Sessão ${i + 1}: ${parts}`;
+          }).join("\n")
+        : "Primeira sessão do paciente";
+
+      const sessionNumber = previousNotes.length + 1;
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `Você é um psicólogo clínico experiente preenchendo um prontuário de sessão. Com base no histórico do paciente, gere um preenchimento REALISTA e CONTEXTUALIZADO para todos os campos do prontuário.
+
+IMPORTANTE:
+- Use linguagem técnica de psicologia clínica
+- Seja específico e contextualizado ao histórico do paciente
+- Gere conteúdo que o psicólogo possa aproveitar diretamente ou com pequenos ajustes
+- Responda APENAS com JSON válido, sem texto adicional
+- Os campos de risco devem ser um dos valores: "absent", "low", "moderate", "high", "extreme"
+- Os campos de humor devem ser um dos valores: "very_bad", "bad", "neutral", "good", "very_good"
+
+Retorne um JSON com exatamente esta estrutura:
+{
+  "content": "anotações clínicas gerais da sessão (2-4 parágrafos)",
+  "emotionalState": "descrição do estado emocional observado",
+  "predominantMood": "humor predominante",
+  "mood": "very_bad|bad|neutral|good|very_good",
+  "sufferingLevel": 0-10,
+  "mainDemand": "demanda principal trazida pelo paciente",
+  "topicsAddressed": "temas abordados na sessão",
+  "relevantNarrative": "narrativa relevante do paciente",
+  "clinicalAssessment": "avaliação clínica do terapeuta",
+  "technicalAnalysis": "análise técnica aprofundada",
+  "techniquesUsed": "técnicas terapêuticas utilizadas",
+  "plannedInterventions": "intervenções planejadas",
+  "therapeuticPlan": "plano terapêutico para as próximas sessões",
+  "homework": "tarefa de casa proposta",
+  "treatmentResponse": "como o paciente respondeu ao tratamento",
+  "goalsProgress": "progresso em relação aos objetivos terapêuticos",
+  "observedInsights": "insights observados durante a sessão",
+  "observedResistances": "resistências ou dificuldades observadas",
+  "nextSessionGoals": "objetivos para a próxima sessão",
+  "treatmentPlanAdjustments": "ajustes sugeridos no plano de tratamento",
+  "selfHarmRisk": "absent|low|moderate|high|extreme",
+  "thirdPartyRisk": "absent|low|moderate|high|extreme",
+  "suicideRisk": "absent|low|moderate|high|extreme",
+  "countertransference": "observações de contratransferência",
+  "clinicalHypotheses": "hipóteses clínicas",
+  "supervisionNotes": "pontos para levar à supervisão"
+}`,
+          },
+          {
+            role: "user",
+            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}. Gere o preenchimento do prontuário.`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "prontuario_autofill",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                content: { type: "string" },
+                emotionalState: { type: "string" },
+                predominantMood: { type: "string" },
+                mood: { type: "string" },
+                sufferingLevel: { type: "number" },
+                mainDemand: { type: "string" },
+                topicsAddressed: { type: "string" },
+                relevantNarrative: { type: "string" },
+                clinicalAssessment: { type: "string" },
+                technicalAnalysis: { type: "string" },
+                techniquesUsed: { type: "string" },
+                plannedInterventions: { type: "string" },
+                therapeuticPlan: { type: "string" },
+                homework: { type: "string" },
+                treatmentResponse: { type: "string" },
+                goalsProgress: { type: "string" },
+                observedInsights: { type: "string" },
+                observedResistances: { type: "string" },
+                nextSessionGoals: { type: "string" },
+                treatmentPlanAdjustments: { type: "string" },
+                selfHarmRisk: { type: "string" },
+                thirdPartyRisk: { type: "string" },
+                suicideRisk: { type: "string" },
+                countertransference: { type: "string" },
+                clinicalHypotheses: { type: "string" },
+                supervisionNotes: { type: "string" },
+              },
+              required: ["content", "emotionalState", "predominantMood", "mood", "sufferingLevel", "mainDemand", "topicsAddressed", "relevantNarrative", "clinicalAssessment", "technicalAnalysis", "techniquesUsed", "plannedInterventions", "therapeuticPlan", "homework", "treatmentResponse", "goalsProgress", "observedInsights", "observedResistances", "nextSessionGoals", "treatmentPlanAdjustments", "selfHarmRisk", "thirdPartyRisk", "suicideRisk", "countertransference", "clinicalHypotheses", "supervisionNotes"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+
+      const rawContent = response.choices[0]?.message?.content;
+      if (!rawContent) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "IA não retornou resposta" });
+
+      let filled: Record<string, unknown>;
+      try {
+        filled = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      } catch {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao processar resposta da IA" });
+      }
+
+      // Validar e normalizar campos de enum
+      const riskValues = ["absent", "low", "moderate", "high", "extreme"];
+      const moodValues = ["very_bad", "bad", "neutral", "good", "very_good"];
+      const safeRisk = (v: unknown) => riskValues.includes(v as string) ? v as string : "absent";
+      const safeMood = (v: unknown) => moodValues.includes(v as string) ? v as string : "neutral";
+      const safeNum = (v: unknown, min: number, max: number) => {
+        const n = Number(v);
+        return isNaN(n) ? min : Math.min(max, Math.max(min, n));
+      };
+
+      return {
+        ...filled,
+        mood: safeMood(filled.mood),
+        sufferingLevel: safeNum(filled.sufferingLevel, 0, 10),
+        selfHarmRisk: safeRisk(filled.selfHarmRisk),
+        thirdPartyRisk: safeRisk(filled.thirdPartyRisk),
+        suicideRisk: safeRisk(filled.suicideRisk),
+        sessionNumber,
+      };
+    }),
+
   analyzeWithAI: protectedProcedure
     .input(
       z.object({

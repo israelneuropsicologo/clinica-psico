@@ -638,3 +638,13 @@ await trpc.userSync.linkUsers.mutate({
 - [ ] Seção: Integrações (tokens de webhook, URL do site)
 - [ ] Atualizar dados do profissional com informações reais buscadas do site
 - [ ] Adicionar link "Configurações" no menu lateral (se não existir)
+
+## Fase 40: Botão "Preencher com IA" no Prontuário
+
+- [x] Procedure backend `clinicalNotes.autoFill`: recebe patientId + sessionId, busca histórico completo do paciente (anamnese, sessões anteriores, queixa) e gera preenchimento completo das 8 sub-abas via LLM
+- [x] Retorno estruturado JSON com todos os campos: content, emotionalState, predominantMood, mood, sufferingLevel, mainDemand, topicsAddressed, relevantNarrative, clinicalAssessment, technicalAnalysis, techniquesUsed, plannedInterventions, therapeuticPlan, homework, treatmentResponse, goalsProgress, observedInsights, observedResistances, nextSessionGoals, treatmentPlanAdjustments, selfHarmRisk, thirdPartyRisk, suicideRisk, countertransference, clinicalHypotheses, supervisionNotes, sessionNumber
+- [x] Frontend: botão "✨ Preencher com IA" ao lado do botão Salvar no NoteEditor
+- [x] Ao clicar: spinner de carregamento, chamada ao backend, preenchimento automático de todos os campos do formulário
+- [x] Campos preenchidos ficam editáveis para o psicólogo revisar antes de salvar
+- [x] Campo "Anotações Gerais da Sessão" adicionado à sub-aba Sessão
+- [x] Toast de sucesso "Prontuário preenchido! Revise e salve." exibido após preenchimento
