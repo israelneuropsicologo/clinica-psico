@@ -37,6 +37,7 @@ import {
   ExternalLink,
   Zap,
   FileText,
+  HardDrive,
 } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -52,6 +53,7 @@ const menuItems = [
   { icon: FileText, label: "Documentos", path: "/documents" },
   { icon: SettingsIcon, label: "Configurações", path: "/settings" },
   { icon: Zap, label: "Integração", path: "/webhooks" },
+  { icon: HardDrive, label: "Backups", path: "/backups", adminOnly: true },
 ];
 
 const externalLinks = [
@@ -149,7 +151,10 @@ function DashboardLayoutContent({
         {/* Navigation */}
         <SidebarContent className="gap-0 pt-2 flex flex-col">
           <SidebarMenu className="px-2 py-1 gap-0.5">
-            {menuItems.map((item) => {
+            {menuItems.map((item: any) => {
+              // Skip admin-only items if user is not admin
+              if (item.adminOnly && user?.role !== "admin") return null;
+              
               const isActive = location.startsWith(item.path);
               return (
                 <SidebarMenuItem key={item.path}>

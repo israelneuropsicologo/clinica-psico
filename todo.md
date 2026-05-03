@@ -816,3 +816,49 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Identificado: `DocumentGenerationModal` com handler `onOpenChange` incorreto causando conflito no ciclo de vida do React
 - [x] Corrigido: Mudado de `onOpenChange={onClose}` para `onOpenChange={(open) => { if (!open) onClose(); }}`
 - [x] Testado: Página do paciente carrega sem erros, sem precisar recarregar
+
+
+## Fase 53: Backup Automático Diário com Google Drive
+
+### Configuração e Autenticação
+- [ ] Configurar credenciais Google Drive API (israelmengo@gmail.com)
+- [ ] Criar arquivo de configuração com Google Drive credentials
+- [ ] Testar autenticação com Google Drive
+
+### Serviço de Backup
+- [ ] Criar `server/_core/backupService.ts` que exporta todos os dados do banco
+- [ ] Exportar tabela `patients` com todos os registros
+- [ ] Exportar tabela `sessions` com todos os registros
+- [ ] Exportar tabela `financialRecords` com todos os registros
+- [ ] Exportar tabela `settings` com configurações
+- [ ] Exportar tabela `documents` (se existir) com documentos gerados
+- [ ] Gerar arquivo JSON consolidado com todos os dados
+- [ ] Comprimir arquivo em ZIP para economizar espaço
+
+### Agendador de Backup
+- [ ] Criar job que executa backup diariamente (ex: 02:00 AM)
+- [ ] Usar `node-cron` ou similar para agendamento
+- [ ] Fazer upload do arquivo ZIP para Google Drive
+- [ ] Criar pasta "Backups" no Google Drive se não existir
+- [ ] Nomear arquivo com timestamp (ex: backup_2026-05-03_020000.zip)
+- [ ] Manter histórico dos últimos 30 backups
+- [ ] Deletar backups com mais de 30 dias
+
+### Interface de Restauração (Admin Only)
+- [ ] Criar página `/admin/backups` com lista de backups disponíveis
+- [ ] Listar todos os backups do Google Drive
+- [ ] Mostrar data, hora e tamanho de cada backup
+- [ ] Botão "Restaurar" para cada backup
+- [ ] Modal de confirmação antes de restaurar
+- [ ] Avisar: "Restaurar irá sobrescrever todos os dados atuais"
+- [ ] Executar restauração: fazer download do ZIP, extrair JSON, importar para banco
+- [ ] Mostrar progresso durante restauração
+- [ ] Toast de sucesso/erro após restauração
+
+### Testes
+- [ ] Testar criação de primeiro backup
+- [ ] Testar upload para Google Drive
+- [ ] Testar agendamento diário
+- [ ] Testar interface de restauração
+- [ ] Testar restauração de dados completos
+- [ ] Verificar integridade dos dados após restauração

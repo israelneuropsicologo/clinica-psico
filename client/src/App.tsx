@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import Webhooks from "./pages/Webhooks";
 import Home from "./pages/Home";
 import { Documents } from "./pages/Documents";
+import Backups from "./pages/Backups";
 
 // App Router - v1.0.3
 function Router() {
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/calendar" component={Calendar} />
       <Route path="/settings" component={Settings} />
       <Route path="/documents" component={Documents} />
+      <Route path="/backups" component={Backups} />
       <Route path="/webhooks" component={Webhooks} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
