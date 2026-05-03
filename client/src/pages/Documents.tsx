@@ -98,7 +98,7 @@ export function Documents() {
           Documentos Psicológicos
         </h1>
         <p className="text-muted-foreground">
-          Gere documentos profissionais para seus pacientes
+          Gere documentos profissionais personalizados para seus pacientes
         </p>
         <p className="text-sm text-muted-foreground/70 mt-1">
           Selecione um tipo de documento para começar
