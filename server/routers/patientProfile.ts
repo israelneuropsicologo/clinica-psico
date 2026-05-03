@@ -36,17 +36,31 @@ export const anamneseRouter = router({
     .input(
       z.object({
         patientId: z.number(),
+        // Saúde
         bloodType: z.string().optional(),
         allergies: z.string().optional(),
         chronicConditions: z.string().optional(),
         disabilities: z.string().optional(),
+        // Anamnese - Queixa e objetivos
         mainComplaintDetail: z.string().optional(),
+        therapeuticGoals: z.string().optional(),
+        cidCode: z.string().optional(),
+        cidDescription: z.string().optional(),
+        therapeuticApproach: z.string().optional(),
+        // Anamnese - Histórico
         familyHistory: z.string().optional(),
         personalHistory: z.string().optional(),
         previousTreatments: z.string().optional(),
-        therapeuticGoals: z.string().optional(),
-        cidCode: z.string().optional(),
-        therapeuticApproach: z.string().optional(),
+        currentDiseaseHistory: z.string().optional(),
+        psychiatricHistory: z.string().optional(),
+        childhoodHistory: z.string().optional(),
+        relationshipHistory: z.string().optional(),
+        professionalHistory: z.string().optional(),
+        // Anamnese - Hábitos
+        substanceUse: z.string().optional(),
+        sleepAndEating: z.string().optional(),
+        sexualAffectiveLife: z.string().optional(),
+        // Anamnese - Fatores
         riskFactors: z.string().optional(),
         protectiveFactors: z.string().optional(),
         additionalNotes: z.string().optional(),

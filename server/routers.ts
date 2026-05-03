@@ -124,11 +124,30 @@ const patientsRouter = router({
         name: z.string().min(2).optional(),
         email: z.string().email().optional().or(z.literal("")),
         phone: z.string().optional(),
+        phone2: z.string().optional(),
         birthDate: z.string().optional(),
         cpf: z.string().optional(),
+        // Endereço detalhado
         address: z.string().optional(),
+        addressNumber: z.string().optional(),
+        addressComplement: z.string().optional(),
+        neighborhood: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zipCode: z.string().optional(),
+        // Contato de emergência
         emergencyContact: z.string().optional(),
         emergencyPhone: z.string().optional(),
+        // Convênio
+        insuranceName: z.string().optional(),
+        insuranceNumber: z.string().optional(),
+        insurancePlan: z.string().optional(),
+        insuranceExpiry: z.string().optional(),
+        // Dados pessoais
+        gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional(),
+        maritalStatus: z.enum(["single", "married", "divorced", "widowed", "stable_union", "other"]).optional(),
+        schooling: z.enum(["no_schooling", "elementary", "middle", "high_school", "college", "postgrad"]).optional(),
+        religion: z.string().optional(),
         occupation: z.string().optional(),
         referredBy: z.string().optional(),
         mainComplaint: z.string().optional(),
@@ -330,12 +349,128 @@ const clinicalNotesRouter = router({
         homework: z.string().optional(),
         aiSuggestions: z.string().optional(),
         aiSummary: z.string().optional(),
+        // Sub-aba Sessão
+        sessionNumber: z.number().optional(),
+        sessionType2: z.enum(["individual", "couple", "group", "evaluation"]).optional(),
+        modality2: z.enum(["in_person", "online"]).optional(),
+        sessionLocation: z.string().optional(),
+        // Sub-aba Avaliação
+        emotionalState: z.string().optional(),
+        predominantMood: z.string().optional(),
+        sufferingLevel: z.number().min(0).max(10).optional(),
+        currentMedications: z.string().optional(),
+        generalPresentation: z.string().optional(),
+        mainDemand: z.string().optional(),
+        topicsAddressed: z.string().optional(),
+        relevantNarrative: z.string().optional(),
+        clinicalAssessment: z.string().optional(),
+        technicalAnalysis: z.string().optional(),
+        // Sub-aba Intervenções
+        techniquesUsed: z.string().optional(),
+        plannedInterventions: z.string().optional(),
+        therapeuticPlan: z.string().optional(),
+        // Sub-aba Evolução
+        treatmentResponse: z.string().optional(),
+        goalsProgress: z.string().optional(),
+        observedInsights: z.string().optional(),
+        observedResistances: z.string().optional(),
+        // Sub-aba Próxima
+        nextSessionDate: z.string().optional(),
+        nextSessionGoals: z.string().optional(),
+        treatmentPlanAdjustments: z.string().optional(),
+        // Sub-aba Riscos
+        selfHarmRisk: z.enum(["absent", "low", "moderate", "high", "extreme"]).optional(),
+        thirdPartyRisk: z.enum(["absent", "low", "moderate", "high", "extreme"]).optional(),
+        suicideRisk: z.enum(["absent", "low", "moderate", "high", "extreme"]).optional(),
+        // Sub-aba Privado
+        countertransference: z.string().optional(),
+        clinicalHypotheses: z.string().optional(),
+        supervisionNotes: z.string().optional(),
+        referrals: z.string().optional(),
+        privateObservations: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
       await updateClinicalNote(id, ctx.user.id, data);
       return { success: true };
+    }),
+
+  generateAIFeedback: protectedProcedure
+    .input(z.object({ noteId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { clinicalNotes: cnTable } = await import("../drizzle/schema");
+      const [note] = await db.select().from(cnTable).where(and(eq(cnTable.id, input.noteId), eq(cnTable.userId, ctx.user.id))).limit(1);
+      if (!note) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const noteContext = [
+        note.emotionalState && `Estado emocional: ${note.emotionalState}`,
+        note.predominantMood && `Humor: ${note.predominantMood}`,
+        note.sufferingLevel != null && `Nível de sofrimento: ${note.sufferingLevel}/10`,
+        note.mainDemand && `Demanda principal: ${note.mainDemand}`,
+        note.topicsAddressed && `Temas abordados: ${note.topicsAddressed}`,
+        note.relevantNarrative && `Narrativa relevante: ${note.relevantNarrative}`,
+        note.clinicalAssessment && `Avaliação clínica: ${note.clinicalAssessment}`,
+        note.technicalAnalysis && `Análise técnica: ${note.technicalAnalysis}`,
+        note.techniquesUsed && `Técnicas utilizadas: ${note.techniquesUsed}`,
+        note.plannedInterventions && `Intervenções planejadas: ${note.plannedInterventions}`,
+        note.homework && `Tarefa de casa: ${note.homework}`,
+        note.therapeuticPlan && `Plano terapêutico: ${note.therapeuticPlan}`,
+        note.treatmentResponse && `Resposta ao tratamento: ${note.treatmentResponse}`,
+        note.goalsProgress && `Progresso dos objetivos: ${note.goalsProgress}`,
+        note.observedInsights && `Insights observados: ${note.observedInsights}`,
+        note.observedResistances && `Resistências observadas: ${note.observedResistances}`,
+        note.content && `Anotações gerais: ${note.content}`,
+      ].filter(Boolean).join("\n");
+
+      if (!noteContext.trim()) {
+        return { feedback: "Preencha os campos do prontuário antes de solicitar a análise." };
+      }
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `Você é um supervisor clínico especializado em psicologia. Sua função é fornecer FEEDBACK TÉCNICO sobre o prontuário de sessão de um psicólogo, com foco em clareza, objetividade e fundamentação técnica.
+
+IMPORTANTE: Esta análise é uma ferramenta de apoio para aprimoramento técnico do prontuário. Não substitui o julgamento clínico do profissional.
+
+ESTRUTURA DA RESPOSTA:
+
+FEEDBACK TÉCNICO DO PRONTUÁRIO
+
+[Parágrafo de análise geral: clareza, consistência entre os campos, fundamentação técnica]
+
+Seção 2 - ESTADO ATUAL
+[Avalie o registro do estado emocional e apresentação do paciente. Sugira reformulações mais objetivas se necessário]
+
+Seção 3 - INTERVENÇÕES
+[Avalie a descrição das técnicas e intervenções. Sugira complementos ou ajustes]
+
+Seção 4 - EVOLUÇÃO
+[Avalie o registro da evolução terapêutica. Sugira como aprimorar a documentação]
+
+Seção 5 - RECOMENDAÇÕES
+[Pontue melhorias específicas para o próximo prontuário]
+
+Responda em português brasileiro profissional.`,
+          },
+          {
+            role: "user",
+            content: `Prontuário da sessão:\n${noteContext}`,
+          },
+        ],
+      });
+
+      const rawContent = response.choices[0]?.message?.content;
+      const feedback = typeof rawContent === "string" ? rawContent : "Não foi possível gerar o feedback.";
+      await updateClinicalNote(input.noteId, ctx.user.id, {
+        aiTechnicalFeedback: feedback,
+        aiTechnicalFeedbackAt: Date.now(),
+      });
+      return { feedback };
     }),
 
   analyzeWithAI: protectedProcedure

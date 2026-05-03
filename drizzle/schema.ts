@@ -36,9 +36,28 @@ export const patients = mysqlTable("patients", {
   phone: varchar("phone", { length: 30 }),
   birthDate: varchar("birthDate", { length: 10 }),
   cpf: varchar("cpf", { length: 500 }), // Aumentado para armazenar CPF criptografado
+  // Endereço detalhado
   address: text("address"),
+  addressNumber: varchar("addressNumber", { length: 20 }),
+  addressComplement: varchar("addressComplement", { length: 100 }),
+  neighborhood: varchar("neighborhood", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 2 }),
+  zipCode: varchar("zipCode", { length: 10 }),
+  // Contato adicional
+  phone2: varchar("phone2", { length: 30 }),
   emergencyContact: varchar("emergencyContact", { length: 255 }),
   emergencyPhone: varchar("emergencyPhone", { length: 30 }),
+  // Convênio
+  insuranceName: varchar("insuranceName", { length: 255 }),
+  insuranceNumber: varchar("insuranceNumber", { length: 100 }),
+  insurancePlan: varchar("insurancePlan", { length: 100 }),
+  insuranceExpiry: varchar("insuranceExpiry", { length: 10 }),
+  // Dados pessoais
+  gender: mysqlEnum("gender", ["male", "female", "other", "prefer_not_to_say"]),
+  maritalStatus: mysqlEnum("maritalStatus", ["single", "married", "divorced", "widowed", "stable_union", "other"]),
+  schooling: mysqlEnum("schooling", ["no_schooling", "elementary", "middle", "high_school", "college", "postgrad"]),
+  religion: varchar("religion", { length: 100 }),
   occupation: varchar("occupation", { length: 255 }),
   referredBy: varchar("referredBy", { length: 255 }),
   mainComplaint: text("mainComplaint"),
@@ -89,14 +108,57 @@ export const clinicalNotes = mysqlTable("clinical_notes", {
   sessionId: int("sessionId").notNull(), // FK → sessions.id
   patientId: int("patientId").notNull(), // FK → patients.id
   userId: int("userId").notNull(), // FK → users.id
-  content: text("content").notNull(), // Rich text HTML
-  aiSuggestions: text("aiSuggestions"), // Sugestões geradas pela IA
-  aiSummary: text("aiSummary"), // Resumo gerado pela IA
+  content: text("content").notNull(), // Rich text HTML (legacy)
+  aiSuggestions: text("aiSuggestions"),
+  aiSummary: text("aiSummary"),
+  // Sub-aba: Sessão
+  sessionNumber: int("sessionNumber"),
+  sessionType2: mysqlEnum("sessionType2", ["individual", "couple", "group", "evaluation"]).default("individual"),
+  modality2: mysqlEnum("modality2", ["in_person", "online"]).default("in_person"),
+  sessionLocation: varchar("sessionLocation", { length: 255 }),
+  // Sub-aba: Avaliação
+  emotionalState: varchar("emotionalState", { length: 100 }),
+  predominantMood: varchar("predominantMood", { length: 100 }),
+  sufferingLevel: int("sufferingLevel"), // 0-10
+  currentMedications: text("currentMedications"),
+  generalPresentation: text("generalPresentation"),
+  mainDemand: text("mainDemand"),
+  topicsAddressed: text("topicsAddressed"),
+  relevantNarrative: text("relevantNarrative"),
+  clinicalAssessment: text("clinicalAssessment"),
+  technicalAnalysis: text("technicalAnalysis"),
+  // Sub-aba: Intervenções
+  techniquesUsed: text("techniquesUsed"),
+  plannedInterventions: text("plannedInterventions"),
+  homework: text("homework"),
+  therapeuticPlan: text("therapeuticPlan"),
+  // Sub-aba: Evolução
+  treatmentResponse: text("treatmentResponse"),
+  goalsProgress: text("goalsProgress"),
+  observedInsights: text("observedInsights"),
+  observedResistances: text("observedResistances"),
+  // Sub-aba: Próxima
+  nextSessionDate: varchar("nextSessionDate", { length: 10 }),
+  nextSessionGoals: text("nextSessionGoals"),
+  treatmentPlanAdjustments: text("treatmentPlanAdjustments"),
+  // Sub-aba: Riscos
+  selfHarmRisk: mysqlEnum("selfHarmRisk", ["absent", "low", "moderate", "high", "extreme"]).default("absent"),
+  thirdPartyRisk: mysqlEnum("thirdPartyRisk", ["absent", "low", "moderate", "high", "extreme"]).default("absent"),
+  suicideRisk: mysqlEnum("suicideRisk", ["absent", "low", "moderate", "high", "extreme"]).default("absent"),
+  // Sub-aba: Privado (não incluído em relatórios)
+  countertransference: text("countertransference"),
+  clinicalHypotheses: text("clinicalHypotheses"),
+  supervisionNotes: text("supervisionNotes"),
+  referrals: text("referrals"),
+  privateObservations: text("privateObservations"),
+  // Sub-aba: Análise IA
+  aiTechnicalFeedback: text("aiTechnicalFeedback"),
+  aiTechnicalFeedbackAt: bigint("aiTechnicalFeedbackAt", { mode: "number" }),
+  // Legacy fields
   mood: mysqlEnum("mood", ["very_bad", "bad", "neutral", "good", "very_good"]),
   progressRating: int("progressRating"), // 1-10
   goals: text("goals"),
   interventions: text("interventions"),
-  homework: text("homework"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -291,13 +353,22 @@ export const anamnese = mysqlTable("anamnese", {
   allergies: text("allergies"),
   chronicConditions: text("chronicConditions"),
   disabilities: text("disabilities"),
-  // Anamnese clínica
+  // Anamnese clínica completa
   mainComplaintDetail: text("mainComplaintDetail"),
+  currentDiseaseHistory: text("currentDiseaseHistory"), // HDA
+  psychiatricHistory: text("psychiatricHistory"), // internações, crises, tentativas
   familyHistory: text("familyHistory"),
   personalHistory: text("personalHistory"),
+  childhoodHistory: text("childhoodHistory"),
+  relationshipHistory: text("relationshipHistory"),
+  professionalHistory: text("professionalHistory"),
+  substanceUse: text("substanceUse"), // álcool, drogas, tabaco
+  sleepAndEating: text("sleepAndEating"),
+  sexualAffectiveLife: text("sexualAffectiveLife"),
   previousTreatments: text("previousTreatments"),
   therapeuticGoals: text("therapeuticGoals"),
   cidCode: varchar("cidCode", { length: 20 }),
+  cidDescription: varchar("cidDescription", { length: 255 }),
   therapeuticApproach: varchar("therapeuticApproach", { length: 100 }),
   riskFactors: text("riskFactors"),
   protectiveFactors: text("protectiveFactors"),

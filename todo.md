@@ -535,3 +535,54 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Aba Documentos: upload de arquivos (PDF, imagem, doc), listagem com download
 - [x] Aba Gravações: upload de áudio por sessão, player de áudio, transcrição automática via IA
 - [x] Aba Linha do Tempo: análise global IA, análise do último atendimento, orientação próxima sessão, gráfico evolução do sofrimento
+
+## Fase 34: Melhorias no Perfil do Paciente (Maio 2026)
+
+### Aba Contato
+- [ ] Integrar CEP com API ViaCEP para autopreenchimento de rua, bairro, cidade, estado
+- [ ] Adicionar campo número da casa
+- [ ] Adicionar campo complemento
+- [ ] Botão Editar/Salvar em modo de visualização/edição na aba Contato
+- [ ] Migrar schema: adicionar addressNumber, addressComplement ao patients
+
+### Aba Saúde
+- [ ] Adicionar campo convênio (nome do plano)
+- [ ] Adicionar campo número da carteirinha
+- [ ] Adicionar campo tipo de plano
+- [ ] Adicionar campo validade do convênio
+- [ ] Botão Editar/Salvar em modo de visualização/edição na aba Saúde
+- [ ] Migrar schema: adicionar insuranceName, insuranceNumber, insurancePlan, insuranceExpiry ao patients
+
+### Aba Anamnese (padrão psicologia completo)
+- [ ] Dados de identificação: estado civil, profissão, escolaridade, religião
+- [ ] Queixa principal detalhada
+- [ ] História da doença atual (HDA)
+- [ ] Histórico psiquiátrico anterior (internações, crises, tentativas)
+- [ ] Histórico familiar (doenças mentais na família)
+- [ ] Histórico pessoal (infância, adolescência, traumas)
+- [ ] Histórico de relacionamentos
+- [ ] Histórico profissional/acadêmico
+- [ ] Uso de substâncias (álcool, drogas, tabaco)
+- [ ] Sono e alimentação
+- [ ] Vida sexual e afetiva
+- [ ] Objetivos terapêuticos
+- [ ] Diagnóstico CID-10/CID-11
+- [ ] Abordagem terapêutica
+- [ ] Fatores de risco e proteção
+- [ ] Anotações adicionais
+- [ ] Botão Editar/Salvar em modo de visualização/edição
+- [ ] Migrar schema: adicionar campos faltantes à tabela anamnese
+
+### Prontuário (reestruturado com 8 sub-abas estilo DocsPsi)
+- [ ] Criar página SessionNotes.tsx com sub-abas: Sessão, Avaliação, Intervenções, Evolução, Próxima, Riscos, Privado, Análise IA
+- [ ] Sub-aba Sessão: data, hora início, duração, nº sessão, tipo (individual/casal/grupo), modalidade (presencial/online), local
+- [ ] Sub-aba Avaliação: estado emocional, humor predominante, nível de sofrimento (slider 0-10), medicações em uso, apresentação geral, demanda principal, temas abordados, narrativa relevante, avaliação clínica, análise técnica
+- [ ] Sub-aba Intervenções: técnicas utilizadas, intervenções planejadas, tarefa de casa, planejamento terapêutico
+- [ ] Sub-aba Evolução: resposta ao tratamento, progresso dos objetivos, insights observados, resistências observadas
+- [ ] Sub-aba Próxima: data da próxima sessão, objetivos para próxima sessão, ajustes no plano de tratamento
+- [ ] Sub-aba Riscos: risco de prejuízo a si (ausente/baixo/moderado/alto/extremo), risco a terceiros, risco de suicídio
+- [ ] Sub-aba Privado: anotações privadas (contratransferência, hipóteses clínicas, dúvidas para supervisão, medicações, encaminhamentos, observações adicionais) — não incluídas em relatórios
+- [ ] Sub-aba Análise IA: feedback técnico do prontuário gerado por IA com aviso de ferramenta de apoio, botão "Solicitar Nova Análise"
+- [ ] Migrar schema: expandir tabela clinical_notes com todos os novos campos
+- [ ] Navegação paginada (1 de 8, Anterior/Próxima) entre sub-abas
+- [ ] Botão Salvar e Gerar PDF no prontuário

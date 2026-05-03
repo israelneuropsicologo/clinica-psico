@@ -1,4 +1,3 @@
-import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import {
   AlertTriangle,
@@ -20,11 +20,15 @@ import {
   FileText,
   Heart,
   Loader2,
+  Lock,
   Mail,
+  MapPin,
   Mic,
   Phone,
   Play,
   RefreshCw,
+  Search,
+  Shield,
   Sparkles,
   Trash2,
   TrendingUp,
@@ -32,18 +36,17 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Streamdown } from "streamdown";
 
-function formatDate(ts: number) {
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function formatDate(ts: number | Date) {
   return new Date(ts).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    day: "2-digit", month: "short", year: "numeric",
   });
 }
 
@@ -51,22 +54,25 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-2 py-1.5 border-b border-border/40 last:border-0">
       <span className="text-muted-foreground text-xs shrink-0 pt-0.5">{label}</span>
-      <span className="text-right text-sm font-medium">{value}</span>
+      <span className="text-right text-sm font-medium">{value ?? <span className="text-muted-foreground text-xs italic">Não informado</span>}</span>
     </div>
   );
 }
 
-function SectionTitle({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
+function SectionCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2 mb-4">
-      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-        <Icon className="h-3.5 w-3.5 text-primary" />
-      </div>
-      <h3 className="font-semibold text-sm">{title}</h3>
-    </div>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <Icon className="h-4 w-4 text-primary" /> {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 
+// ── Main Component ────────────────────────────────────────────────────────────
 export default function PatientDetail() {
   const { id } = useParams<{ id: string }>();
   const patientId = parseInt(id ?? "0");
@@ -75,11 +81,12 @@ export default function PatientDetail() {
   const [showUpload, setShowUpload] = useState(false);
   const [showRecordingUpload, setShowRecordingUpload] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [selectedNote, setSelectedNote] = useState<number | null>(null);
 
   const { data: patient, isLoading, refetch } = trpc.patients.getById.useQuery({ id: patientId }, { enabled: patientId > 0 });
   const { data: patientSessions } = trpc.sessions.list.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: documents, refetch: refetchDocs } = trpc.documents.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
-  const { data: clinicalNotes } = trpc.clinicalNotes.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
+  const { data: clinicalNotes, refetch: refetchNotes } = trpc.clinicalNotes.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: anamneseData, refetch: refetchAnamnese } = trpc.anamnese.get.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: recordings, refetch: refetchRecordings } = trpc.recordings.list.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: timelineList, refetch: refetchTimeline } = trpc.timeline.list.useQuery({ patientId }, { enabled: patientId > 0 });
@@ -129,6 +136,8 @@ export default function PatientDetail() {
   if (latestTimeline?.content) {
     try { timelineData = JSON.parse(latestTimeline.content); } catch { /* ignore */ }
   }
+
+  const activeNote = selectedNote != null ? clinicalNotes?.find((n) => n.id === selectedNote) : null;
 
   return (
     <DashboardLayout>
@@ -189,28 +198,28 @@ export default function PatientDetail() {
           {/* ── PERFIL ── */}
           <TabsContent value="profile" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <User className="h-4 w-4 text-primary" /> Dados Pessoais
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-0 text-sm">
+              <SectionCard title="Dados Pessoais" icon={User}>
+                <div className="space-y-0 text-sm">
                   <InfoRow label="Nome completo" value={patient.name} />
-                  {patient.birthDate && <InfoRow label="Data de nascimento" value={patient.birthDate} />}
-                  {patient.cpf && <InfoRow label="CPF" value={patient.cpf} />}
-                  {patient.occupation && <InfoRow label="Profissão" value={patient.occupation} />}
-                  {patient.referredBy && <InfoRow label="Encaminhado por" value={patient.referredBy} />}
+                  <InfoRow label="Data de nascimento" value={patient.birthDate} />
+                  <InfoRow label="CPF" value={patient.cpf} />
+                  <InfoRow label="Gênero" value={(patient as Record<string, unknown>).gender ? {
+                    male: "Masculino", female: "Feminino", other: "Outro", prefer_not_to_say: "Prefiro não informar"
+                  }[(patient as Record<string, unknown>).gender as string] : null} />
+                  <InfoRow label="Estado Civil" value={(patient as Record<string, unknown>).maritalStatus ? {
+                    single: "Solteiro(a)", married: "Casado(a)", divorced: "Divorciado(a)", widowed: "Viúvo(a)", stable_union: "União Estável", other: "Outro"
+                  }[(patient as Record<string, unknown>).maritalStatus as string] : null} />
+                  <InfoRow label="Escolaridade" value={(patient as Record<string, unknown>).schooling ? {
+                    no_schooling: "Sem escolaridade", elementary: "Fundamental", middle: "Médio", high_school: "Ensino Médio Completo", college: "Superior", postgrad: "Pós-graduação"
+                  }[(patient as Record<string, unknown>).schooling as string] : null} />
+                  <InfoRow label="Religião" value={(patient as Record<string, unknown>).religion as string} />
+                  <InfoRow label="Profissão" value={patient.occupation} />
+                  <InfoRow label="Encaminhado por" value={patient.referredBy} />
                   <InfoRow label="Status" value={<StatusBadge status={patient.status} />} />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-primary" /> Resumo Clínico
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-0 text-sm">
+                </div>
+              </SectionCard>
+              <SectionCard title="Resumo Clínico" icon={Calendar}>
+                <div className="space-y-0 text-sm">
                   <InfoRow label="Total de sessões" value={patientSessions?.length ?? 0} />
                   <InfoRow label="Prontuários" value={clinicalNotes?.length ?? 0} />
                   <InfoRow label="Documentos" value={documents?.length ?? 0} />
@@ -218,123 +227,100 @@ export default function PatientDetail() {
                   {patient.sessionValue && (
                     <InfoRow label="Valor/sessão" value={new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(patient.sessionValue))} />
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </SectionCard>
             </div>
             {patient.mainComplaint && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-semibold">Queixa Principal</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{patient.mainComplaint}</p>
-                </CardContent>
-              </Card>
+              <SectionCard title="Queixa Principal" icon={FileText}>
+                <p className="text-sm text-muted-foreground">{patient.mainComplaint}</p>
+              </SectionCard>
             )}
             {patient.notes && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-semibold">Observações Gerais</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{patient.notes}</p>
-                </CardContent>
-              </Card>
+              <SectionCard title="Observações Gerais" icon={FileText}>
+                <p className="text-sm text-muted-foreground">{patient.notes}</p>
+              </SectionCard>
             )}
+            <div className="flex justify-end">
+              <Button size="sm" variant="outline" onClick={() => setShowEdit(true)} className="gap-1.5">
+                <Edit className="h-3.5 w-3.5" /> Editar Perfil
+              </Button>
+            </div>
           </TabsContent>
 
           {/* ── CONTATO ── */}
           <TabsContent value="contact" className="space-y-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-primary" /> Informações de Contato
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-0 text-sm">
-                {patient.email ? (
-                  <InfoRow label="E-mail" value={<a href={`mailto:${patient.email}`} className="text-primary hover:underline flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{patient.email}</a>} />
-                ) : <InfoRow label="E-mail" value={<span className="text-muted-foreground text-xs">Não informado</span>} />}
-                {patient.phone ? (
-                  <InfoRow label="Telefone" value={<a href={`tel:${patient.phone}`} className="text-primary hover:underline flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{patient.phone}</a>} />
-                ) : <InfoRow label="Telefone" value={<span className="text-muted-foreground text-xs">Não informado</span>} />}
-                {patient.address ? (
-                  <InfoRow label="Endereço" value={patient.address} />
-                ) : <InfoRow label="Endereço" value={<span className="text-muted-foreground text-xs">Não informado</span>} />}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" /> Contato de Emergência
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-0 text-sm">
-                {patient.emergencyContact ? (
-                  <InfoRow label="Nome" value={patient.emergencyContact} />
-                ) : <InfoRow label="Nome" value={<span className="text-muted-foreground text-xs">Não informado</span>} />}
-                {patient.emergencyPhone ? (
-                  <InfoRow label="Telefone" value={<a href={`tel:${patient.emergencyPhone}`} className="text-primary hover:underline">{patient.emergencyPhone}</a>} />
-                ) : <InfoRow label="Telefone" value={<span className="text-muted-foreground text-xs">Não informado</span>} />}
-              </CardContent>
-            </Card>
-            <div className="flex justify-end">
-              <Button size="sm" variant="outline" onClick={() => setShowEdit(true)} className="gap-1.5">
-                <Edit className="h-3.5 w-3.5" /> Editar Contato
-              </Button>
-            </div>
+            <ContactTab patient={patient} onEdit={() => setShowEdit(true)} />
           </TabsContent>
 
           {/* ── SAÚDE ── */}
           <TabsContent value="health" className="space-y-4">
-            <AnamneseHealthTab patientId={patientId} anamneseData={anamneseData} refetch={refetchAnamnese} healthOnly />
+            <HealthTab patientId={patientId} anamneseData={anamneseData} refetch={refetchAnamnese} patient={patient} onEditPatient={() => setShowEdit(true)} />
           </TabsContent>
 
           {/* ── ANAMNESE ── */}
           <TabsContent value="anamnese" className="space-y-4">
-            <AnamneseHealthTab patientId={patientId} anamneseData={anamneseData} refetch={refetchAnamnese} healthOnly={false} />
+            <AnamneseTab patientId={patientId} anamneseData={anamneseData} refetch={refetchAnamnese} />
           </TabsContent>
 
           {/* ── PRONTUÁRIO ── */}
           <TabsContent value="notes" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">{clinicalNotes?.length ?? 0} prontuário(s) registrado(s)</p>
-              <Button size="sm" onClick={() => navigate("/sessions")} className="gap-1.5">
-                <Calendar className="h-3.5 w-3.5" /> Nova Sessão
-              </Button>
-            </div>
-            {!clinicalNotes?.length ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
-                  <Brain className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Nenhum prontuário registrado ainda.</p>
-                  <p className="text-xs mt-1">Prontuários são criados durante as sessões.</p>
-                </CardContent>
-              </Card>
+            {activeNote ? (
+              <ClinicalNoteEditor
+                note={activeNote}
+                onBack={() => { setSelectedNote(null); refetchNotes(); }}
+              />
             ) : (
-              <div className="space-y-3">
-                {clinicalNotes.map((note) => (
-                  <Card key={note.id} className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate(`/sessions/${note.sessionId}`)}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div>
-                          <p className="text-sm font-medium">{new Date(note.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
-                          {note.progressRating && (
-                            <Badge variant="outline" className="text-xs mt-1">Progresso: {note.progressRating}/10</Badge>
-                          )}
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                      </div>
-                      {note.content && (
-                        <p className="text-xs text-muted-foreground line-clamp-2" dangerouslySetInnerHTML={{ __html: note.content.replace(/<[^>]+>/g, " ").substring(0, 200) }} />
-                      )}
-                      {note.goals && (
-                        <p className="text-xs text-muted-foreground mt-1"><span className="font-medium">Objetivos:</span> {note.goals.substring(0, 100)}</p>
-                      )}
+              <>
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground">{clinicalNotes?.length ?? 0} prontuário(s) registrado(s)</p>
+                  <Button size="sm" onClick={() => navigate("/sessions")} className="gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" /> Nova Sessão
+                  </Button>
+                </div>
+                {!clinicalNotes?.length ? (
+                  <Card>
+                    <CardContent className="py-12 text-center text-muted-foreground">
+                      <Brain className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                      <p className="text-sm">Nenhum prontuário registrado ainda.</p>
+                      <p className="text-xs mt-1">Prontuários são criados durante as sessões.</p>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
+                ) : (
+                  <div className="space-y-3">
+                    {clinicalNotes.map((note) => (
+                      <Card key={note.id} className="cursor-pointer hover:shadow-md transition-all" onClick={() => setSelectedNote(note.id)}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div>
+                              <p className="text-sm font-medium">{new Date(note.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
+                              <div className="flex gap-2 mt-1 flex-wrap">
+                                {(note as Record<string, unknown>).sessionNumber && (
+                                  <Badge variant="outline" className="text-xs">Sessão #{(note as Record<string, unknown>).sessionNumber as number}</Badge>
+                                )}
+                                {(note as Record<string, unknown>).sufferingLevel != null && (
+                                  <Badge variant="outline" className="text-xs">Sofrimento: {(note as Record<string, unknown>).sufferingLevel as number}/10</Badge>
+                                )}
+                                {(note as Record<string, unknown>).aiTechnicalFeedback && (
+                                  <Badge className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">IA Analisado</Badge>
+                                )}
+                              </div>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                          </div>
+                          {(note as Record<string, unknown>).mainDemand && (
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              <span className="font-medium">Demanda: </span>{(note as Record<string, unknown>).mainDemand as string}
+                            </p>
+                          )}
+                          {note.content && !(note as Record<string, unknown>).mainDemand && (
+                            <p className="text-xs text-muted-foreground line-clamp-2" dangerouslySetInnerHTML={{ __html: note.content.replace(/<[^>]+>/g, " ").substring(0, 200) }} />
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 
@@ -376,9 +362,7 @@ export default function PatientDetail() {
                           <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">Ver</a>
                         </Button>
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
+                          variant="ghost" size="icon" className="text-destructive hover:text-destructive"
                           onClick={() => { if (confirm("Excluir documento?")) deleteDocMutation.mutate({ id: doc.id }); }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -421,42 +405,25 @@ export default function PatientDetail() {
                             <p className="text-sm font-medium truncate">{rec.fileName}</p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(rec.createdAt).toLocaleDateString("pt-BR")} •{" "}
-                              {rec.transcriptionStatus === "done" ? (
-                                <span className="text-green-600">Transcrito</span>
-                              ) : rec.transcriptionStatus === "processing" ? (
-                                <span className="text-yellow-600">Transcrevendo...</span>
-                              ) : rec.transcriptionStatus === "error" ? (
-                                <span className="text-red-600">Erro na transcrição</span>
-                              ) : (
-                                <span>Aguardando transcrição</span>
-                              )}
+                              {rec.transcriptionStatus === "done" ? <span className="text-green-600">Transcrito</span>
+                                : rec.transcriptionStatus === "processing" ? <span className="text-yellow-600">Transcrevendo...</span>
+                                : rec.transcriptionStatus === "error" ? <span className="text-red-600">Erro</span>
+                                : <span>Aguardando</span>}
                             </p>
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0">
                           <Button variant="outline" size="sm" asChild>
-                            <a href={rec.fileUrl} target="_blank" rel="noopener noreferrer">
-                              <Play className="h-3.5 w-3.5" />
-                            </a>
+                            <a href={rec.fileUrl} target="_blank" rel="noopener noreferrer"><Play className="h-3.5 w-3.5" /></a>
                           </Button>
                           {rec.transcriptionStatus !== "done" && rec.transcriptionStatus !== "processing" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => transcribeMutation.mutate({ recordingId: rec.id })}
-                              disabled={transcribeMutation.isPending}
-                              className="gap-1.5"
-                            >
+                            <Button variant="outline" size="sm" onClick={() => transcribeMutation.mutate({ recordingId: rec.id })} disabled={transcribeMutation.isPending} className="gap-1.5">
                               {transcribeMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                               Transcrever
                             </Button>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ recordingId: rec.id }); }}
-                          >
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"
+                            onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ recordingId: rec.id }); }}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -481,20 +448,10 @@ export default function PatientDetail() {
                 <h3 className="font-semibold text-sm">Análise Clínica por IA</h3>
                 <p className="text-xs text-muted-foreground">Baseada em {patientSessions?.length ?? 0} sessão(ões) registrada(s)</p>
               </div>
-              <Button
-                size="sm"
-                onClick={() => generateTimelineMutation.mutate({ patientId })}
-                disabled={generateTimelineMutation.isPending}
-                className="gap-1.5"
-              >
-                {generateTimelineMutation.isPending ? (
-                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Analisando...</>
-                ) : (
-                  <><Sparkles className="h-3.5 w-3.5" /> {timelineData ? "Nova Análise" : "Gerar Análise"}</>
-                )}
+              <Button size="sm" onClick={() => generateTimelineMutation.mutate({ patientId })} disabled={generateTimelineMutation.isPending} className="gap-1.5">
+                {generateTimelineMutation.isPending ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Analisando...</> : <><Sparkles className="h-3.5 w-3.5" /> {timelineData ? "Nova Análise" : "Gerar Análise"}</>}
               </Button>
             </div>
-
             {!timelineData && !generateTimelineMutation.isPending ? (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
@@ -518,41 +475,63 @@ export default function PatientDetail() {
         </Tabs>
       </div>
 
-      <EditPatientDialog
-        patient={patient}
-        open={showEdit}
-        onClose={() => setShowEdit(false)}
-        onSuccess={() => { setShowEdit(false); refetch(); }}
-      />
-
-      <UploadDocumentDialog
-        patientId={patientId}
-        open={showUpload}
-        onClose={() => setShowUpload(false)}
-        onSuccess={() => { setShowUpload(false); refetchDocs(); }}
-      />
-
-      <UploadRecordingDialog
-        patientId={patientId}
-        open={showRecordingUpload}
-        onClose={() => setShowRecordingUpload(false)}
-        onSuccess={() => { setShowRecordingUpload(false); refetchRecordings(); }}
-      />
+      <EditPatientDialog patient={patient} open={showEdit} onClose={() => setShowEdit(false)} onSuccess={() => { setShowEdit(false); refetch(); }} />
+      <UploadDocumentDialog patientId={patientId} open={showUpload} onClose={() => setShowUpload(false)} onSuccess={() => { setShowUpload(false); refetchDocs(); }} />
+      <UploadRecordingDialog patientId={patientId} open={showRecordingUpload} onClose={() => setShowRecordingUpload(false)} onSuccess={() => { setShowRecordingUpload(false); refetchRecordings(); }} />
     </DashboardLayout>
   );
 }
 
-// ── Anamnese + Health Tab ────────────────────────────────────────────────────
-function AnamneseHealthTab({
-  patientId,
-  anamneseData,
-  refetch,
-  healthOnly,
-}: {
+// ── Contact Tab ───────────────────────────────────────────────────────────────
+function ContactTab({ patient, onEdit }: { patient: Record<string, unknown>; onEdit: () => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SectionCard title="Telefones" icon={Phone}>
+          <div className="space-y-0 text-sm">
+            <InfoRow label="Telefone principal" value={patient.phone as string} />
+            <InfoRow label="Telefone secundário" value={(patient as Record<string, unknown>).phone2 as string} />
+            <InfoRow label="E-mail" value={patient.email ? (
+              <a href={`mailto:${patient.email}`} className="text-primary hover:underline flex items-center gap-1">
+                <Mail className="h-3.5 w-3.5" />{patient.email as string}
+              </a>
+            ) : null} />
+          </div>
+        </SectionCard>
+        <SectionCard title="Endereço" icon={MapPin}>
+          <div className="space-y-0 text-sm">
+            <InfoRow label="CEP" value={(patient as Record<string, unknown>).zipCode as string} />
+            <InfoRow label="Rua" value={(patient as Record<string, unknown>).address as string} />
+            <InfoRow label="Número" value={(patient as Record<string, unknown>).addressNumber as string} />
+            <InfoRow label="Complemento" value={(patient as Record<string, unknown>).addressComplement as string} />
+            <InfoRow label="Bairro" value={(patient as Record<string, unknown>).neighborhood as string} />
+            <InfoRow label="Cidade" value={(patient as Record<string, unknown>).city as string} />
+            <InfoRow label="Estado" value={(patient as Record<string, unknown>).state as string} />
+          </div>
+        </SectionCard>
+      </div>
+      <SectionCard title="Contato de Emergência" icon={Users}>
+        <div className="space-y-0 text-sm">
+          <InfoRow label="Nome" value={(patient as Record<string, unknown>).emergencyContact as string} />
+          <InfoRow label="Telefone" value={(patient as Record<string, unknown>).emergencyPhone as string} />
+        </div>
+      </SectionCard>
+      <div className="flex justify-end">
+        <Button size="sm" variant="outline" onClick={onEdit} className="gap-1.5">
+          <Edit className="h-3.5 w-3.5" /> Editar Contato
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ── Health Tab ────────────────────────────────────────────────────────────────
+function HealthTab({ patientId, anamneseData, refetch, patient, onEditPatient }: {
   patientId: number;
   anamneseData: Record<string, unknown> | null | undefined;
   refetch: () => void;
-  healthOnly: boolean;
+  patient: Record<string, unknown>;
+  onEditPatient: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
@@ -560,88 +539,172 @@ function AnamneseHealthTab({
     allergies: (anamneseData?.allergies as string) ?? "",
     chronicConditions: (anamneseData?.chronicConditions as string) ?? "",
     disabilities: (anamneseData?.disabilities as string) ?? "",
-    mainComplaintDetail: (anamneseData?.mainComplaintDetail as string) ?? "",
-    familyHistory: (anamneseData?.familyHistory as string) ?? "",
-    personalHistory: (anamneseData?.personalHistory as string) ?? "",
-    previousTreatments: (anamneseData?.previousTreatments as string) ?? "",
-    therapeuticGoals: (anamneseData?.therapeuticGoals as string) ?? "",
-    cidCode: (anamneseData?.cidCode as string) ?? "",
-    therapeuticApproach: (anamneseData?.therapeuticApproach as string) ?? "",
-    riskFactors: (anamneseData?.riskFactors as string) ?? "",
-    protectiveFactors: (anamneseData?.protectiveFactors as string) ?? "",
-    additionalNotes: (anamneseData?.additionalNotes as string) ?? "",
   });
 
+  useEffect(() => {
+    if (anamneseData) {
+      setForm({
+        bloodType: (anamneseData.bloodType as string) ?? "",
+        allergies: (anamneseData.allergies as string) ?? "",
+        chronicConditions: (anamneseData.chronicConditions as string) ?? "",
+        disabilities: (anamneseData.disabilities as string) ?? "",
+      });
+    }
+  }, [anamneseData]);
+
   const upsertMutation = trpc.anamnese.upsert.useMutation({
-    onSuccess: () => { toast.success("Dados salvos!"); setEditing(false); refetch(); },
+    onSuccess: () => { toast.success("Dados de saúde salvos!"); setEditing(false); refetch(); },
     onError: (e) => toast.error(e.message),
   });
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const TextArea = ({ field, label, rows = 3 }: { field: string; label: string; rows?: number }) => (
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-semibold">Informações de Saúde</h3>
+        <Button size="sm" variant="outline" onClick={() => setEditing(!editing)} className="gap-1.5">
+          <Edit className="h-3.5 w-3.5" /> {editing ? "Cancelar" : "Editar"}
+        </Button>
+      </div>
+
+      {/* Convênio */}
+      <SectionCard title="Convênio / Plano de Saúde" icon={Shield}>
+        <div className="space-y-0 text-sm">
+          <InfoRow label="Convênio" value={(patient as Record<string, unknown>).insuranceName as string} />
+          <InfoRow label="Nº da Carteirinha" value={(patient as Record<string, unknown>).insuranceNumber as string} />
+          <InfoRow label="Tipo de Plano" value={(patient as Record<string, unknown>).insurancePlan as string} />
+          <InfoRow label="Validade" value={(patient as Record<string, unknown>).insuranceExpiry as string} />
+        </div>
+        <div className="mt-3 pt-3 border-t border-border/40">
+          <Button size="sm" variant="outline" onClick={onEditPatient} className="gap-1.5">
+            <Edit className="h-3.5 w-3.5" /> Editar Convênio
+          </Button>
+        </div>
+      </SectionCard>
+
+      {/* Dados de saúde */}
+      <Card>
+        <CardContent className="p-4 space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Tipo Sanguíneo</Label>
+            {editing ? (
+              <Select value={form.bloodType} onValueChange={(v) => setForm((p) => ({ ...p, bloodType: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm text-muted-foreground">{form.bloodType || <span className="italic text-xs">Não informado</span>}</p>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Alergias</Label>
+            {editing ? <Textarea value={form.allergies} onChange={set("allergies")} rows={3} /> : <p className="text-sm text-muted-foreground">{form.allergies || <span className="italic text-xs">Não informado</span>}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Condições Crônicas / Histórico Médico</Label>
+            {editing ? <Textarea value={form.chronicConditions} onChange={set("chronicConditions")} rows={3} /> : <p className="text-sm text-muted-foreground">{form.chronicConditions || <span className="italic text-xs">Não informado</span>}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Deficiências / Necessidades Especiais</Label>
+            {editing ? <Textarea value={form.disabilities} onChange={set("disabilities")} rows={2} /> : <p className="text-sm text-muted-foreground">{form.disabilities || <span className="italic text-xs">Não informado</span>}</p>}
+          </div>
+        </CardContent>
+      </Card>
+      {editing && (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
+          <Button onClick={() => upsertMutation.mutate({ patientId, ...form })} disabled={upsertMutation.isPending}>
+            {upsertMutation.isPending ? "Salvando..." : "Salvar"}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Anamnese Tab ──────────────────────────────────────────────────────────────
+function AnamneseTab({ patientId, anamneseData, refetch }: {
+  patientId: number;
+  anamneseData: Record<string, unknown> | null | undefined;
+  refetch: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({
+    mainComplaintDetail: (anamneseData?.mainComplaintDetail as string) ?? "",
+    therapeuticGoals: (anamneseData?.therapeuticGoals as string) ?? "",
+    cidCode: (anamneseData?.cidCode as string) ?? "",
+    cidDescription: (anamneseData?.cidDescription as string) ?? "",
+    therapeuticApproach: (anamneseData?.therapeuticApproach as string) ?? "",
+    familyHistory: (anamneseData?.familyHistory as string) ?? "",
+    personalHistory: (anamneseData?.personalHistory as string) ?? "",
+    previousTreatments: (anamneseData?.previousTreatments as string) ?? "",
+    currentDiseaseHistory: (anamneseData?.currentDiseaseHistory as string) ?? "",
+    psychiatricHistory: (anamneseData?.psychiatricHistory as string) ?? "",
+    childhoodHistory: (anamneseData?.childhoodHistory as string) ?? "",
+    relationshipHistory: (anamneseData?.relationshipHistory as string) ?? "",
+    professionalHistory: (anamneseData?.professionalHistory as string) ?? "",
+    substanceUse: (anamneseData?.substanceUse as string) ?? "",
+    sleepAndEating: (anamneseData?.sleepAndEating as string) ?? "",
+    sexualAffectiveLife: (anamneseData?.sexualAffectiveLife as string) ?? "",
+    riskFactors: (anamneseData?.riskFactors as string) ?? "",
+    protectiveFactors: (anamneseData?.protectiveFactors as string) ?? "",
+    additionalNotes: (anamneseData?.additionalNotes as string) ?? "",
+  });
+
+  useEffect(() => {
+    if (anamneseData) {
+      setForm({
+        mainComplaintDetail: (anamneseData.mainComplaintDetail as string) ?? "",
+        therapeuticGoals: (anamneseData.therapeuticGoals as string) ?? "",
+        cidCode: (anamneseData.cidCode as string) ?? "",
+        cidDescription: (anamneseData.cidDescription as string) ?? "",
+        therapeuticApproach: (anamneseData.therapeuticApproach as string) ?? "",
+        familyHistory: (anamneseData.familyHistory as string) ?? "",
+        personalHistory: (anamneseData.personalHistory as string) ?? "",
+        previousTreatments: (anamneseData.previousTreatments as string) ?? "",
+        currentDiseaseHistory: (anamneseData.currentDiseaseHistory as string) ?? "",
+        psychiatricHistory: (anamneseData.psychiatricHistory as string) ?? "",
+        childhoodHistory: (anamneseData.childhoodHistory as string) ?? "",
+        relationshipHistory: (anamneseData.relationshipHistory as string) ?? "",
+        professionalHistory: (anamneseData.professionalHistory as string) ?? "",
+        substanceUse: (anamneseData.substanceUse as string) ?? "",
+        sleepAndEating: (anamneseData.sleepAndEating as string) ?? "",
+        sexualAffectiveLife: (anamneseData.sexualAffectiveLife as string) ?? "",
+        riskFactors: (anamneseData.riskFactors as string) ?? "",
+        protectiveFactors: (anamneseData.protectiveFactors as string) ?? "",
+        additionalNotes: (anamneseData.additionalNotes as string) ?? "",
+      });
+    }
+  }, [anamneseData]);
+
+  const upsertMutation = trpc.anamnese.upsert.useMutation({
+    onSuccess: () => { toast.success("Anamnese salva!"); setEditing(false); refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const Field = ({ field, label, rows = 3, type = "textarea" }: { field: string; label: string; rows?: number; type?: "input" | "textarea" }) => (
     <div className="space-y-1.5">
-      <Label className="text-xs">{label}</Label>
+      <Label className="text-xs font-medium">{label}</Label>
       {editing ? (
-        <textarea
-          value={form[field as keyof typeof form]}
-          onChange={set(field)}
-          rows={rows}
-          className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-        />
+        type === "input"
+          ? <Input value={form[field as keyof typeof form]} onChange={set(field)} />
+          : <Textarea value={form[field as keyof typeof form]} onChange={set(field)} rows={rows} />
       ) : (
-        <p className="text-sm text-muted-foreground min-h-[2rem]">
+        <p className="text-sm text-muted-foreground min-h-[1.5rem]">
           {form[field as keyof typeof form] || <span className="italic text-xs">Não informado</span>}
         </p>
       )}
     </div>
   );
-
-  if (healthOnly) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-sm font-semibold">Informações de Saúde</h3>
-          <Button size="sm" variant="outline" onClick={() => setEditing(!editing)} className="gap-1.5">
-            <Edit className="h-3.5 w-3.5" /> {editing ? "Cancelar" : "Editar"}
-          </Button>
-        </div>
-        <Card>
-          <CardContent className="p-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Tipo Sanguíneo</Label>
-                {editing ? (
-                  <Select value={form.bloodType} onValueChange={(v) => setForm((p) => ({ ...p, bloodType: v }))}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <p className="text-sm text-muted-foreground">{form.bloodType || <span className="italic text-xs">Não informado</span>}</p>
-                )}
-              </div>
-            </div>
-            <TextArea field="allergies" label="Alergias" />
-            <TextArea field="chronicConditions" label="Condições Crônicas / Histórico Médico" />
-            <TextArea field="disabilities" label="Deficiências / Necessidades Especiais" />
-          </CardContent>
-        </Card>
-        {editing && (
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
-            <Button onClick={() => upsertMutation.mutate({ patientId, ...form })} disabled={upsertMutation.isPending}>
-              {upsertMutation.isPending ? "Salvando..." : "Salvar"}
-            </Button>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -651,46 +714,63 @@ function AnamneseHealthTab({
           <Edit className="h-3.5 w-3.5" /> {editing ? "Cancelar" : "Editar"}
         </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Queixa e Objetivos</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <TextArea field="mainComplaintDetail" label="Queixa Principal Detalhada" rows={4} />
-            <TextArea field="therapeuticGoals" label="Objetivos Terapêuticos" rows={3} />
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">CID-10 / CID-11</Label>
-                {editing ? <Input value={form.cidCode} onChange={set("cidCode")} placeholder="Ex: F41.1" /> : <p className="text-sm text-muted-foreground">{form.cidCode || <span className="italic text-xs">Não informado</span>}</p>}
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Abordagem Terapêutica</Label>
-                {editing ? <Input value={form.therapeuticApproach} onChange={set("therapeuticApproach")} placeholder="Ex: TCC, Psicanálise..." /> : <p className="text-sm text-muted-foreground">{form.therapeuticApproach || <span className="italic text-xs">Não informado</span>}</p>}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Histórico</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <TextArea field="familyHistory" label="Histórico Familiar" rows={3} />
-            <TextArea field="personalHistory" label="Histórico Pessoal" rows={3} />
-            <TextArea field="previousTreatments" label="Tratamentos Anteriores" rows={2} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fatores de Risco e Proteção</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <TextArea field="riskFactors" label="Fatores de Risco" rows={3} />
-            <TextArea field="protectiveFactors" label="Fatores Protetivos" rows={3} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Observações Adicionais</CardTitle></CardHeader>
-          <CardContent>
-            <TextArea field="additionalNotes" label="" rows={6} />
-          </CardContent>
-        </Card>
-      </div>
+
+      {/* Queixa e Objetivos */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Queixa e Objetivos Terapêuticos</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <Field field="mainComplaintDetail" label="Queixa Principal Detalhada" rows={4} />
+          <Field field="therapeuticGoals" label="Objetivos Terapêuticos" rows={3} />
+          <div className="grid grid-cols-2 gap-3">
+            <Field field="cidCode" label="CID-10 / CID-11" type="input" />
+            <Field field="cidDescription" label="Descrição do CID" type="input" />
+          </div>
+          <Field field="therapeuticApproach" label="Abordagem Terapêutica" type="input" />
+        </CardContent>
+      </Card>
+
+      {/* Histórico Clínico */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Histórico Clínico</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <Field field="currentDiseaseHistory" label="História da Doença Atual (HDA)" rows={4} />
+          <Field field="personalHistory" label="Histórico Pessoal" rows={3} />
+          <Field field="familyHistory" label="Histórico Familiar" rows={3} />
+          <Field field="psychiatricHistory" label="Histórico Psiquiátrico / Tratamentos Anteriores" rows={3} />
+          <Field field="previousTreatments" label="Outros Tratamentos Anteriores" rows={2} />
+        </CardContent>
+      </Card>
+
+      {/* Desenvolvimento */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Desenvolvimento e Contexto de Vida</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <Field field="childhoodHistory" label="Histórico da Infância e Adolescência" rows={3} />
+          <Field field="relationshipHistory" label="Histórico Afetivo e Relacional" rows={3} />
+          <Field field="professionalHistory" label="Histórico Profissional e Acadêmico" rows={3} />
+        </CardContent>
+      </Card>
+
+      {/* Hábitos e Estilo de Vida */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Hábitos e Estilo de Vida</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <Field field="substanceUse" label="Uso de Substâncias (álcool, tabaco, drogas)" rows={2} />
+          <Field field="sleepAndEating" label="Sono e Alimentação" rows={2} />
+          <Field field="sexualAffectiveLife" label="Vida Sexual e Afetiva" rows={2} />
+        </CardContent>
+      </Card>
+
+      {/* Fatores */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fatores de Risco e Proteção</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <Field field="riskFactors" label="Fatores de Risco" rows={3} />
+          <Field field="protectiveFactors" label="Fatores Protetivos" rows={3} />
+          <Field field="additionalNotes" label="Observações Adicionais" rows={4} />
+        </CardContent>
+      </Card>
+
       {editing && (
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
@@ -703,7 +783,416 @@ function AnamneseHealthTab({
   );
 }
 
-// ── Timeline Display ─────────────────────────────────────────────────────────
+// ── Clinical Note Editor (DocsPsi-style 8 sub-tabs) ───────────────────────────
+type RiskLevel = "absent" | "low" | "moderate" | "high" | "extreme";
+
+function ClinicalNoteEditor({ note, onBack }: { note: Record<string, unknown>; onBack: () => void }) {
+  const [subTab, setSubTab] = useState("session");
+  const [form, setForm] = useState({
+    // Sessão
+    sessionNumber: String((note.sessionNumber as number) ?? ""),
+    sessionType2: (note.sessionType2 as string) ?? "individual",
+    modality2: (note.modality2 as string) ?? "in_person",
+    sessionLocation: (note.sessionLocation as string) ?? "",
+    // Avaliação
+    emotionalState: (note.emotionalState as string) ?? "",
+    predominantMood: (note.predominantMood as string) ?? "",
+    sufferingLevel: String((note.sufferingLevel as number) ?? "5"),
+    currentMedications: (note.currentMedications as string) ?? "",
+    generalPresentation: (note.generalPresentation as string) ?? "",
+    mainDemand: (note.mainDemand as string) ?? "",
+    topicsAddressed: (note.topicsAddressed as string) ?? "",
+    relevantNarrative: (note.relevantNarrative as string) ?? "",
+    clinicalAssessment: (note.clinicalAssessment as string) ?? "",
+    technicalAnalysis: (note.technicalAnalysis as string) ?? "",
+    // Intervenções
+    techniquesUsed: (note.techniquesUsed as string) ?? "",
+    plannedInterventions: (note.plannedInterventions as string) ?? "",
+    homework: (note.homework as string) ?? "",
+    therapeuticPlan: (note.therapeuticPlan as string) ?? "",
+    // Evolução
+    treatmentResponse: (note.treatmentResponse as string) ?? "",
+    goalsProgress: (note.goalsProgress as string) ?? "",
+    observedInsights: (note.observedInsights as string) ?? "",
+    observedResistances: (note.observedResistances as string) ?? "",
+    // Próxima
+    nextSessionDate: (note.nextSessionDate as string) ?? "",
+    nextSessionGoals: (note.nextSessionGoals as string) ?? "",
+    treatmentPlanAdjustments: (note.treatmentPlanAdjustments as string) ?? "",
+    // Riscos
+    selfHarmRisk: (note.selfHarmRisk as RiskLevel) ?? "absent",
+    thirdPartyRisk: (note.thirdPartyRisk as RiskLevel) ?? "absent",
+    suicideRisk: (note.suicideRisk as RiskLevel) ?? "absent",
+    // Privado
+    countertransference: (note.countertransference as string) ?? "",
+    clinicalHypotheses: (note.clinicalHypotheses as string) ?? "",
+    supervisionNotes: (note.supervisionNotes as string) ?? "",
+    referrals: (note.referrals as string) ?? "",
+    privateObservations: (note.privateObservations as string) ?? "",
+  });
+  const [aiFeedback, setAiFeedback] = useState((note.aiTechnicalFeedback as string) ?? "");
+  const [aiFeedbackAt, setAiFeedbackAt] = useState((note.aiTechnicalFeedbackAt as number) ?? null);
+
+  const updateMutation = trpc.clinicalNotes.update.useMutation({
+    onSuccess: () => toast.success("Prontuário salvo!"),
+    onError: (e) => toast.error(e.message),
+  });
+
+  const aiFeedbackMutation = trpc.clinicalNotes.generateAIFeedback.useMutation({
+    onSuccess: (data) => {
+      setAiFeedback(data.feedback);
+      setAiFeedbackAt(Date.now());
+      toast.success("Análise IA gerada!");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const handleSave = () => {
+    updateMutation.mutate({
+      id: note.id as number,
+      sessionNumber: form.sessionNumber ? parseInt(form.sessionNumber) : undefined,
+      sessionType2: form.sessionType2 as "individual" | "couple" | "group" | "evaluation",
+      modality2: form.modality2 as "in_person" | "online",
+      sessionLocation: form.sessionLocation,
+      emotionalState: form.emotionalState,
+      predominantMood: form.predominantMood,
+      sufferingLevel: form.sufferingLevel ? parseInt(form.sufferingLevel) : undefined,
+      currentMedications: form.currentMedications,
+      generalPresentation: form.generalPresentation,
+      mainDemand: form.mainDemand,
+      topicsAddressed: form.topicsAddressed,
+      relevantNarrative: form.relevantNarrative,
+      clinicalAssessment: form.clinicalAssessment,
+      technicalAnalysis: form.technicalAnalysis,
+      techniquesUsed: form.techniquesUsed,
+      plannedInterventions: form.plannedInterventions,
+      homework: form.homework,
+      therapeuticPlan: form.therapeuticPlan,
+      treatmentResponse: form.treatmentResponse,
+      goalsProgress: form.goalsProgress,
+      observedInsights: form.observedInsights,
+      observedResistances: form.observedResistances,
+      nextSessionDate: form.nextSessionDate,
+      nextSessionGoals: form.nextSessionGoals,
+      treatmentPlanAdjustments: form.treatmentPlanAdjustments,
+      selfHarmRisk: form.selfHarmRisk as RiskLevel,
+      thirdPartyRisk: form.thirdPartyRisk as RiskLevel,
+      suicideRisk: form.suicideRisk as RiskLevel,
+      countertransference: form.countertransference,
+      clinicalHypotheses: form.clinicalHypotheses,
+      supervisionNotes: form.supervisionNotes,
+      referrals: form.referrals,
+      privateObservations: form.privateObservations,
+    });
+  };
+
+  const F = ({ field, label, rows = 3, placeholder = "" }: { field: string; label: string; rows?: number; placeholder?: string }) => (
+    <div className="space-y-1.5">
+      <Label className="text-xs font-medium">{label}</Label>
+      <Textarea value={form[field as keyof typeof form] as string} onChange={set(field)} rows={rows} placeholder={placeholder} />
+    </div>
+  );
+
+  const riskLevels: { value: RiskLevel; label: string; color: string }[] = [
+    { value: "absent", label: "Ausente", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-green-300" },
+    { value: "low", label: "Baixo", color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-300" },
+    { value: "moderate", label: "Moderado", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 border-orange-300" },
+    { value: "high", label: "Alto", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-red-300" },
+    { value: "extreme", label: "Extremo", color: "bg-red-200 text-red-900 dark:bg-red-900/50 dark:text-red-200 border-red-500" },
+  ];
+
+  const RiskSelector = ({ field, label }: { field: "selfHarmRisk" | "thirdPartyRisk" | "suicideRisk"; label: string }) => (
+    <div className="space-y-2">
+      <Label className="text-xs font-medium">{label}</Label>
+      <div className="flex flex-wrap gap-2">
+        {riskLevels.map((r) => (
+          <button
+            key={r.value}
+            type="button"
+            onClick={() => setForm((p) => ({ ...p, [field]: r.value }))}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${form[field] === r.value ? r.color + " ring-2 ring-offset-1 ring-current" : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"}`}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const subTabs = [
+    { value: "session", label: "Sessão", icon: Calendar },
+    { value: "assessment", label: "Avaliação", icon: Heart },
+    { value: "interventions", label: "Intervenções", icon: Brain },
+    { value: "evolution", label: "Evolução", icon: TrendingUp },
+    { value: "next", label: "Próxima", icon: ChevronRight },
+    { value: "risks", label: "Riscos", icon: AlertTriangle },
+    { value: "private", label: "Privado", icon: Lock },
+    { value: "ai", label: "Análise IA", icon: Sparkles },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5">
+            <ArrowLeft className="h-3.5 w-3.5" /> Voltar
+          </Button>
+          <div>
+            <h3 className="font-semibold text-sm">Editar Prontuário</h3>
+            <p className="text-xs text-muted-foreground">{new Date(note.createdAt as number).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
+          </div>
+        </div>
+        <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending} className="gap-1.5">
+          {updateMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+          Salvar
+        </Button>
+      </div>
+
+      {/* Sub-tabs */}
+      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="flex gap-1 w-max min-w-full border-b border-border pb-0">
+          {subTabs.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setSubTab(t.value)}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
+                subTab === t.value
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <t.icon className="h-3.5 w-3.5" />
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Sub-tab content */}
+      <Card>
+        <CardContent className="p-5 space-y-4">
+          {/* Sessão */}
+          {subTab === "session" && (
+            <>
+              <h4 className="text-sm font-semibold">Dados da Sessão</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Nº da Sessão</Label>
+                  <Input type="number" value={form.sessionNumber} onChange={set("sessionNumber")} placeholder="1" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Tipo de Sessão</Label>
+                  <Select value={form.sessionType2} onValueChange={(v) => setForm((p) => ({ ...p, sessionType2: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="individual">Individual</SelectItem>
+                      <SelectItem value="couple">Casal</SelectItem>
+                      <SelectItem value="group">Grupo</SelectItem>
+                      <SelectItem value="evaluation">Avaliação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Modalidade</Label>
+                  <Select value={form.modality2} onValueChange={(v) => setForm((p) => ({ ...p, modality2: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="in_person">Presencial</SelectItem>
+                      <SelectItem value="online">Online</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Local</Label>
+                  <Input value={form.sessionLocation} onChange={set("sessionLocation")} placeholder="Consultório, teleatendimento..." />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Avaliação */}
+          {subTab === "assessment" && (
+            <>
+              <h4 className="text-sm font-semibold">Avaliação Clínica</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Estado Emocional</Label>
+                  <Input value={form.emotionalState} onChange={set("emotionalState")} placeholder="Ex: Ansioso, Deprimido..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Humor Predominante</Label>
+                  <Select value={form.predominantMood} onValueChange={(v) => setForm((p) => ({ ...p, predominantMood: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {["Eutímico", "Deprimido / Anedônico", "Ansioso / Tenso", "Irritável / Agitado", "Eufórico / Expansivo", "Lábil", "Embotado / Apático", "Outro"].map((m) => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Nível de Sofrimento: {form.sufferingLevel}/10</Label>
+                <input type="range" min="0" max="10" value={form.sufferingLevel} onChange={set("sufferingLevel")} className="w-full accent-primary" />
+                <div className="flex justify-between text-xs text-muted-foreground"><span>0 - Sem sofrimento</span><span>10 - Sofrimento extremo</span></div>
+              </div>
+              <F field="currentMedications" label="Medicações em Uso" rows={2} placeholder="Medicamentos que o paciente está tomando..." />
+              <F field="generalPresentation" label="Apresentação Geral" rows={2} placeholder="Aparência, comportamento, postura..." />
+              <F field="mainDemand" label="Demanda Principal" rows={2} placeholder="O que o paciente trouxe para a sessão..." />
+              <F field="topicsAddressed" label="Temas Abordados" rows={3} placeholder="Tópicos discutidos durante a sessão..." />
+              <F field="relevantNarrative" label="Narrativa Relevante" rows={3} placeholder="Falas e narrativas significativas do paciente..." />
+              <F field="clinicalAssessment" label="Avaliação Clínica" rows={3} placeholder="Observações clínicas do profissional..." />
+              <F field="technicalAnalysis" label="Análise Técnica" rows={2} placeholder="Abordagem teórica aplicada..." />
+            </>
+          )}
+
+          {/* Intervenções */}
+          {subTab === "interventions" && (
+            <>
+              <h4 className="text-sm font-semibold">Intervenções & Planejamento</h4>
+              <F field="techniquesUsed" label="Técnicas Utilizadas" rows={3} placeholder="TCC, escuta ativa, reestruturação cognitiva..." />
+              <F field="plannedInterventions" label="Intervenções Planejadas" rows={3} placeholder="Próximas intervenções a serem aplicadas..." />
+              <F field="homework" label="Tarefa de Casa" rows={2} placeholder="Atividades sugeridas para o paciente entre sessões..." />
+              <F field="therapeuticPlan" label="Planejamento Terapêutico" rows={3} placeholder="Plano de tratamento e etapas futuras..." />
+            </>
+          )}
+
+          {/* Evolução */}
+          {subTab === "evolution" && (
+            <>
+              <h4 className="text-sm font-semibold">Evolução do Tratamento</h4>
+              <F field="treatmentResponse" label="Resposta ao Tratamento" rows={3} placeholder="Como o paciente está respondendo ao tratamento..." />
+              <F field="goalsProgress" label="Progresso dos Objetivos" rows={3} placeholder="Avanços nos objetivos terapêuticos..." />
+              <F field="observedInsights" label="Insights Observados" rows={3} placeholder="Momentos de insight, autopercepção..." />
+              <F field="observedResistances" label="Resistências Observadas" rows={3} placeholder="Resistências, evitações, mecanismos de defesa..." />
+            </>
+          )}
+
+          {/* Próxima */}
+          {subTab === "next" && (
+            <>
+              <h4 className="text-sm font-semibold">Próxima Sessão</h4>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Data da Próxima Sessão</Label>
+                <Input type="date" value={form.nextSessionDate} onChange={set("nextSessionDate")} />
+              </div>
+              <F field="nextSessionGoals" label="Objetivos para a Próxima Sessão" rows={3} placeholder="O que será trabalhado na próxima sessão..." />
+              <F field="treatmentPlanAdjustments" label="Ajustes no Plano de Tratamento" rows={3} placeholder="Mudanças necessárias no plano terapêutico..." />
+            </>
+          )}
+
+          {/* Riscos */}
+          {subTab === "risks" && (
+            <>
+              <h4 className="text-sm font-semibold">Avaliação de Risco</h4>
+              <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <p className="text-xs text-yellow-700 dark:text-yellow-400 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  Avalie cuidadosamente cada indicador de risco. Em caso de risco alto ou extremo, acione os protocolos de segurança.
+                </p>
+              </div>
+              <RiskSelector field="selfHarmRisk" label="Risco de Prejuízo a Si" />
+              <RiskSelector field="thirdPartyRisk" label="Risco a Terceiros" />
+              <RiskSelector field="suicideRisk" label="Risco de Suicídio" />
+            </>
+          )}
+
+          {/* Privado */}
+          {subTab === "private" && (
+            <>
+              <h4 className="text-sm font-semibold">Anotações Clínicas Privadas</h4>
+              <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5 shrink-0" />
+                  Estas anotações são de uso exclusivo do profissional. Não são incluídas em relatórios ou documentos compartilhados com o paciente.
+                </p>
+              </div>
+              <F field="countertransference" label="Contratransferência" rows={3} placeholder="Sentimentos e reações do profissional durante a sessão..." />
+              <F field="clinicalHypotheses" label="Hipóteses Clínicas" rows={3} placeholder="Hipóteses diagnósticas e de compreensão do caso..." />
+              <F field="supervisionNotes" label="Dúvidas para Supervisão" rows={3} placeholder="Pontos a levar para supervisão clínica..." />
+              <F field="referrals" label="Encaminhamentos" rows={2} placeholder="Encaminhamentos realizados ou necessários..." />
+              <F field="privateObservations" label="Observações Adicionais" rows={3} placeholder="Qualquer informação adicional relevante..." />
+            </>
+          )}
+
+          {/* Análise IA */}
+          {subTab === "ai" && (
+            <>
+              <h4 className="text-sm font-semibold flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-purple-500" /> Feedback Técnico por IA
+              </h4>
+              <div className="space-y-2">
+                <div className="p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <p className="text-xs text-purple-700 dark:text-purple-300">
+                    A análise é gerada por Inteligência Artificial e serve como ferramenta de apoio para aprimoramento técnico do prontuário.{" "}
+                    <span className="font-semibold">Não substitui o julgamento clínico do profissional.</span>
+                  </p>
+                </div>
+                <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                    💡 Para maior eficácia da análise, preencha a ampla maioria dos campos do prontuário nas diversas seções antes de solicitar.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => aiFeedbackMutation.mutate({ noteId: note.id as number })}
+                  disabled={aiFeedbackMutation.isPending}
+                  className="gap-1.5 bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {aiFeedbackMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {aiFeedback ? "Solicitar Nova Análise" : "Solicitar Análise"}
+                </Button>
+                {aiFeedbackAt && (
+                  <p className="text-xs text-muted-foreground">
+                    Última análise: {new Date(aiFeedbackAt).toLocaleDateString("pt-BR")} às {new Date(aiFeedbackAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                )}
+              </div>
+              {aiFeedbackMutation.isPending && (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <Loader2 className="h-8 w-8 mx-auto mb-2 text-purple-500 animate-spin" />
+                    <p className="text-sm font-medium">Gerando feedback técnico...</p>
+                    <p className="text-xs text-muted-foreground mt-1">Isso pode levar alguns segundos.</p>
+                  </CardContent>
+                </Card>
+              )}
+              {aiFeedback && !aiFeedbackMutation.isPending && (
+                <Card className="border-purple-200 dark:border-purple-800">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resultado da Análise</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
+                      <Streamdown>{aiFeedback}</Streamdown>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              {!aiFeedback && !aiFeedbackMutation.isPending && (
+                <Card>
+                  <CardContent className="py-10 text-center text-muted-foreground">
+                    <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Nenhuma análise gerada ainda.</p>
+                    <p className="text-xs mt-1">Clique em "Solicitar Análise" para gerar o feedback técnico.</p>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ── Timeline Display ──────────────────────────────────────────────────────────
 function TimelineDisplay({ data, sessionCount, createdAt }: { data: Record<string, unknown>; sessionCount: number; createdAt?: Date }) {
   const global = data.globalAnalysis as Record<string, unknown> | undefined;
   const lastSession = data.lastSessionAnalysis as Record<string, unknown> | undefined;
@@ -717,14 +1206,10 @@ function TimelineDisplay({ data, sessionCount, createdAt }: { data: Record<strin
           <Clock className="h-3 w-3" /> Análise gerada em {new Date(createdAt).toLocaleString("pt-BR")} • Baseada em {sessionCount} sessão(ões)
         </p>
       )}
-
-      {/* Análise Global */}
       {global && (
         <Card className="border-l-4 border-l-primary">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Brain className="h-4 w-4 text-primary" /> Análise Histórica Global
-            </CardTitle>
+            <CardTitle className="text-sm font-semibold flex items-center gap-2"><Brain className="h-4 w-4 text-primary" /> Análise Histórica Global</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {global.summary && <p className="text-sm leading-relaxed">{global.summary as string}</p>}
@@ -732,72 +1217,32 @@ function TimelineDisplay({ data, sessionCount, createdAt }: { data: Record<strin
               {Array.isArray(global.identifiedPatterns) && global.identifiedPatterns.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Padrões Identificados</p>
-                  <ul className="space-y-1">
-                    {(global.identifiedPatterns as string[]).map((p, i) => (
-                      <li key={i} className="text-xs flex items-start gap-1.5"><ChevronRight className="h-3 w-3 text-primary shrink-0 mt-0.5" />{p}</li>
-                    ))}
-                  </ul>
+                  <ul className="space-y-1">{(global.identifiedPatterns as string[]).map((p, i) => <li key={i} className="text-xs flex items-start gap-1.5"><ChevronRight className="h-3 w-3 text-primary shrink-0 mt-0.5" />{p}</li>)}</ul>
                 </div>
               )}
               {Array.isArray(global.concreteProgress) && global.concreteProgress.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Progressos Concretos</p>
-                  <ul className="space-y-1">
-                    {(global.concreteProgress as string[]).map((p, i) => (
-                      <li key={i} className="text-xs flex items-start gap-1.5"><CheckCircle2 className="h-3 w-3 text-green-500 shrink-0 mt-0.5" />{p}</li>
-                    ))}
-                  </ul>
+                  <ul className="space-y-1">{(global.concreteProgress as string[]).map((p, i) => <li key={i} className="text-xs flex items-start gap-1.5"><CheckCircle2 className="h-3 w-3 text-green-500 shrink-0 mt-0.5" />{p}</li>)}</ul>
                 </div>
               )}
             </div>
             {Array.isArray(global.attentionPoints) && global.attentionPoints.length > 0 && (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Pontos de Atenção</p>
-                <ul className="space-y-1">
-                  {(global.attentionPoints as string[]).map((p, i) => (
-                    <li key={i} className="text-xs flex items-start gap-1.5"><AlertTriangle className="h-3 w-3 text-yellow-500 shrink-0 mt-0.5" />{p}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {global.synthesis && (
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <p className="text-xs font-semibold text-muted-foreground mb-1">Síntese</p>
-                <p className="text-sm">{global.synthesis as string}</p>
+                <ul className="space-y-1">{(global.attentionPoints as string[]).map((p, i) => <li key={i} className="text-xs flex items-start gap-1.5"><AlertTriangle className="h-3 w-3 text-yellow-500 shrink-0 mt-0.5" />{p}</li>)}</ul>
               </div>
             )}
           </CardContent>
         </Card>
       )}
-
-      {/* Análise do Último Atendimento */}
       {lastSession && (
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <FileText className="h-4 w-4 text-blue-500" /> Análise do Último Atendimento
-            </CardTitle>
+            <CardTitle className="text-sm font-semibold flex items-center gap-2"><FileText className="h-4 w-4 text-blue-500" /> Análise do Último Atendimento</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {lastSession.summary && <p className="text-sm leading-relaxed">{lastSession.summary as string}</p>}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.isArray(lastSession.clinicalObservations) && lastSession.clinicalObservations.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Observações Clínicas</p>
-                  <ul className="space-y-1">
-                    {(lastSession.clinicalObservations as string[]).map((o, i) => (
-                      <li key={i} className="text-xs flex items-start gap-1.5"><ChevronRight className="h-3 w-3 text-blue-500 shrink-0 mt-0.5" />{o}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {lastSession.emotionalState && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Estado Emocional</p>
-                  <p className="text-sm">{lastSession.emotionalState as string}</p>
-                </div>
-              )}
-            </div>
             {lastSession.riskAnalysis && (
               <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                 <p className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 mb-1">Análise de Risco</p>
@@ -807,64 +1252,18 @@ function TimelineDisplay({ data, sessionCount, createdAt }: { data: Record<strin
           </CardContent>
         </Card>
       )}
-
-      {/* Orientação para Próxima Sessão */}
       {nextGuidance && (
         <Card className="border-l-4 border-l-green-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-green-500" /> Orientação para Próxima Sessão
-            </CardTitle>
+            <CardTitle className="text-sm font-semibold flex items-center gap-2"><Sparkles className="h-4 w-4 text-green-500" /> Orientação para Próxima Sessão</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {nextGuidance.suggestedFocus && (
               <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
                 <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">Foco Sugerido</p>
                 <p className="text-sm">{nextGuidance.suggestedFocus as string}</p>
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.isArray(nextGuidance.themesToReturn) && nextGuidance.themesToReturn.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Temas a Retomar</p>
-                  <ul className="space-y-1">
-                    {(nextGuidance.themesToReturn as string[]).map((t, i) => (
-                      <li key={i} className="text-xs flex items-start gap-1.5"><ChevronRight className="h-3 w-3 text-green-500 shrink-0 mt-0.5" />{t}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {Array.isArray(nextGuidance.suggestedQuestions) && nextGuidance.suggestedQuestions.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Perguntas Sugeridas</p>
-                  <ul className="space-y-1">
-                    {(nextGuidance.suggestedQuestions as string[]).map((q, i) => (
-                      <li key={i} className="text-xs flex items-start gap-1.5 text-muted-foreground"><span className="text-primary shrink-0">?</span>{q}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {Array.isArray(nextGuidance.recommendedTechniques) && nextGuidance.recommendedTechniques.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Técnicas Recomendadas</p>
-                  <ul className="space-y-1">
-                    {(nextGuidance.recommendedTechniques as string[]).map((t, i) => (
-                      <li key={i} className="text-xs flex items-start gap-1.5"><CheckCircle2 className="h-3 w-3 text-green-500 shrink-0 mt-0.5" />{t}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {Array.isArray(nextGuidance.clinicalAlerts) && nextGuidance.clinicalAlerts.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Alertas Clínicos</p>
-                  <ul className="space-y-1">
-                    {(nextGuidance.clinicalAlerts as string[]).map((a, i) => (
-                      <li key={i} className="text-xs flex items-start gap-1.5"><AlertTriangle className="h-3 w-3 text-red-500 shrink-0 mt-0.5" />{a}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
             {nextGuidance.immediateRecommendation && (
               <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
                 <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Recomendação Imediata</p>
@@ -874,25 +1273,17 @@ function TimelineDisplay({ data, sessionCount, createdAt }: { data: Record<strin
           </CardContent>
         </Card>
       )}
-
-      {/* Evolução do Sofrimento */}
       {Array.isArray(evolution) && evolution.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" /> Evolução do Nível de Sofrimento
-            </CardTitle>
+            <CardTitle className="text-sm font-semibold flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Evolução do Nível de Sofrimento</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-end gap-2 h-24 mt-2">
               {evolution.map((e, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
                   <span className="text-xs text-muted-foreground">{e.level}</span>
-                  <div
-                    className="w-full rounded-t-sm bg-primary/70 transition-all"
-                    style={{ height: `${(e.level / 10) * 80}px` }}
-                    title={`Sessão ${e.session}: ${e.date}`}
-                  />
+                  <div className="w-full rounded-t-sm bg-primary/70 transition-all" style={{ height: `${(e.level / 10) * 80}px` }} title={`Sessão ${e.session}: ${e.date}`} />
                   <span className="text-xs text-muted-foreground truncate w-full text-center">{e.session}</span>
                 </div>
               ))}
@@ -905,35 +1296,51 @@ function TimelineDisplay({ data, sessionCount, createdAt }: { data: Record<strin
   );
 }
 
-// ── Edit Patient Dialog ──────────────────────────────────────────────────────
-function EditPatientDialog({
-  patient,
-  open,
-  onClose,
-  onSuccess,
-}: {
-  patient: { id: number; name: string; email?: string | null; phone?: string | null; birthDate?: string | null; cpf?: string | null; occupation?: string | null; mainComplaint?: string | null; medicalHistory?: string | null; medications?: string | null; notes?: string | null; sessionValue?: string | null; status: string; referredBy?: string | null; address?: string | null; emergencyContact?: string | null; emergencyPhone?: string | null; };
+// ── Edit Patient Dialog (with CEP/ViaCEP + insurance) ─────────────────────────
+function EditPatientDialog({ patient, open, onClose, onSuccess }: {
+  patient: Record<string, unknown>;
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const [activeSection, setActiveSection] = useState("basic");
   const [form, setForm] = useState({
-    name: patient.name,
-    email: patient.email ?? "",
-    phone: patient.phone ?? "",
-    birthDate: patient.birthDate ?? "",
-    cpf: patient.cpf ?? "",
-    occupation: patient.occupation ?? "",
-    mainComplaint: patient.mainComplaint ?? "",
-    medicalHistory: patient.medicalHistory ?? "",
-    medications: patient.medications ?? "",
-    notes: patient.notes ?? "",
-    sessionValue: patient.sessionValue ?? "",
-    status: patient.status as "active" | "inactive" | "discharged",
-    address: patient.address ?? "",
-    emergencyContact: patient.emergencyContact ?? "",
-    emergencyPhone: patient.emergencyPhone ?? "",
+    name: (patient.name as string) ?? "",
+    email: (patient.email as string) ?? "",
+    phone: (patient.phone as string) ?? "",
+    phone2: ((patient as Record<string, unknown>).phone2 as string) ?? "",
+    birthDate: (patient.birthDate as string) ?? "",
+    cpf: (patient.cpf as string) ?? "",
+    gender: ((patient as Record<string, unknown>).gender as string) ?? "",
+    maritalStatus: ((patient as Record<string, unknown>).maritalStatus as string) ?? "",
+    schooling: ((patient as Record<string, unknown>).schooling as string) ?? "",
+    religion: ((patient as Record<string, unknown>).religion as string) ?? "",
+    occupation: (patient.occupation as string) ?? "",
+    referredBy: (patient.referredBy as string) ?? "",
+    // Endereço
+    zipCode: ((patient as Record<string, unknown>).zipCode as string) ?? "",
+    address: (patient.address as string) ?? "",
+    addressNumber: ((patient as Record<string, unknown>).addressNumber as string) ?? "",
+    addressComplement: ((patient as Record<string, unknown>).addressComplement as string) ?? "",
+    neighborhood: ((patient as Record<string, unknown>).neighborhood as string) ?? "",
+    city: ((patient as Record<string, unknown>).city as string) ?? "",
+    state: ((patient as Record<string, unknown>).state as string) ?? "",
+    // Emergência
+    emergencyContact: (patient.emergencyContact as string) ?? "",
+    emergencyPhone: (patient.emergencyPhone as string) ?? "",
+    // Convênio
+    insuranceName: ((patient as Record<string, unknown>).insuranceName as string) ?? "",
+    insuranceNumber: ((patient as Record<string, unknown>).insuranceNumber as string) ?? "",
+    insurancePlan: ((patient as Record<string, unknown>).insurancePlan as string) ?? "",
+    insuranceExpiry: ((patient as Record<string, unknown>).insuranceExpiry as string) ?? "",
+    // Clínico
+    mainComplaint: (patient.mainComplaint as string) ?? "",
+    medications: (patient.medications as string) ?? "",
+    notes: (patient.notes as string) ?? "",
+    sessionValue: (patient.sessionValue as string) ?? "",
+    status: (patient.status as string) ?? "active",
   });
+  const [cepLoading, setCepLoading] = useState(false);
 
   const updateMutation = trpc.patients.update.useMutation({
     onSuccess: () => { toast.success("Paciente atualizado!"); onSuccess(); },
@@ -943,77 +1350,281 @@ function EditPatientDialog({
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
+  const lookupCep = async () => {
+    const cep = form.zipCode.replace(/\D/g, "");
+    if (cep.length !== 8) { toast.error("CEP inválido. Digite 8 dígitos."); return; }
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await res.json();
+      if (data.erro) { toast.error("CEP não encontrado."); return; }
+      setForm((p) => ({
+        ...p,
+        address: data.logradouro ?? p.address,
+        neighborhood: data.bairro ?? p.neighborhood,
+        city: data.localidade ?? p.city,
+        state: data.uf ?? p.state,
+      }));
+      toast.success("Endereço preenchido automaticamente!");
+    } catch {
+      toast.error("Erro ao buscar CEP. Verifique sua conexão.");
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
+  const sections = [
+    { id: "basic", label: "Dados Básicos" },
+    { id: "contact", label: "Contato" },
+    { id: "address", label: "Endereço" },
+    { id: "insurance", label: "Convênio" },
+    { id: "clinical", label: "Clínico" },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar Paciente</DialogTitle>
+          <DialogTitle>Editar Paciente — {patient.name as string}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); updateMutation.mutate({ id: patient.id, ...form }); }} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <Label>Nome *</Label>
-            <Input value={form.name} onChange={set("name")} required />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>E-mail</Label>
-              <Input type="email" value={form.email} onChange={set("email")} />
+
+        {/* Section nav */}
+        <div className="flex gap-1 border-b border-border pb-2 overflow-x-auto">
+          {sections.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setActiveSection(s.id)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={(e) => { e.preventDefault(); updateMutation.mutate({ id: patient.id as number, ...form, gender: form.gender as "male" | "female" | "other" | "prefer_not_to_say" || undefined, maritalStatus: form.maritalStatus as "single" | "married" | "divorced" | "widowed" | "stable_union" | "other" || undefined, schooling: form.schooling as "no_schooling" | "elementary" | "middle" | "high_school" | "college" | "postgrad" || undefined, status: form.status as "active" | "inactive" | "discharged" }); }} className="space-y-4 pt-2">
+
+          {/* Dados Básicos */}
+          {activeSection === "basic" && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Nome *</Label>
+                <Input value={form.name} onChange={set("name")} required />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Data de Nascimento</Label>
+                  <Input type="date" value={form.birthDate} onChange={set("birthDate")} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>CPF</Label>
+                  <Input value={form.cpf} onChange={set("cpf")} placeholder="000.000.000-00" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Gênero</Label>
+                  <Select value={form.gender} onValueChange={(v) => setForm((p) => ({ ...p, gender: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Masculino</SelectItem>
+                      <SelectItem value="female">Feminino</SelectItem>
+                      <SelectItem value="other">Outro</SelectItem>
+                      <SelectItem value="prefer_not_to_say">Prefiro não informar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Estado Civil</Label>
+                  <Select value={form.maritalStatus} onValueChange={(v) => setForm((p) => ({ ...p, maritalStatus: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="single">Solteiro(a)</SelectItem>
+                      <SelectItem value="married">Casado(a)</SelectItem>
+                      <SelectItem value="divorced">Divorciado(a)</SelectItem>
+                      <SelectItem value="widowed">Viúvo(a)</SelectItem>
+                      <SelectItem value="stable_union">União Estável</SelectItem>
+                      <SelectItem value="other">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Escolaridade</Label>
+                  <Select value={form.schooling} onValueChange={(v) => setForm((p) => ({ ...p, schooling: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="no_schooling">Sem escolaridade</SelectItem>
+                      <SelectItem value="elementary">Fundamental</SelectItem>
+                      <SelectItem value="middle">Médio Incompleto</SelectItem>
+                      <SelectItem value="high_school">Ensino Médio</SelectItem>
+                      <SelectItem value="college">Superior</SelectItem>
+                      <SelectItem value="postgrad">Pós-graduação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Religião</Label>
+                  <Input value={form.religion} onChange={set("religion")} placeholder="Ex: Católica, Evangélica..." />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Profissão</Label>
+                  <Input value={form.occupation} onChange={set("occupation")} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Encaminhado por</Label>
+                  <Input value={form.referredBy} onChange={set("referredBy")} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Status</Label>
+                  <Select value={form.status} onValueChange={(v) => setForm((p) => ({ ...p, status: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="inactive">Inativo</SelectItem>
+                      <SelectItem value="discharged">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Valor da Sessão (R$)</Label>
+                  <Input value={form.sessionValue} onChange={set("sessionValue")} placeholder="200.00" />
+                </div>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Telefone</Label>
-              <Input value={form.phone} onChange={set("phone")} />
+          )}
+
+          {/* Contato */}
+          {activeSection === "contact" && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>E-mail</Label>
+                  <Input type="email" value={form.email} onChange={set("email")} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Telefone Principal</Label>
+                  <Input value={form.phone} onChange={set("phone")} placeholder="(11) 99999-9999" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Telefone Secundário</Label>
+                <Input value={form.phone2} onChange={set("phone2")} placeholder="(11) 99999-9999" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Contato de Emergência</Label>
+                  <Input value={form.emergencyContact} onChange={set("emergencyContact")} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Tel. Emergência</Label>
+                  <Input value={form.emergencyPhone} onChange={set("emergencyPhone")} />
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Nascimento</Label>
-              <Input type="date" value={form.birthDate} onChange={set("birthDate")} />
+          )}
+
+          {/* Endereço */}
+          {activeSection === "address" && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>CEP</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={form.zipCode}
+                    onChange={set("zipCode")}
+                    placeholder="00000-000"
+                    maxLength={9}
+                    onBlur={() => { if (form.zipCode.replace(/\D/g, "").length === 8) lookupCep(); }}
+                  />
+                  <Button type="button" variant="outline" onClick={lookupCep} disabled={cepLoading} className="shrink-0 gap-1.5">
+                    {cepLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+                    Buscar
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">Digite o CEP e clique em Buscar para preencher automaticamente.</p>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 space-y-1.5">
+                  <Label>Rua / Logradouro</Label>
+                  <Input value={form.address} onChange={set("address")} placeholder="Nome da rua" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Número</Label>
+                  <Input value={form.addressNumber} onChange={set("addressNumber")} placeholder="123" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Complemento</Label>
+                  <Input value={form.addressComplement} onChange={set("addressComplement")} placeholder="Apto, Bloco..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Bairro</Label>
+                  <Input value={form.neighborhood} onChange={set("neighborhood")} />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 space-y-1.5">
+                  <Label>Cidade</Label>
+                  <Input value={form.city} onChange={set("city")} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Estado (UF)</Label>
+                  <Input value={form.state} onChange={set("state")} maxLength={2} placeholder="SP" />
+                </div>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Status</Label>
-              <Select value={form.status} onValueChange={(v) => setForm((p) => ({ ...p, status: v as "active" | "inactive" | "discharged" }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="inactive">Inativo</SelectItem>
-                  <SelectItem value="discharged">Alta</SelectItem>
-                </SelectContent>
-              </Select>
+          )}
+
+          {/* Convênio */}
+          {activeSection === "insurance" && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Nome do Convênio</Label>
+                <Input value={form.insuranceName} onChange={set("insuranceName")} placeholder="Ex: Unimed, Bradesco Saúde..." />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Nº da Carteirinha</Label>
+                  <Input value={form.insuranceNumber} onChange={set("insuranceNumber")} placeholder="0000000000000" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Tipo de Plano</Label>
+                  <Input value={form.insurancePlan} onChange={set("insurancePlan")} placeholder="Ex: Enfermaria, Apartamento..." />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Validade</Label>
+                <Input type="date" value={form.insuranceExpiry} onChange={set("insuranceExpiry")} />
+              </div>
             </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Endereço</Label>
-            <Input value={form.address} onChange={set("address")} placeholder="Rua, número, bairro, cidade" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Contato de Emergência</Label>
-              <Input value={form.emergencyContact} onChange={set("emergencyContact")} />
+          )}
+
+          {/* Clínico */}
+          {activeSection === "clinical" && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Queixa Principal</Label>
+                <Textarea value={form.mainComplaint} onChange={set("mainComplaint")} rows={3} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Medicamentos em Uso</Label>
+                <Input value={form.medications} onChange={set("medications")} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Observações Gerais</Label>
+                <Textarea value={form.notes} onChange={set("notes")} rows={4} />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Tel. Emergência</Label>
-              <Input value={form.emergencyPhone} onChange={set("emergencyPhone")} />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Queixa principal</Label>
-            <textarea value={form.mainComplaint} onChange={set("mainComplaint")} className="w-full min-h-[80px] px-3 py-2 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring" />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Medicamentos</Label>
-            <Input value={form.medications} onChange={set("medications")} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Valor da sessão (R$)</Label>
-              <Input value={form.sessionValue} onChange={set("sessionValue")} placeholder="200.00" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>CPF</Label>
-              <Input value={form.cpf} onChange={set("cpf")} />
-            </div>
-          </div>
-          <div className="flex gap-3 pt-2">
+          )}
+
+          <div className="flex gap-3 pt-2 border-t border-border">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
             <Button type="submit" className="flex-1" disabled={updateMutation.isPending}>
               {updateMutation.isPending ? "Salvando..." : "Salvar"}
@@ -1025,18 +1636,8 @@ function EditPatientDialog({
   );
 }
 
-// ── Upload Document Dialog ───────────────────────────────────────────────────
-function UploadDocumentDialog({
-  patientId,
-  open,
-  onClose,
-  onSuccess,
-}: {
-  patientId: number;
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
+// ── Upload Document Dialog ────────────────────────────────────────────────────
+function UploadDocumentDialog({ patientId, open, onClose, onSuccess }: { patientId: number; open: boolean; onClose: () => void; onSuccess: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [category, setCategory] = useState<"report" | "exam" | "prescription" | "referral" | "consent" | "other">("other");
   const [description, setDescription] = useState("");
@@ -1061,22 +1662,14 @@ function UploadDocumentDialog({
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fileData || !fileName) { toast.error("Selecione um arquivo"); return; }
-    uploadMutation.mutate({ patientId, fileName, mimeType: fileData.mimeType, fileSize: fileData.size, category, description, fileBase64: fileData.base64 });
-  };
-
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>Anexar Documento</DialogTitle></DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+        <form onSubmit={(e) => { e.preventDefault(); if (!fileData || !fileName) { toast.error("Selecione um arquivo"); return; } uploadMutation.mutate({ patientId, fileName, mimeType: fileData.mimeType, fileSize: fileData.size, category, description, fileBase64: fileData.base64 }); }} className="space-y-4 pt-2">
           <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors" onClick={() => fileRef.current?.click()}>
             <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            {fileName ? <p className="text-sm font-medium text-primary">{fileName}</p> : (
-              <><p className="text-sm font-medium">Clique para selecionar</p><p className="text-xs text-muted-foreground mt-1">PDF, imagens, Word — máx. 16MB</p></>
-            )}
+            {fileName ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Clique para selecionar</p><p className="text-xs text-muted-foreground mt-1">PDF, imagens, Word — máx. 16MB</p></>}
             <input ref={fileRef} type="file" className="hidden" onChange={handleFile} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
           </div>
           <div className="space-y-1.5">
@@ -1109,18 +1702,8 @@ function UploadDocumentDialog({
   );
 }
 
-// ── Upload Recording Dialog ──────────────────────────────────────────────────
-function UploadRecordingDialog({
-  patientId,
-  open,
-  onClose,
-  onSuccess,
-}: {
-  patientId: number;
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
+// ── Upload Recording Dialog ───────────────────────────────────────────────────
+function UploadRecordingDialog({ patientId, open, onClose, onSuccess }: { patientId: number; open: boolean; onClose: () => void; onSuccess: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [fileData, setFileData] = useState<{ base64: string; mimeType: string; size: number } | null>(null);
@@ -1143,22 +1726,14 @@ function UploadRecordingDialog({
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fileData || !fileName) { toast.error("Selecione um arquivo de áudio"); return; }
-    uploadMutation.mutate({ patientId, fileName, fileBase64: fileData.base64, mimeType: fileData.mimeType, fileSize: fileData.size });
-  };
-
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>Adicionar Gravação</DialogTitle></DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+        <form onSubmit={(e) => { e.preventDefault(); if (!fileData || !fileName) { toast.error("Selecione um arquivo de áudio"); return; } uploadMutation.mutate({ patientId, fileName, fileBase64: fileData.base64, mimeType: fileData.mimeType, fileSize: fileData.size }); }} className="space-y-4 pt-2">
           <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors" onClick={() => fileRef.current?.click()}>
             <Mic className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            {fileName ? <p className="text-sm font-medium text-primary">{fileName}</p> : (
-              <><p className="text-sm font-medium">Clique para selecionar</p><p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A, OGG — máx. 16MB</p></>
-            )}
+            {fileName ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Clique para selecionar</p><p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A, OGG — máx. 16MB</p></>}
             <input ref={fileRef} type="file" className="hidden" onChange={handleFile} accept=".mp3,.wav,.m4a,.ogg,.webm" />
           </div>
           <div className="p-3 bg-muted/50 rounded-lg">
