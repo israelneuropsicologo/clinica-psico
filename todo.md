@@ -485,3 +485,12 @@ await trpc.userSync.linkUsers.mutate({
   - Testar atualização de paciente existente
   - Testar sessões online e presenciais
   - 5 testes passando (68 testes totais)
+
+
+## Fase 30: Correção do Assistente Clínico IA
+- [x] Bug: Assistente Clínico IA gerando texto incoerente e sem sentido - CORRIGIDO
+- [x] Localizar o prompt do sistema no código (server/routers.ts linha 353)
+- [x] Reescrever o prompt com instruções claras e estruturadas em português
+- [x] Testar com dados reais de sessão (Carlos Silva - cansço excessivo) - APROVADO
+  - Resultado: Análise clara, coerente, em português correto
+  - Estrutura: Resumo da Sessão, Pontos de Atenção, Sugestões para Próxima Sessão, Evolução do Paciente

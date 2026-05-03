@@ -346,27 +346,53 @@ const clinicalNotesRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Verificar se há conteúdo suficiente para analisar
+      const contentTrimmed = input.content.trim();
+      if (!contentTrimmed || contentTrimmed.length < 10) {
+        return { suggestions: "Por favor, adicione anotações clínicas antes de solicitar a análise da IA." };
+      }
+
       const response = await invokeLLM({
         messages: [
           {
             role: "system",
-            content: `Você é um assistente clínico especializado em psicologia. Analise as anotações de sessão fornecidas e ofereça:
-1. Um resumo objetivo da sessão (máx. 3 parágrafos)
-2. Pontos de atenção clínica identificados
-3. Sugestões de intervenções terapêuticas para próximas sessões
-4. Análise de evolução do paciente (se houver histórico)
+            content: `Você é um assistente clínico especializado em psicologia clínica. Sua função é analisar as anotações de sessão de um psicólogo e fornecer insights clínicos úteis.
 
-Responda em português brasileiro, de forma profissional e empática. Não faça diagnósticos definitivos.`,
+REGRAS OBRIGATÓRIAS:
+- Responda SOMENTE em português brasileiro correto e claro
+- Use APENAS as informações fornecidas nas anotações. Não invente dados
+- Se as anotações forem breves, faça uma análise concisa baseada no que foi informado
+- Não faça diagnósticos definitivos
+- Seja objetivo e profissional
+- Não repita frases ou palavras desnecessariamente
+
+ESTRUTURA DA RESPOSTA (use exatamente este formato):
+
+**Resumo da Sessão**
+[Resumo objetivo do que foi relatado nas anotações, em 2-3 frases claras]
+
+**Pontos de Atenção**
+[Liste os principais pontos clínicos identificados, baseados apenas nas anotações]
+
+**Sugestões para Próxima Sessão**
+[Sugestões práticas de intervenções terapêuticas baseadas no que foi relatado]
+
+**Evolução do Paciente**
+[Se houver histórico anterior, compare a evolução. Se não houver, escreva: "Primeira sessão registrada no sistema."]`,
           },
           {
             role: "user",
-            content: `Anotações da sessão:\n${input.content}${input.patientHistory ? `\n\nHistórico anterior do paciente:\n${input.patientHistory}` : ""}`,
+            content: `Anotações da sessão atual:
+${contentTrimmed}${input.patientHistory ? `
+
+Histórico de sessões anteriores do paciente:
+${input.patientHistory}` : ""}`,
           },
         ],
       });
 
       const rawContent = response.choices[0]?.message?.content;
-      const aiText = typeof rawContent === "string" ? rawContent : "";
+      const aiText = typeof rawContent === "string" ? rawContent : "Não foi possível gerar a análise. Tente novamente.";
       await updateClinicalNote(input.noteId, ctx.user.id, { aiSuggestions: aiText });
       return { suggestions: aiText };
     }),
