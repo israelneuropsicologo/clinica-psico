@@ -700,3 +700,11 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Corrigir: adicionada flag `isDirtyRef` para impedir auto-save na montagem inicial
 - [x] Testar no site publicado: botão Salvar funcionou sem erros (200 OK)
 - [x] Confirmado que o "Erro ao salvar" era causado pelo auto-save prematuro na inicialização
+
+## Fase 46: Correção do Salvamento após Preenchimento com IA
+
+- [x] Investigar causa — campos `emotionalState` e `predominantMood` eram `varchar(100)` mas IA gerava textos longos (>100 chars), causando erro SQL no MySQL
+- [x] Adicionar sanitização de campos enum (`sanitizeMood`, `sanitizeRisk`, `sanitizeSessionType`, `sanitizeModality`) para evitar valores inválidos do Zod
+- [x] Alterar schema: `emotionalState` e `predominantMood` de `varchar(100)` para `text`
+- [x] Gerar migração SQL (`drizzle-kit generate`) e aplicar no banco de dados via Node.js
+- [x] Testar fluxo completo: IA preenche → auto-save dispara → HTTP 200 OK — sem erros

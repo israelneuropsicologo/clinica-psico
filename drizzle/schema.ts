@@ -117,8 +117,8 @@ export const clinicalNotes = mysqlTable("clinical_notes", {
   modality2: mysqlEnum("modality2", ["in_person", "online"]).default("in_person"),
   sessionLocation: varchar("sessionLocation", { length: 255 }),
   // Sub-aba: Avaliação
-  emotionalState: varchar("emotionalState", { length: 100 }),
-  predominantMood: varchar("predominantMood", { length: 100 }),
+  emotionalState: text("emotionalState"),
+  predominantMood: text("predominantMood"),
   sufferingLevel: int("sufferingLevel"), // 0-10
   currentMedications: text("currentMedications"),
   generalPresentation: text("generalPresentation"),

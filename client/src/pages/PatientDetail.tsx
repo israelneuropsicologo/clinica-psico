@@ -855,6 +855,23 @@ function NoteField({
   );
 }
 
+// Enum sanitization helpers — defined at module level so they can be used in mutation callbacks
+const VALID_MOODS = ["very_bad", "bad", "neutral", "good", "very_good"] as const;
+const VALID_RISKS = ["absent", "low", "moderate", "high", "extreme"] as const;
+const VALID_SESSION_TYPES = ["individual", "couple", "group", "evaluation"] as const;
+const VALID_MODALITIES = ["in_person", "online"] as const;
+type MoodValue = typeof VALID_MOODS[number];
+type SessionTypeValue = typeof VALID_SESSION_TYPES[number];
+type ModalityValue = typeof VALID_MODALITIES[number];
+const sanitizeMood = (v: unknown): MoodValue =>
+  (VALID_MOODS as readonly string[]).includes(v as string) ? v as MoodValue : "neutral";
+const sanitizeRisk = (v: unknown): RiskLevel =>
+  (VALID_RISKS as readonly string[]).includes(v as string) ? v as RiskLevel : "absent";
+const sanitizeSessionType = (v: unknown): SessionTypeValue =>
+  (VALID_SESSION_TYPES as readonly string[]).includes(v as string) ? v as SessionTypeValue : "individual";
+const sanitizeModality = (v: unknown): ModalityValue =>
+  (VALID_MODALITIES as readonly string[]).includes(v as string) ? v as ModalityValue : "in_person";
+
 function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, unknown>; onBack: () => void; patientId: number }) {
   const [subTab, setSubTab] = useState("session");
   const [form, setForm] = useState({
@@ -932,7 +949,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
         ...(data.content !== undefined && { content: String(data.content) }),
         ...(data.emotionalState !== undefined && { emotionalState: String(data.emotionalState) }),
         ...(data.predominantMood !== undefined && { predominantMood: String(data.predominantMood) }),
-        ...(data.mood !== undefined && { mood: String(data.mood) }),
+        ...(data.mood !== undefined && { mood: sanitizeMood(data.mood) }),
         ...(data.sufferingLevel !== undefined && { sufferingLevel: String(data.sufferingLevel) }),
         ...(data.mainDemand !== undefined && { mainDemand: String(data.mainDemand) }),
         ...(data.topicsAddressed !== undefined && { topicsAddressed: String(data.topicsAddressed) }),
@@ -949,9 +966,9 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
         ...(data.observedResistances !== undefined && { observedResistances: String(data.observedResistances) }),
         ...(data.nextSessionGoals !== undefined && { nextSessionGoals: String(data.nextSessionGoals) }),
         ...(data.treatmentPlanAdjustments !== undefined && { treatmentPlanAdjustments: String(data.treatmentPlanAdjustments) }),
-        ...(data.selfHarmRisk !== undefined && { selfHarmRisk: String(data.selfHarmRisk) as RiskLevel }),
-        ...(data.thirdPartyRisk !== undefined && { thirdPartyRisk: String(data.thirdPartyRisk) as RiskLevel }),
-        ...(data.suicideRisk !== undefined && { suicideRisk: String(data.suicideRisk) as RiskLevel }),
+        ...(data.selfHarmRisk !== undefined && { selfHarmRisk: sanitizeRisk(data.selfHarmRisk) }),
+        ...(data.thirdPartyRisk !== undefined && { thirdPartyRisk: sanitizeRisk(data.thirdPartyRisk) }),
+        ...(data.suicideRisk !== undefined && { suicideRisk: sanitizeRisk(data.suicideRisk) }),
         ...(data.countertransference !== undefined && { countertransference: String(data.countertransference) }),
         ...(data.clinicalHypotheses !== undefined && { clinicalHypotheses: String(data.clinicalHypotheses) }),
         ...(data.supervisionNotes !== undefined && { supervisionNotes: String(data.supervisionNotes) }),
@@ -978,8 +995,8 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
     updateMutation.mutate({
       id: note.id as number,
       sessionNumber: form.sessionNumber ? parseInt(form.sessionNumber) : undefined,
-      sessionType2: form.sessionType2 as "individual" | "couple" | "group" | "evaluation",
-      modality2: form.modality2 as "in_person" | "online",
+      sessionType2: sanitizeSessionType(form.sessionType2),
+      modality2: sanitizeModality(form.modality2),
       sessionLocation: form.sessionLocation,
       emotionalState: form.emotionalState,
       predominantMood: form.predominantMood,
@@ -1002,10 +1019,10 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
       nextSessionDate: form.nextSessionDate,
       nextSessionGoals: form.nextSessionGoals,
       treatmentPlanAdjustments: form.treatmentPlanAdjustments,
-      mood: form.mood as "very_bad" | "bad" | "neutral" | "good" | "very_good" | undefined,
-      selfHarmRisk: form.selfHarmRisk as RiskLevel,
-      thirdPartyRisk: form.thirdPartyRisk as RiskLevel,
-      suicideRisk: form.suicideRisk as RiskLevel,
+      mood: sanitizeMood(form.mood),
+      selfHarmRisk: sanitizeRisk(form.selfHarmRisk),
+      thirdPartyRisk: sanitizeRisk(form.thirdPartyRisk),
+      suicideRisk: sanitizeRisk(form.suicideRisk),
       countertransference: form.countertransference,
       clinicalHypotheses: form.clinicalHypotheses,
       supervisionNotes: form.supervisionNotes,
