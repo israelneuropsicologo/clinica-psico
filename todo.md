@@ -737,3 +737,17 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Correção 4: `updateClinicalNote` filtra campos `undefined` antes de passar ao Drizzle (evita NOT NULL constraint errors)
 - [x] Testado: campos "Medicações em Uso" e "Apresentação Geral" agora preenchidos corretamente — HTTP 200 OK
 - [x] Campos existentes preservados — OK
+
+## Fase 50: Carta de Encaminhamento em PDF
+
+- [x] Backend: procedure tRPC `reports.generateReferralLetterPDF` que gera PDF de carta de encaminhamento
+- [x] PDF com papel timbrado: nome da clínica, CRP do profissional, cabeçalho azul
+- [x] Seção 1 — Identificação: dados do profissional solicitante, dados do paciente, destinatário
+- [x] Seção 2 — Contextualização: motivo do encaminhamento, tempo de acompanhamento, frequência
+- [x] Seção 3 — Aspectos Clínicos: sintomatologia, hipótese diagnóstica (CID-11/DSM-5), evolução recente
+- [x] Seção 4 — Observações Éticas: uso de medicação, fatores de risco, cláusula de sigilo automática
+- [x] Seção 5 — Fechamento: disponibilidade para contato, local, data, assinatura/carimbo
+- [x] Frontend: botão "Carta de Encaminhamento" na aba Perfil do paciente
+- [x] Modal de preenchimento com 5 seções, campos editáveis pré-preenchidos com dados do paciente e do profissional
+- [x] Download automático do PDF ao confirmar
+- [x] Testado: PDF gerado com sucesso (3837 bytes), toast de confirmação exibido

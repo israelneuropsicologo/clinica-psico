@@ -11,6 +11,7 @@ import {
 } from "../db";
 import { TRPCError } from "@trpc/server";
 import { generatePatientReport, generateFinancialReport } from "../_core/reportGenerator";
+import { generateReferralLetter, ReferralLetterData } from "../_core/referralLetterGenerator";
 import { settings as settingsTable } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 // timeline_analyses imported if needed in future
@@ -599,6 +600,90 @@ export const reportsRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Erro ao gerar PDF: ${error instanceof Error ? error.message : "Desconhecido"}`,
+        });
+      }
+    }),
+
+  // Gerar PDF de Carta de Encaminhamento
+  generateReferralLetterPDF: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        recipientTitle: z.string().min(1),
+        recipientName: z.string().optional(),
+        referralReason: z.string().min(1),
+        treatmentDuration: z.string().min(1),
+        sessionFrequency: z.string().min(1),
+        observedSymptoms: z.string().min(1),
+        diagnosticHypothesis: z.string().optional(),
+        recentEvolution: z.string().min(1),
+        currentMedications: z.string().optional(),
+        riskFactors: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const db = await getDb();
+
+        const patient = await getPatientById(input.patientId, ctx.user.id);
+
+        const settingsResult = await db.select().from(settingsTable).where(eq(settingsTable.userId, ctx.user.id)).limit(1);
+        const s = settingsResult[0] as any;
+
+        let patientAge: number | undefined;
+        if (patient.birthDate) {
+          const birth = new Date(patient.birthDate);
+          const today = new Date();
+          patientAge = today.getFullYear() - birth.getFullYear();
+          const m = today.getMonth() - birth.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) patientAge--;
+        }
+
+        const now = new Date();
+        const months = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+        const dateStr = `${now.getDate().toString().padStart(2, "0")} de ${months[now.getMonth()]} de ${now.getFullYear()}`;
+
+        const letterData: ReferralLetterData = {
+          professionalName: s?.ownerName || ctx.user.name || "Profissional",
+          professionalCRP: s?.ownerCRPNumber || "",
+          professionalSpecialty: s?.ownerSpecialty || "Psicólogo(a)",
+          professionalEmail: s?.ownerEmail || ctx.user.email || "",
+          professionalPhone: s?.ownerPhone || s?.ownerWhatsapp || "",
+          clinicName: s?.clinicName || "Consultório",
+          clinicAddress: s?.clinicAddress || undefined,
+          clinicCity: s?.clinicCity || undefined,
+          clinicState: s?.clinicState || undefined,
+          patientName: patient.name,
+          patientBirthDate: patient.birthDate
+            ? new Date(patient.birthDate + "T00:00:00").toLocaleDateString("pt-BR")
+            : undefined,
+          patientAge,
+          recipientTitle: input.recipientTitle,
+          recipientName: input.recipientName,
+          referralReason: input.referralReason,
+          treatmentDuration: input.treatmentDuration,
+          sessionFrequency: input.sessionFrequency,
+          observedSymptoms: input.observedSymptoms,
+          diagnosticHypothesis: input.diagnosticHypothesis,
+          recentEvolution: input.recentEvolution,
+          currentMedications: input.currentMedications,
+          riskFactors: input.riskFactors,
+          city: s?.clinicCity || "Rio de Janeiro",
+          date: dateStr,
+        };
+
+        const pdfBuffer = await generateReferralLetter(letterData);
+        return {
+          success: true,
+          filename: `carta_encaminhamento_${patient.name.replace(/\s+/g, "_").toLowerCase()}_${now.toISOString().split("T")[0]}.pdf`,
+          data: pdfBuffer.toString("base64"),
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Erro ao gerar carta de encaminhamento: ${error instanceof Error ? error.message : "Desconhecido"}`,
         });
       }
     }),

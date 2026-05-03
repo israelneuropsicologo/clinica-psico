@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Clock,
   Edit,
+  FileDown,
   FileText,
   Heart,
   Loader2,
@@ -82,6 +83,19 @@ export default function PatientDetail() {
   const [showRecordingUpload, setShowRecordingUpload] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [selectedNote, setSelectedNote] = useState<number | null>(null);
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [referralForm, setReferralForm] = useState({
+    recipientTitle: "Ao Médico Psiquiatra",
+    recipientName: "",
+    referralReason: "",
+    treatmentDuration: "",
+    sessionFrequency: "Semanal",
+    observedSymptoms: "",
+    diagnosticHypothesis: "",
+    recentEvolution: "",
+    currentMedications: "",
+    riskFactors: "",
+  });
 
   const { data: patient, isLoading, refetch } = trpc.patients.getById.useQuery({ id: patientId }, { enabled: patientId > 0 });
   const { data: patientSessions } = trpc.sessions.list.useQuery({ patientId }, { enabled: patientId > 0 });
@@ -113,6 +127,20 @@ export default function PatientDetail() {
   });
   const generateTimelineMutation = trpc.timeline.generate.useMutation({
     onSuccess: () => { toast.success("Análise gerada com sucesso!"); refetchTimeline(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const generateReferralMutation = trpc.reports.generateReferralLetterPDF.useMutation({
+    onSuccess: (result) => {
+      const blob = new Blob([Uint8Array.from(atob(result.data), c => c.charCodeAt(0))], { type: result.mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Carta de Encaminhamento gerada com sucesso!");
+      setShowReferralModal(false);
+    },
     onError: (e) => toast.error(e.message),
   });
 
@@ -244,7 +272,10 @@ export default function PatientDetail() {
                 <p className="text-sm text-muted-foreground">{patient.notes}</p>
               </SectionCard>
             )}
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button size="sm" variant="outline" onClick={() => setShowReferralModal(true)} className="gap-1.5">
+                <FileDown className="h-3.5 w-3.5" /> Carta de Encaminhamento
+              </Button>
               <Button size="sm" variant="outline" onClick={() => setShowEdit(true)} className="gap-1.5">
                 <Edit className="h-3.5 w-3.5" /> Editar Perfil
               </Button>
@@ -523,6 +554,121 @@ export default function PatientDetail() {
       <EditPatientDialog patient={patient} open={showEdit} onClose={() => setShowEdit(false)} onSuccess={() => { setShowEdit(false); refetch(); }} />
       <UploadDocumentDialog patientId={patientId} open={showUpload} onClose={() => setShowUpload(false)} onSuccess={() => { setShowUpload(false); refetchDocs(); }} />
       <UploadRecordingDialog patientId={patientId} open={showRecordingUpload} onClose={() => setShowRecordingUpload(false)} onSuccess={() => { setShowRecordingUpload(false); refetchRecordings(); }} />
+
+      {/* Modal Carta de Encaminhamento */}
+      <Dialog open={showReferralModal} onOpenChange={setShowReferralModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileDown className="h-5 w-5 text-primary" />
+              Carta de Encaminhamento
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Preencha os campos abaixo para gerar a carta de encaminhamento em PDF.</p>
+
+            {/* Destinatário */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-primary border-b pb-1">Destinatário</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Título do Destinatário *</Label>
+                  <Select value={referralForm.recipientTitle} onValueChange={(v) => setReferralForm(f => ({ ...f, recipientTitle: v }))}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Ao Médico Psiquiatra">Ao Médico Psiquiatra</SelectItem>
+                      <SelectItem value="Ao Médico Neurologista">Ao Médico Neurologista</SelectItem>
+                      <SelectItem value="Ao Médico Clínico Geral">À Médico Clínico Geral</SelectItem>
+                      <SelectItem value="À Equipe Multidisciplinar">À Equipe Multidisciplinar</SelectItem>
+                      <SelectItem value="Ao Psicopedagogo">Ao Psicopedagogo</SelectItem>
+                      <SelectItem value="Ao Fonoaudiólogo">Ao Fonoaudiólogo</SelectItem>
+                      <SelectItem value="Ao Terapeuta Ocupacional">Ao Terapeuta Ocupacional</SelectItem>
+                      <SelectItem value="Ao Profissional de Saúde">Ao Profissional de Saúde</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Nome do Destinatário (opcional)</Label>
+                  <Input className="h-8 text-xs" placeholder="Dr(a). Nome" value={referralForm.recipientName} onChange={(e) => setReferralForm(f => ({ ...f, recipientName: e.target.value }))} />
+                </div>
+              </div>
+            </div>
+
+            {/* Contextualização */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-primary border-b pb-1">Contextualização</h3>
+              <div className="space-y-1">
+                <Label className="text-xs">Motivo do Encaminhamento *</Label>
+                <Textarea className="text-xs min-h-[70px]" placeholder="Descreva o motivo pelo qual o paciente está sendo encaminhado..." value={referralForm.referralReason} onChange={(e) => setReferralForm(f => ({ ...f, referralReason: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Tempo de Acompanhamento *</Label>
+                  <Input className="h-8 text-xs" placeholder="Ex: 8 meses, 1 ano e 2 meses" value={referralForm.treatmentDuration} onChange={(e) => setReferralForm(f => ({ ...f, treatmentDuration: e.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Frequência das Sessões *</Label>
+                  <Select value={referralForm.sessionFrequency} onValueChange={(v) => setReferralForm(f => ({ ...f, sessionFrequency: v }))}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Semanal">Semanal</SelectItem>
+                      <SelectItem value="Quinzenal">Quinzenal</SelectItem>
+                      <SelectItem value="Mensal">Mensal</SelectItem>
+                      <SelectItem value="Duas vezes por semana">Duas vezes por semana</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Aspectos Clínicos */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-primary border-b pb-1">Aspectos Clínicos</h3>
+              <div className="space-y-1">
+                <Label className="text-xs">Sintomatologia Observada *</Label>
+                <Textarea className="text-xs min-h-[80px]" placeholder="Descreva os sintomas e apresentações clínicas observadas durante o acompanhamento..." value={referralForm.observedSymptoms} onChange={(e) => setReferralForm(f => ({ ...f, observedSymptoms: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Hipótese Diagnóstica (opcional)</Label>
+                <Input className="h-8 text-xs" placeholder="Ex: F41.1 (CID-11) – Transtorno de Ansiedade Generalizada" value={referralForm.diagnosticHypothesis} onChange={(e) => setReferralForm(f => ({ ...f, diagnosticHypothesis: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Evolução Recente *</Label>
+                <Textarea className="text-xs min-h-[70px]" placeholder="Descreva a evolução clínica recente do paciente..." value={referralForm.recentEvolution} onChange={(e) => setReferralForm(f => ({ ...f, recentEvolution: e.target.value }))} />
+              </div>
+            </div>
+
+            {/* Observações Éticas */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-primary border-b pb-1">Observações Éticas</h3>
+              <div className="space-y-1">
+                <Label className="text-xs">Uso de Medicação (opcional)</Label>
+                <Input className="h-8 text-xs" placeholder="Ex: Fluoxetina 20mg, Clonazepam 0,5mg" value={referralForm.currentMedications} onChange={(e) => setReferralForm(f => ({ ...f, currentMedications: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Fatores de Risco (opcional)</Label>
+                <Input className="h-8 text-xs" placeholder="Ex: Ideação suicida passiva sem plano" value={referralForm.riskFactors} onChange={(e) => setReferralForm(f => ({ ...f, riskFactors: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setShowReferralModal(false)}>Cancelar</Button>
+              <Button
+                size="sm"
+                className="gap-1.5"
+                disabled={generateReferralMutation.isPending || !referralForm.referralReason || !referralForm.observedSymptoms || !referralForm.recentEvolution || !referralForm.treatmentDuration}
+                onClick={() => generateReferralMutation.mutate({ patientId, ...referralForm })}
+              >
+                {generateReferralMutation.isPending ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Gerando PDF...</> : <><FileDown className="h-3.5 w-3.5" /> Gerar e Baixar PDF</>}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
