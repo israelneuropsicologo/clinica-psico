@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../\_core/trpc";
+import { protectedProcedure, router } from "../_core/trpc";
 import {
   getSessions,
   getSessionById,
@@ -7,9 +7,13 @@ import {
   getPatientById,
   getTransactions,
   getDocumentsByPatient,
+  getDb,
 } from "../db";
 import { TRPCError } from "@trpc/server";
 import { generatePatientReport, generateFinancialReport } from "../_core/reportGenerator";
+import { settings as settingsTable } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
+// timeline_analyses imported if needed in future
 
 /**
  * Reports Router - Exportação de relatórios em PDF e Excel
@@ -344,65 +348,210 @@ export const reportsRouter = router({
         const patient = await getPatientById(session.patientId, ctx.user.id);
         if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
-        const clinicalNotes = await getClinicalNotesBySession(input.sessionId, ctx.user.id);
+        const notes = await getClinicalNotesBySession(input.sessionId, ctx.user.id);
+        const note = notes[0] || null;
 
-        // Criar PDF com dados da sessão
-        const { PDFDocument, rgb } = await import("pdf-lib");
+        // Buscar configurações do profissional
+        const db = await getDb();
+        let profSettings: { ownerName?: string | null; ownerCRPNumber?: string | null; clinicName?: string | null } = {};
+        if (db) {
+          const [s] = await db.select().from(settingsTable).where(eq(settingsTable.userId, ctx.user.id)).limit(1);
+          if (s) profSettings = s;
+        }
+
+        const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib");
         const pdfDoc = await PDFDocument.create();
-        const page = pdfDoc.addPage([595, 842]); // A4
-        const { height } = page.getSize();
-        let y = height - 50;
+        const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-        // Título
-        page.drawText(`Prontuário - ${patient.name}`, {
-          x: 50,
-          y,
-          size: 18,
-          color: rgb(0, 0, 0),
-        });
-        y -= 30;
+        const PAGE_W = 595;
+        const PAGE_H = 842;
+        const MARGIN = 50;
+        const CONTENT_W = PAGE_W - MARGIN * 2;
+        const LINE_H = 16;
+        const SECTION_GAP = 20;
 
-        // Informações da sessão
-        page.drawText(`Data: ${new Date(session.scheduledAt).toLocaleDateString("pt-BR")}`, {
-          x: 50,
-          y,
-          size: 12,
-          color: rgb(0.5, 0.5, 0.5),
-        });
-        y -= 20;
+        let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+        let y = PAGE_H - MARGIN;
 
-        page.drawText(`Status: ${session.status}`, {
-          x: 50,
-          y,
-          size: 12,
-          color: rgb(0.5, 0.5, 0.5),
-        });
-        y -= 30;
-
-        // Anotações clínicas
-        if (clinicalNotes.length > 0) {
-          const note = clinicalNotes[0];
-          page.drawText("Anotações Clínicas:", {
-            x: 50,
-            y,
-            size: 14,
-            color: rgb(0, 0, 0),
-          });
-          y -= 20;
-
-          // Remover tags HTML do conteúdo
-          const cleanContent = note.content.replace(/<[^>]*>/g, "");
-          const lines = cleanContent.split("\n").slice(0, 10); // Primeiras 10 linhas
-          for (const line of lines) {
-            if (y < 50) break;
-            page.drawText(line.substring(0, 80), {
-              x: 50,
-              y,
-              size: 10,
-              color: rgb(0, 0, 0),
-            });
-            y -= 15;
+        // Helper: ensure space, add new page if needed
+        const ensureSpace = (needed: number) => {
+          if (y - needed < 60) {
+            page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+            y = PAGE_H - MARGIN;
+            // Repeat small header on new pages
+            page.drawText(`Prontuário — ${patient.name} (continuação)`, { x: MARGIN, y, size: 9, font: fontRegular, color: rgb(0.5, 0.5, 0.5) });
+            y -= 20;
           }
+        };
+
+        // Helper: draw wrapped text
+        const drawWrapped = (text: string, x: number, maxWidth: number, size: number, font: typeof fontRegular, color: ReturnType<typeof rgb>) => {
+          if (!text) return;
+          const words = text.split(" ");
+          let line = "";
+          for (const word of words) {
+            const test = line ? `${line} ${word}` : word;
+            const w = font.widthOfTextAtSize(test, size);
+            if (w > maxWidth && line) {
+              ensureSpace(LINE_H);
+              page.drawText(line, { x, y, size, font, color });
+              y -= LINE_H;
+              line = word;
+            } else {
+              line = test;
+            }
+          }
+          if (line) {
+            ensureSpace(LINE_H);
+            page.drawText(line, { x, y, size, font, color });
+            y -= LINE_H;
+          }
+        };
+
+        // Helper: draw section title
+        const drawSection = (title: string) => {
+          ensureSpace(SECTION_GAP + LINE_H + 4);
+          y -= SECTION_GAP / 2;
+          // Background bar
+          page.drawRectangle({ x: MARGIN, y: y - 4, width: CONTENT_W, height: LINE_H + 6, color: rgb(0.12, 0.47, 0.71) });
+          page.drawText(title, { x: MARGIN + 6, y: y, size: 11, font: fontBold, color: rgb(1, 1, 1) });
+          y -= LINE_H + 10;
+        };
+
+        // Helper: draw field label + value
+        const drawField = (label: string, value: string | null | undefined, indent = MARGIN) => {
+          if (!value && value !== "0") return;
+          ensureSpace(LINE_H * 2);
+          page.drawText(`${label}:`, { x: indent, y, size: 9, font: fontBold, color: rgb(0.2, 0.2, 0.2) });
+          y -= LINE_H - 2;
+          drawWrapped(value, indent + 10, CONTENT_W - 10, 9, fontRegular, rgb(0, 0, 0));
+          y -= 4;
+        };
+
+        // Helper: translate enums
+        const riskLabel: Record<string, string> = { absent: "Ausente", low: "Baixo", moderate: "Moderado", high: "Alto", extreme: "Extremo" };
+        const sessionTypeLabel: Record<string, string> = { individual: "Individual", couple: "Casal", group: "Grupo", evaluation: "Avaliação" };
+        const modalityLabel: Record<string, string> = { in_person: "Presencial", online: "Online" };
+        const statusLabel: Record<string, string> = { scheduled: "Agendada", confirmed: "Confirmada", completed: "Realizada", cancelled: "Cancelada", no_show: "Falta" };
+
+        // ─── CABEÇALHO ──────────────────────────────────────────────────────
+        // Barra superior azul escuro
+        page.drawRectangle({ x: 0, y: PAGE_H - 80, width: PAGE_W, height: 80, color: rgb(0.05, 0.25, 0.45) });
+        page.drawText("PRONTUÁRIO PSICOLÓGICO", { x: MARGIN, y: PAGE_H - 30, size: 16, font: fontBold, color: rgb(1, 1, 1) });
+        page.drawText(`Paciente: ${patient.name}`, { x: MARGIN, y: PAGE_H - 50, size: 11, font: fontRegular, color: rgb(0.8, 0.9, 1) });
+        const sessionDate = new Date(session.scheduledAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+        page.drawText(`Data: ${sessionDate}`, { x: MARGIN, y: PAGE_H - 65, size: 10, font: fontRegular, color: rgb(0.7, 0.85, 1) });
+
+        // Profissional (direita)
+        const profName = profSettings.ownerName || ctx.user.name || "Profissional";
+        const crp = profSettings.ownerCRPNumber ? `CRP: ${profSettings.ownerCRPNumber}` : "";
+        const clinicName = profSettings.clinicName || "";
+        const profX = PAGE_W - MARGIN - 180;
+        page.drawText(profName, { x: profX, y: PAGE_H - 30, size: 10, font: fontBold, color: rgb(1, 1, 1) });
+        if (crp) page.drawText(crp, { x: profX, y: PAGE_H - 45, size: 9, font: fontRegular, color: rgb(0.8, 0.9, 1) });
+        if (clinicName) page.drawText(clinicName, { x: profX, y: PAGE_H - 58, size: 9, font: fontRegular, color: rgb(0.7, 0.85, 1) });
+
+        y = PAGE_H - 95;
+
+        // ─── SEÇÃO 1: DADOS DA SESSÃO ────────────────────────────────────────
+        drawSection("1. DADOS DA SESSÃO");
+        drawField("Nº da Sessão", note?.sessionNumber?.toString());
+        drawField("Tipo", sessionTypeLabel[note?.sessionType2 || session.sessionType] || note?.sessionType2 || session.sessionType);
+        drawField("Modalidade", modalityLabel[note?.modality2 || session.modality] || note?.modality2 || session.modality);
+        drawField("Local", note?.sessionLocation);
+        drawField("Data", sessionDate);
+        drawField("Status", statusLabel[session.status] || session.status);
+        drawField("Duração", `${session.durationMinutes} minutos`);
+        if (session.sessionValue) drawField("Valor", `R$ ${Number(session.sessionValue).toFixed(2)}`);
+        drawField("Pagamento", session.isPaid === "paid" ? "Pago" : session.isPaid === "waived" ? "Isento" : "Pendente");
+
+        // ─── SEÇÃO 2: AVALIAÇÃO CLÍNICA ──────────────────────────────────────
+        if (note && (note.emotionalState || note.predominantMood || note.sufferingLevel !== null || note.mainDemand || note.relevantNarrative || note.clinicalAssessment || note.technicalAnalysis || note.content)) {
+          drawSection("2. AVALIAÇÃO CLÍNICA");
+          drawField("Estado Emocional", note.emotionalState);
+          drawField("Humor Predominante", note.predominantMood);
+          if (note.sufferingLevel !== null && note.sufferingLevel !== undefined) {
+            drawField("Nível de Sofrimento", `${note.sufferingLevel}/10`);
+          }
+          drawField("Medicações em Uso", note.currentMedications);
+          drawField("Apresentação Geral", note.generalPresentation);
+          drawField("Demanda Principal", note.mainDemand);
+          drawField("Temas Abordados", note.topicsAddressed);
+          drawField("Narrativa Relevante", note.relevantNarrative);
+          drawField("Avaliação Clínica", note.clinicalAssessment);
+          drawField("Análise Técnica", note.technicalAnalysis);
+          // Legacy content
+          if (note.content && note.content.trim()) {
+            const cleanContent = note.content.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
+            if (cleanContent) drawField("Anotações Clínicas", cleanContent);
+          }
+        }
+
+        // ─── SEÇÃO 3: INTERVENÇÕES ───────────────────────────────────────────
+        if (note && (note.techniquesUsed || note.plannedInterventions || note.homework || note.therapeuticPlan || note.interventions)) {
+          drawSection("3. INTERVENÇÕES");
+          drawField("Técnicas Utilizadas", note.techniquesUsed);
+          drawField("Intervenções Planejadas", note.plannedInterventions);
+          drawField("Tarefa de Casa", note.homework);
+          drawField("Plano Terapêutico", note.therapeuticPlan);
+          if (note.interventions) drawField("Intervenções (legado)", note.interventions);
+        }
+
+        // ─── SEÇÃO 4: EVOLUÇÃO ───────────────────────────────────────────────
+        if (note && (note.treatmentResponse || note.goalsProgress || note.observedInsights || note.observedResistances)) {
+          drawSection("4. EVOLUÇÃO");
+          drawField("Resposta ao Tratamento", note.treatmentResponse);
+          drawField("Progresso dos Objetivos", note.goalsProgress);
+          drawField("Insights Observados", note.observedInsights);
+          drawField("Resistências Observadas", note.observedResistances);
+        }
+
+        // ─── SEÇÃO 5: PRÓXIMA SESSÃO ─────────────────────────────────────────
+        if (note && (note.nextSessionDate || note.nextSessionGoals || note.treatmentPlanAdjustments)) {
+          drawSection("5. PRÓXIMA SESSÃO");
+          drawField("Data Prevista", note.nextSessionDate);
+          drawField("Objetivos", note.nextSessionGoals);
+          drawField("Ajustes no Plano", note.treatmentPlanAdjustments);
+        }
+
+        // ─── SEÇÃO 6: AVALIAÇÃO DE RISCOS ────────────────────────────────────
+        if (note) {
+          drawSection("6. AVALIAÇÃO DE RISCOS");
+          drawField("Risco de Autolesão", riskLabel[note.selfHarmRisk || "absent"]);
+          drawField("Risco a Terceiros", riskLabel[note.thirdPartyRisk || "absent"]);
+          drawField("Risco de Suicídio", riskLabel[note.suicideRisk || "absent"]);
+        }
+
+        // ─── SEÇÃO 7: ANOTAÇÕES PRIVADAS ─────────────────────────────────────
+        if (note && (note.countertransference || note.clinicalHypotheses || note.supervisionNotes || note.referrals || note.privateObservations)) {
+          drawSection("7. ANOTAÇÕES PRIVADAS (Uso Exclusivo do Profissional)");
+          drawField("Contratransferência", note.countertransference);
+          drawField("Hipóteses Clínicas", note.clinicalHypotheses);
+          drawField("Notas para Supervisão", note.supervisionNotes);
+          drawField("Encaminhamentos", note.referrals);
+          drawField("Observações Adicionais", note.privateObservations);
+        }
+
+        // ─── SEÇÃO 8: ANÁLISE IA ─────────────────────────────────────────────
+        if (note?.aiTechnicalFeedback) {
+          drawSection("8. ANÁLISE DE I.A. (Ferramenta de Apoio Técnico)");
+          ensureSpace(LINE_H * 2);
+          page.drawText("AVISO: Esta análise é gerada por Inteligência Artificial e serve como ferramenta de apoio.", { x: MARGIN, y, size: 8, font: fontRegular, color: rgb(0.6, 0.4, 0) });
+          y -= LINE_H;
+          page.drawText("Não substitui o julgamento clínico do profissional.", { x: MARGIN, y, size: 8, font: fontRegular, color: rgb(0.6, 0.4, 0) });
+          y -= LINE_H + 4;
+          const cleanAI = note.aiTechnicalFeedback.replace(/[#*_`]/g, "").replace(/\n{3,}/g, "\n\n");
+          drawWrapped(cleanAI, MARGIN, CONTENT_W, 9, fontRegular, rgb(0, 0, 0));
+        }
+
+        // ─── RODAPÉ ──────────────────────────────────────────────────────────
+        const totalPages = pdfDoc.getPageCount();
+        for (let i = 0; i < totalPages; i++) {
+          const pg = pdfDoc.getPage(i);
+          pg.drawLine({ start: { x: MARGIN, y: 45 }, end: { x: PAGE_W - MARGIN, y: 45 }, thickness: 0.5, color: rgb(0.7, 0.7, 0.7) });
+          pg.drawText("DOCUMENTO CONFIDENCIAL — Uso exclusivo do profissional de saúde. Protegido pelo sigilo profissional e LGPD.", { x: MARGIN, y: 32, size: 7, font: fontRegular, color: rgb(0.5, 0.5, 0.5) });
+          pg.drawText(`Gerado em: ${new Date().toLocaleString("pt-BR")} | Página ${i + 1} de ${totalPages}`, { x: MARGIN, y: 20, size: 7, font: fontRegular, color: rgb(0.5, 0.5, 0.5) });
         }
 
         const pdfBuffer = await pdfDoc.save();

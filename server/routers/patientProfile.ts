@@ -12,7 +12,7 @@ import {
 import { getDb } from "../db";
 import { protectedProcedure, router } from "../_core/trpc";
 import { invokeLLM } from "../_core/llm";
-import { storagePut } from "../storage";
+import { storagePut, storageGetSignedUrl } from "../storage";
 import { transcribeAudio } from "../_core/voiceTranscription";
 
 // ─── Anamnese Router ────────────────────────────────────────────────────────
@@ -168,8 +168,12 @@ export const recordingsRouter = router({
         .where(eq(sessionRecordings.id, input.recordingId));
 
       try {
+        // Obter URL pública assinada para o Whisper (fileUrl é relativo /manus-storage/...)
+        const fileKey = recording.fileKey ?? recording.fileUrl.replace(/^\/manus-storage\//, "");
+        const signedUrl = await storageGetSignedUrl(fileKey);
+
         const result = await transcribeAudio({
-          audioUrl: recording.fileUrl,
+          audioUrl: signedUrl,
           language: "pt",
           prompt: "Transcrição de sessão de psicoterapia",
         });
@@ -203,6 +207,95 @@ export const recordingsRouter = router({
           )
         );
       return { success: true };
+    }),
+
+  generateSupervision: protectedProcedure
+    .input(z.object({ recordingId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const [recording] = await db
+        .select()
+        .from(sessionRecordings)
+        .where(
+          and(
+            eq(sessionRecordings.id, input.recordingId),
+            eq(sessionRecordings.userId, ctx.user.id)
+          )
+        )
+        .limit(1);
+
+      if (!recording) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!recording.transcription) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "É necessário transcrever o áudio antes de gerar a supervisão.",
+        });
+      }
+
+      // Buscar dados do paciente para contexto
+      const [patient] = await db
+        .select()
+        .from(patients)
+        .where(eq(patients.id, recording.patientId))
+        .limit(1);
+
+      const prompt = `Você é um psicólogo supervisor clínico sênior com vasta experiência em supervisão de casos. 
+Analise a transcrição da sessão abaixo e forneça uma supervisão clínica detalhada e estruturada.
+
+PACIENTE: ${patient?.name ?? "Não identificado"}
+QUEIXA PRINCIPAL: ${patient?.mainComplaint ?? "Não informada"}
+
+TRANSCRIÇÃO DA SESSÃO:
+${recording.transcription}
+
+Forneça uma supervisão clínica completa com:
+
+## 1. ANÁLISE DA SESSÃO
+Descreva o que observou na dinâmica da sessão, o estado emocional do paciente, os temas centrais abordados e a qualidade do vínculo terapêutico.
+
+## 2. PONTOS POSITIVOS DO TERAPEUTA
+Destaque o que o terapeuta fez bem nesta sessão — intervenções eficazes, empatia demonstrada, técnicas bem aplicadas.
+
+## 3. PONTOS DE ATENÇÃO E OPORTUNIDADES PERDIDAS
+Identifique momentos em que o terapeuta poderia ter intervindo de forma diferente, perguntas que poderiam ter sido feitas, temas que não foram explorados adequadamente.
+
+## 4. HIPÓTESES CLÍNICAS
+Apresente hipóteses diagnósticas e dinâmicas baseadas no conteúdo da sessão.
+
+## 5. PLANO DE AÇÃO — PRÓXIMA SESSÃO
+Oriente o terapeuta com um passo a passo detalhado do que fazer na próxima sessão:
+- Objetivos prioritários
+- Abordagem recomendada
+- Técnicas específicas a utilizar
+- Perguntas-chave para explorar
+- O que evitar
+
+## 6. RECOMENDAÇÕES DE DESENVOLVIMENTO PROFISSIONAL
+Sugestões de leitura, técnicas para aprimorar, aspectos da formação a desenvolver.
+
+Seja específico, didático e construtivo. Use linguagem técnica mas acessível.`;
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: "Você é um psicólogo supervisor clínico sênior. Forneça supervisão clínica detalhada, construtiva e baseada em evidências. Responda em português do Brasil.",
+          },
+          { role: "user", content: prompt },
+        ],
+      });
+
+      const supervision = response.choices[0]?.message?.content ?? "";
+
+      // Salvar supervisão na gravação
+      await db
+        .update(sessionRecordings)
+        .set({ supervision } as Record<string, unknown>)
+        .where(eq(sessionRecordings.id, input.recordingId));
+
+      return { supervision };
     }),
 });
 

@@ -591,3 +591,24 @@ await trpc.userSync.linkUsers.mutate({
 - [ ] Corrigir crash "removeChild" / "Ocorreu um erro inesperado" ao abrir Sessões e Pacientes no site publicado
 - [ ] Corrigir erro de escrita "Pronúncia" → "Prontuário" onde aparecer no código
 - [ ] Corrigir botão Análise IA não gerando resposta no Prontuário
+
+## Fase 36: PDF do Prontuário Completo
+
+- [ ] Reescrever gerador de PDF do prontuário para incluir todas as 8 seções com títulos e campos completos
+- [ ] Cabeçalho com nome do paciente, data, nº sessão e dados do profissional
+- [ ] Seção 1 - Dados da Sessão: Nº, tipo, modalidade, local, data, status
+- [ ] Seção 2 - Avaliação Clínica: estado emocional, humor, sofrimento, demanda, narrativa, avaliação, análise técnica
+- [ ] Seção 3 - Intervenções: técnicas, intervenções planejadas, plano terapêutico, tarefas
+- [ ] Seção 4 - Evolução: resposta ao tratamento, progresso, insights, resistências
+- [ ] Seção 5 - Próxima Sessão: data, objetivos, ajustes
+- [ ] Seção 6 - Avaliação de Riscos: autolesão, terceiros, suicídio com labels legíveis
+- [ ] Seção 7 - Anotações Privadas: contratransferência, hipóteses, supervisão, encaminhamentos
+- [ ] Seção 8 - Análise IA: feedback técnico (se disponível)
+- [ ] Rodapé com aviso de confidencialidade
+
+## Fase 37: Correções na Aba Gravações + Supervisão IA
+
+- [x] Corrigir URL do áudio: usar URL via `/manus-storage/` em vez de URL direta do S3 (Access Denied)
+- [x] Exibir texto transcrito após clicar em Transcrever (atualmente não aparece)
+- [x] Adicionar botão "Supervisão IA" que gera prognóstico clínico com passo a passo
+- [x] Implementar procedure `recordings.generateSupervision` no backend

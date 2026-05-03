@@ -394,6 +394,7 @@ export const sessionRecordings = mysqlTable("session_recordings", {
   durationSeconds: int("durationSeconds"),
   transcription: text("transcription"),
   transcriptionStatus: mysqlEnum("transcriptionStatus", ["pending", "processing", "done", "error"]).default("pending").notNull(),
+  supervision: text("supervision"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

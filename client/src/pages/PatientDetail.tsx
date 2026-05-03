@@ -107,6 +107,10 @@ export default function PatientDetail() {
     onSuccess: () => { toast.success("Transcrição concluída!"); refetchRecordings(); },
     onError: (e) => toast.error(e.message),
   });
+  const supervisionMutation = trpc.recordings.generateSupervision.useMutation({
+    onSuccess: () => { toast.success("Supervisão IA gerada!"); refetchRecordings(); },
+    onError: (e) => toast.error(e.message),
+  });
   const generateTimelineMutation = trpc.timeline.generate.useMutation({
     onSuccess: () => { toast.success("Análise gerada com sucesso!"); refetchTimeline(); },
     onError: (e) => toast.error(e.message),
@@ -395,7 +399,8 @@ export default function PatientDetail() {
               <div className="space-y-3">
                 {recordings.map((rec) => (
                   <Card key={rec.id}>
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 space-y-3">
+                      {/* Header da gravação */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -404,20 +409,20 @@ export default function PatientDetail() {
                           <div className="min-w-0">
                             <p className="text-sm font-medium truncate">{rec.fileName}</p>
                             <p className="text-xs text-muted-foreground">
-                              {new Date(rec.createdAt).toLocaleDateString("pt-BR")} •{" "}
-                              {rec.transcriptionStatus === "done" ? <span className="text-green-600">Transcrito</span>
+                              {new Date(rec.createdAt).toLocaleDateString("pt-BR")} {"•"}{" "}
+                              {rec.transcriptionStatus === "done" ? <span className="text-green-600 font-medium">Transcrito</span>
                                 : rec.transcriptionStatus === "processing" ? <span className="text-yellow-600">Transcrevendo...</span>
-                                : rec.transcriptionStatus === "error" ? <span className="text-red-600">Erro</span>
-                                : <span>Aguardando</span>}
+                                : rec.transcriptionStatus === "error" ? <span className="text-red-600">Erro na transcrição</span>
+                                : <span className="text-muted-foreground">Aguardando transcrição</span>}
                             </p>
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0">
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={rec.fileUrl} target="_blank" rel="noopener noreferrer"><Play className="h-3.5 w-3.5" /></a>
-                          </Button>
                           {rec.transcriptionStatus !== "done" && rec.transcriptionStatus !== "processing" && (
-                            <Button variant="outline" size="sm" onClick={() => transcribeMutation.mutate({ recordingId: rec.id })} disabled={transcribeMutation.isPending} className="gap-1.5">
+                            <Button variant="outline" size="sm"
+                              onClick={() => transcribeMutation.mutate({ recordingId: rec.id })}
+                              disabled={transcribeMutation.isPending}
+                              className="gap-1.5">
                               {transcribeMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                               Transcrever
                             </Button>
@@ -428,10 +433,48 @@ export default function PatientDetail() {
                           </Button>
                         </div>
                       </div>
+
+                      {/* Player de áudio nativo */}
+                      <audio controls className="w-full h-10" preload="none">
+                        <source src={rec.fileUrl} type={rec.mimeType ?? "audio/mpeg"} />
+                        Seu navegador não suporta o player de áudio.
+                      </audio>
+
+                      {/* Transcrição completa */}
                       {rec.transcription && (
-                        <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                          <p className="text-xs font-medium text-muted-foreground mb-1">Transcrição</p>
-                          <p className="text-xs leading-relaxed">{rec.transcription}</p>
+                        <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                              <FileText className="h-3.5 w-3.5 text-primary" />
+                              Transcrição Completa
+                            </p>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1.5 text-xs h-7 border-primary/30 text-primary hover:bg-primary/10"
+                              onClick={() => supervisionMutation.mutate({ recordingId: rec.id })}
+                              disabled={supervisionMutation.isPending}
+                            >
+                              {supervisionMutation.isPending
+                                ? <><Loader2 className="h-3 w-3 animate-spin" /> Gerando...</>
+                                : <><Brain className="h-3 w-3" /> Supervisão IA</>}
+                            </Button>
+                          </div>
+                          <p className="text-xs leading-relaxed text-foreground/90 whitespace-pre-wrap">{rec.transcription}</p>
+                        </div>
+                      )}
+
+                      {/* Supervisão IA */}
+                      {(rec as Record<string, unknown>).supervision && (
+                        <div className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-lg space-y-2">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                              <Brain className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <p className="text-xs font-semibold text-primary">Supervisão Clínica por IA</p>
+                            <Badge variant="outline" className="text-[10px] h-4 border-primary/30 text-primary">Ferramenta de apoio</Badge>
+                          </div>
+                          <MarkdownRenderer content={String((rec as Record<string, unknown>).supervision)} className="text-xs" />
                         </div>
                       )}
                     </CardContent>
