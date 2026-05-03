@@ -924,3 +924,21 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Testar delecao individual
 - [x] Testar delecao em lote
 - [x] Verificar validacoes de permissao
+
+## Fase 58: Correcoes de Bugs Criticos na Pagina Financeiro
+
+### Bug 1: removeChild Error ao clicar "Todos"
+- [x] Investigar erro "NotFoundError: Falha ao executar 'removeChild' em 'Node'"
+- [x] Corrigir renderizacao da lista de transacoes
+- [x] Testar filtro "Todos" para garantir funcionamento
+
+### Bug 2: Nomenclatura - Mostrar Nome do Paciente
+- [x] Alterar exibicao de "Paciente #420020" para nome real do paciente
+- [x] Fazer JOIN com tabela patients para obter nome
+- [x] Atualizar query de sessoes para incluir dados do paciente
+
+### Bug 3: Pagamento Pendente Nao Atualiza
+- [x] Investigar por que marcar como "Pago" nao remove sessao da lista
+- [x] Corrigir query de listagem de sessoes com pagamento pendente
+- [x] Adicionar refetch automatico apos marcar como pago
+- [x] Testar atualizacao em tempo real

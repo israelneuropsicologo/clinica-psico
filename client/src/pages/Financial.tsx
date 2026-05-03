@@ -281,7 +281,7 @@ export default function Financial() {
               {selectedTransactions.size === 0 && (
                 <CardTitle className="text-base font-semibold">Transações</CardTitle>
               )}
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <Select key="type-filter" value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-[150px] h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
@@ -408,7 +408,7 @@ export default function Financial() {
 }
 
 function OverdueSessions() {
-  const { data: sessions } = trpc.sessions.list.useQuery({ status: "completed" });
+  const { data: sessions } = trpc.sessions.list.useQuery({ status: "completed", isPaid: "pending" });
   const updateSession = trpc.sessions.update.useMutation({
     onSuccess: () => toast.success("Pagamento registrado!"),
     onError: (e) => toast.error(e.message),
@@ -432,7 +432,7 @@ function OverdueSessions() {
               className="flex items-center justify-between p-3 rounded-lg bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800"
             >
               <div>
-                <p className="text-sm font-medium">Paciente #{session.patientId}</p>
+                <p className="text-sm font-medium">{session.patient?.name || `Paciente #${session.patientId}`}</p>
                 <p className="text-xs text-muted-foreground">
                   {new Date(session.scheduledAt).toLocaleDateString("pt-BR")} •{" "}
                   {session.sessionValue
