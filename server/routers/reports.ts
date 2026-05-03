@@ -576,6 +576,7 @@ export const reportsRouter = router({
         status: z.enum(["active", "inactive", "all"]).optional(),
         leadSource: z.enum(["manual", "chatbot", "website", "all"]).optional(),
         leadStatus: z.enum(["lead", "prospect", "customer", "all"]).optional(),
+        patientIds: z.array(z.number()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -585,6 +586,7 @@ export const reportsRouter = router({
           status: input.status || "all",
           leadSource: input.leadSource || "all",
           leadStatus: input.leadStatus || "all",
+          patientIds: input.patientIds,
         });
 
         return {

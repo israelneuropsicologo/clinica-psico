@@ -82,6 +82,7 @@ export default function Patients() {
   const handleExportPDF = async () => {
     const result = await generatePDFMutation.mutateAsync({
       status: statusFilter === "all" ? undefined : (statusFilter as "active" | "inactive"),
+      patientIds: selectedPatients.size > 0 ? Array.from(selectedPatients) : undefined,
     });
     return result;
   };
@@ -99,7 +100,7 @@ export default function Patients() {
           </div>
           <div className="flex gap-2">
             <PDFExportButton
-              label="Exportar PDF"
+              label={selectedPatients.size > 0 ? `Exportar PDF (${selectedPatients.size})` : "Exportar PDF"}
               onExportPDF={handleExportPDF}
             />
             {selectedPatients.size > 0 && (

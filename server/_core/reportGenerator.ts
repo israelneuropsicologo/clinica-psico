@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, degrees } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { getDb } from "../db";
 import { patients, sessions, transactions } from "../../drizzle/schema";
 import { eq, and, gte, lte } from "drizzle-orm";
@@ -10,147 +10,184 @@ export interface ReportFilters {
   status?: "active" | "inactive" | "all";
   leadSource?: "manual" | "chatbot" | "website" | "all";
   leadStatus?: "lead" | "prospect" | "customer" | "all";
+  patientIds?: number[]; // Filter by specific patient IDs
 }
+
+// pdf-lib rgb() expects values in 0-1 range (not 0-255)
+const BLACK = rgb(0, 0, 0);
+const DARK_GRAY = rgb(0.2, 0.2, 0.2);
+const MEDIUM_GRAY = rgb(0.4, 0.4, 0.4);
+const LIGHT_GRAY = rgb(0.6, 0.6, 0.6);
+const VERY_LIGHT_GRAY = rgb(0.85, 0.85, 0.85);
+const PRIMARY_BLUE = rgb(0.1, 0.35, 0.7);
+const LIGHT_BLUE_BG = rgb(0.93, 0.96, 1.0);
 
 export async function generatePatientReport(filters: ReportFilters): Promise<Buffer> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
   // Construir query com filtros
-  const conditions: any[] = [eq(patients.userId, filters.userId)];
+  const conditions: ReturnType<typeof eq>[] = [eq(patients.userId, filters.userId)];
 
   if (filters.status && filters.status !== "all") {
     conditions.push(eq(patients.status, filters.status));
   }
 
   if (filters.leadSource && filters.leadSource !== "all") {
-    conditions.push(eq(patients.leadSource, filters.leadSource as any));
+    conditions.push(eq(patients.leadSource, filters.leadSource as "manual" | "chatbot" | "website"));
   }
 
   if (filters.leadStatus && filters.leadStatus !== "all") {
-    conditions.push(eq(patients.leadStatus, filters.leadStatus as any));
+    conditions.push(eq(patients.leadStatus, filters.leadStatus as "lead" | "prospect" | "customer"));
   }
 
-  const patientList = await db
-    .select()
-    .from(patients)
-    .where(and(...conditions))
-    .limit(1000);
+  let query = db.select().from(patients).where(and(...conditions));
+
+  const patientList = await query.limit(1000);
+
+  // Filter by specific patient IDs if provided
+  const filteredList = filters.patientIds && filters.patientIds.length > 0
+    ? patientList.filter(p => filters.patientIds!.includes(p.id))
+    : patientList;
 
   // Criar PDF
   const pdfDoc = await PDFDocument.create();
-  let page = pdfDoc.addPage([612, 792]); // Tamanho A4
-  let y = 750;
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  // Cabeçalho
+  const PAGE_W = 612;
+  const PAGE_H = 792;
+  const MARGIN = 50;
+  const CONTENT_W = PAGE_W - MARGIN * 2;
+
+  let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+  let y = PAGE_H - MARGIN;
+
+  // ─── Cabeçalho ───────────────────────────────────────────────────────────────
+  // Fundo azul no cabeçalho
+  page.drawRectangle({ x: 0, y: PAGE_H - 80, width: PAGE_W, height: 80, color: PRIMARY_BLUE });
+
   page.drawText("Relatório de Pacientes", {
-    x: 50,
-    y,
-    size: 24,
-    color: rgb(0, 0, 0),
+    x: MARGIN,
+    y: PAGE_H - 45,
+    size: 20,
+    font: fontBold,
+    color: rgb(1, 1, 1),
   });
-  y -= 40;
 
-  // Data do relatório
-  page.drawText(`Gerado em: ${new Date().toLocaleDateString("pt-BR")}`, {
-    x: 50,
-    y,
-    size: 10,
-    color: rgb(100, 100, 100),
-  });
-  y -= 30;
-
-  // Filtros aplicados
-  const filterText = `Filtros: Status=${filters.status || "todos"} | Origem=${filters.leadSource || "todas"} | Tipo=${filters.leadStatus || "todos"}`;
-  page.drawText(filterText, {
-    x: 50,
-    y,
+  page.drawText(`Gerado em: ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}`, {
+    x: MARGIN,
+    y: PAGE_H - 65,
     size: 9,
-    color: rgb(100, 100, 100),
+    font: fontRegular,
+    color: rgb(0.85, 0.9, 1),
   });
-  y -= 30;
 
-  // Cabeçalho da tabela
-  const headers = ["Nome", "Email", "Telefone", "Status", "Origem", "Tipo"];
-  const columnWidths = [120, 130, 100, 70, 80, 80];
-  let x = 50;
+  y = PAGE_H - 100;
 
-  page.drawText("─".repeat(80), {
-    x: 50,
-    y,
+  // ─── Resumo ───────────────────────────────────────────────────────────────────
+  page.drawRectangle({ x: MARGIN, y: y - 30, width: CONTENT_W, height: 40, color: LIGHT_BLUE_BG });
+  page.drawText(`Total de pacientes: ${filteredList.length}`, {
+    x: MARGIN + 10,
+    y: y - 10,
     size: 10,
-    color: rgb(150, 150, 150),
+    font: fontBold,
+    color: PRIMARY_BLUE,
   });
-  y -= 15;
+
+  const activeCount = filteredList.filter(p => p.status === "active").length;
+  page.drawText(`Ativos: ${activeCount}  |  Inativos: ${filteredList.length - activeCount}`, {
+    x: MARGIN + 10,
+    y: y - 22,
+    size: 9,
+    font: fontRegular,
+    color: MEDIUM_GRAY,
+  });
+
+  y -= 50;
+
+  // ─── Cabeçalho da tabela ─────────────────────────────────────────────────────
+  const headers = ["Nome", "E-mail", "Telefone", "Status", "Cadastro"];
+  const colWidths = [140, 155, 95, 60, 62];
+  let x = MARGIN;
+
+  page.drawRectangle({ x: MARGIN, y: y - 5, width: CONTENT_W, height: 20, color: rgb(0.2, 0.2, 0.2) });
 
   headers.forEach((header, i) => {
-    page.drawText(header, {
-      x,
-      y,
-      size: 10,
-      color: rgb(0, 0, 0),
-    });
-    x += columnWidths[i];
+    page.drawText(header, { x: x + 4, y: y + 2, size: 9, font: fontBold, color: rgb(1, 1, 1) });
+    x += colWidths[i];
   });
   y -= 20;
 
-  page.drawText("─".repeat(80), {
-    x: 50,
-    y,
-    size: 10,
-    color: rgb(150, 150, 150),
-  });
-  y -= 15;
+  // ─── Dados dos pacientes ──────────────────────────────────────────────────────
+  let rowIndex = 0;
+  for (const patient of filteredList) {
+    if (y < 80) {
+      // Rodapé da página
+      page.drawLine({ start: { x: MARGIN, y: 45 }, end: { x: PAGE_W - MARGIN, y: 45 }, thickness: 0.5, color: VERY_LIGHT_GRAY });
+      page.drawText("Documento confidencial — uso exclusivo do profissional de saúde", {
+        x: MARGIN, y: 32, size: 7, font: fontRegular, color: LIGHT_GRAY,
+      });
 
-  // Dados dos pacientes
-  for (const patient of patientList) {
-    if (y < 50) {
-      page = pdfDoc.addPage([612, 792]);
-      y = 750;
+      page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+      y = PAGE_H - MARGIN;
+
+      // Repetir cabeçalho da tabela na nova página
+      x = MARGIN;
+      page.drawRectangle({ x: MARGIN, y: y - 5, width: CONTENT_W, height: 20, color: DARK_GRAY });
+      headers.forEach((header, i) => {
+        page.drawText(header, { x: x + 4, y: y + 2, size: 9, font: fontBold, color: rgb(1, 1, 1) });
+        x += colWidths[i];
+      });
+      y -= 20;
+      rowIndex = 0;
     }
 
-    x = 50;
+    // Linha alternada
+    if (rowIndex % 2 === 0) {
+      page.drawRectangle({ x: MARGIN, y: y - 4, width: CONTENT_W, height: 16, color: rgb(0.97, 0.97, 0.97) });
+    }
+
+    x = MARGIN;
+    const createdAt = patient.createdAt ? new Date(patient.createdAt).toLocaleDateString("pt-BR") : "-";
     const row = [
       patient.name || "-",
       patient.email || "-",
       patient.phone || "-",
-      patient.status || "-",
-      patient.leadSource || "-",
-      patient.leadStatus || "-",
+      patient.status === "active" ? "Ativo" : patient.status === "inactive" ? "Inativo" : (patient.status || "-"),
+      createdAt,
     ];
 
     row.forEach((cell, i) => {
-      const truncated = cell.length > 15 ? cell.substring(0, 12) + "..." : cell;
+      const maxLen = i === 1 ? 22 : i === 0 ? 18 : 12;
+      const truncated = cell.length > maxLen ? cell.substring(0, maxLen - 2) + ".." : cell;
       page.drawText(truncated, {
-        x,
-        y,
-        size: 9,
-        color: rgb(50, 50, 50),
+        x: x + 4,
+        y: y + 2,
+        size: 8,
+        font: fontRegular,
+        color: DARK_GRAY,
       });
-      x += columnWidths[i];
+      x += colWidths[i];
     });
 
-    y -= 15;
+    y -= 16;
+    rowIndex++;
   }
 
-  // Rodapé
-  y -= 20;
-  page.drawText("─".repeat(80), {
-    x: 50,
-    y,
-    size: 10,
-    color: rgb(150, 150, 150),
-  });
-  y -= 15;
+  // ─── Rodapé ───────────────────────────────────────────────────────────────────
+  const totalPages = pdfDoc.getPageCount();
+  for (let i = 0; i < totalPages; i++) {
+    const pg = pdfDoc.getPage(i);
+    pg.drawLine({ start: { x: MARGIN, y: 45 }, end: { x: PAGE_W - MARGIN, y: 45 }, thickness: 0.5, color: VERY_LIGHT_GRAY });
+    pg.drawText("Documento confidencial — uso exclusivo do profissional de saúde. Protegido pelo sigilo profissional e LGPD.", {
+      x: MARGIN, y: 32, size: 7, font: fontRegular, color: LIGHT_GRAY,
+    });
+    pg.drawText(`Gerado em: ${new Date().toLocaleString("pt-BR")} | Página ${i + 1} de ${totalPages}`, {
+      x: MARGIN, y: 20, size: 7, font: fontRegular, color: LIGHT_GRAY,
+    });
+  }
 
-  page.drawText(`Total de pacientes: ${patientList.length}`, {
-    x: 50,
-    y,
-    size: 10,
-    color: rgb(0, 0, 0),
-  });
-
-  // Salvar PDF em buffer
   const pdfBytes = await pdfDoc.save();
   return Buffer.from(pdfBytes);
 }
@@ -160,7 +197,7 @@ export async function generateFinancialReport(filters: ReportFilters): Promise<B
   if (!db) throw new Error("Database not available");
 
   // Construir query de transações
-  const conditions: any[] = [eq(transactions.userId, filters.userId)];
+  const conditions: ReturnType<typeof eq>[] = [eq(transactions.userId, filters.userId)];
 
   if (filters.startDate) {
     conditions.push(gte(transactions.createdAt, filters.startDate));
@@ -183,95 +220,74 @@ export async function generateFinancialReport(filters: ReportFilters): Promise<B
 
   // Criar PDF
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([612, 792]);
-  let y = 750;
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  // Cabeçalho
+  const PAGE_W = 612;
+  const PAGE_H = 792;
+  const MARGIN = 50;
+  const CONTENT_W = PAGE_W - MARGIN * 2;
+
+  const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+  let y = PAGE_H - MARGIN;
+
+  // ─── Cabeçalho ───────────────────────────────────────────────────────────────
+  page.drawRectangle({ x: 0, y: PAGE_H - 80, width: PAGE_W, height: 80, color: PRIMARY_BLUE });
+
   page.drawText("Relatório Financeiro", {
-    x: 50,
-    y,
-    size: 24,
-    color: rgb(0, 0, 0),
+    x: MARGIN,
+    y: PAGE_H - 45,
+    size: 20,
+    font: fontBold,
+    color: rgb(1, 1, 1),
   });
-  y -= 40;
 
-  // Data do relatório
-  page.drawText(`Gerado em: ${new Date().toLocaleDateString("pt-BR")}`, {
-    x: 50,
-    y,
-    size: 10,
-    color: rgb(100, 100, 100),
+  page.drawText(`Gerado em: ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}`, {
+    x: MARGIN,
+    y: PAGE_H - 65,
+    size: 9,
+    font: fontRegular,
+    color: rgb(0.85, 0.9, 1),
   });
-  y -= 30;
 
-  // Resumo
-  page.drawText("RESUMO FINANCEIRO", {
-    x: 50,
-    y,
-    size: 14,
-    color: rgb(0, 0, 0),
-  });
-  y -= 25;
+  y = PAGE_H - 100;
 
-  page.drawText(`Total de Transações: ${totalCount}`, {
-    x: 50,
-    y,
-    size: 11,
-    color: rgb(50, 50, 50),
-  });
+  // ─── Resumo ───────────────────────────────────────────────────────────────────
+  page.drawRectangle({ x: MARGIN, y: y - 55, width: CONTENT_W, height: 65, color: LIGHT_BLUE_BG });
+
+  page.drawText("RESUMO FINANCEIRO", { x: MARGIN + 10, y: y - 10, size: 11, font: fontBold, color: PRIMARY_BLUE });
+
+  page.drawText(`Total de Transações: ${totalCount}`, { x: MARGIN + 10, y: y - 25, size: 10, font: fontRegular, color: DARK_GRAY });
+  page.drawText(`Valor Total: R$ ${totalAmount.toFixed(2)}`, { x: MARGIN + 10, y: y - 38, size: 10, font: fontRegular, color: DARK_GRAY });
+  page.drawText(`Valor Médio: R$ ${averageAmount.toFixed(2)}`, { x: MARGIN + 10, y: y - 51, size: 10, font: fontRegular, color: DARK_GRAY });
+
+  y -= 75;
+
+  // ─── Cabeçalho da tabela ─────────────────────────────────────────────────────
+  page.drawText("DETALHES DAS TRANSAÇÕES", { x: MARGIN, y, size: 12, font: fontBold, color: DARK_GRAY });
   y -= 20;
-
-  page.drawText(`Valor Total: R$ ${totalAmount.toFixed(2)}`, {
-    x: 50,
-    y,
-    size: 11,
-    color: rgb(50, 50, 50),
-  });
-  y -= 20;
-
-  page.drawText(`Valor Médio: R$ ${averageAmount.toFixed(2)}`, {
-    x: 50,
-    y,
-    size: 11,
-    color: rgb(50, 50, 50),
-  });
-  y -= 40;
-
-  // Detalhes das transações
-  page.drawText("DETALHES DAS TRANSAÇÕES", {
-    x: 50,
-    y,
-    size: 14,
-    color: rgb(0, 0, 0),
-  });
-  y -= 25;
 
   const headers = ["Data", "Descrição", "Valor", "Status"];
-  const columnWidths = [100, 250, 100, 100];
-  let x = 50;
+  const colWidths = [80, 250, 100, 82];
+  let x = MARGIN;
 
+  page.drawRectangle({ x: MARGIN, y: y - 5, width: CONTENT_W, height: 20, color: DARK_GRAY });
   headers.forEach((header, i) => {
-    page.drawText(header, {
-      x,
-      y,
-      size: 10,
-      color: rgb(0, 0, 0),
-    });
-    x += columnWidths[i];
+    page.drawText(header, { x: x + 4, y: y + 2, size: 9, font: fontBold, color: rgb(1, 1, 1) });
+    x += colWidths[i];
   });
   y -= 20;
 
-  page.drawText("─".repeat(80), {
-    x: 50,
-    y,
-    size: 10,
-    color: rgb(150, 150, 150),
-  });
-  y -= 15;
+  // ─── Dados das transações ─────────────────────────────────────────────────────
+  for (let idx = 0; idx < transactionList.length; idx++) {
+    const transaction = transactionList[idx];
+    if (y < 80) break;
 
-  // Dados das transações
-  for (const transaction of transactionList.slice(0, 15)) {
-    x = 50;
+    if (idx % 2 === 0) {
+      page.drawRectangle({ x: MARGIN, y: y - 4, width: CONTENT_W, height: 16, color: rgb(0.97, 0.97, 0.97) });
+    }
+
+    x = MARGIN;
     const amount = typeof transaction.amount === 'number' ? transaction.amount : parseFloat(transaction.amount || '0');
     const row = [
       new Date(transaction.createdAt).toLocaleDateString("pt-BR"),
@@ -281,20 +297,24 @@ export async function generateFinancialReport(filters: ReportFilters): Promise<B
     ];
 
     row.forEach((cell, i) => {
-      const truncated = cell.length > 20 ? cell.substring(0, 17) + "..." : cell;
-      page.drawText(truncated, {
-        x,
-        y,
-        size: 9,
-        color: rgb(50, 50, 50),
-      });
-      x += columnWidths[i];
+      const maxLen = i === 1 ? 35 : 14;
+      const truncated = cell.length > maxLen ? cell.substring(0, maxLen - 2) + ".." : cell;
+      page.drawText(truncated, { x: x + 4, y: y + 2, size: 8, font: fontRegular, color: DARK_GRAY });
+      x += colWidths[i];
     });
 
-    y -= 15;
+    y -= 16;
   }
 
-  // Salvar PDF em buffer
+  // ─── Rodapé ───────────────────────────────────────────────────────────────────
+  page.drawLine({ start: { x: MARGIN, y: 45 }, end: { x: PAGE_W - MARGIN, y: 45 }, thickness: 0.5, color: VERY_LIGHT_GRAY });
+  page.drawText("Documento confidencial — uso exclusivo do profissional de saúde. Protegido pelo sigilo profissional e LGPD.", {
+    x: MARGIN, y: 32, size: 7, font: fontRegular, color: LIGHT_GRAY,
+  });
+  page.drawText(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, {
+    x: MARGIN, y: 20, size: 7, font: fontRegular, color: LIGHT_GRAY,
+  });
+
   const pdfBytes = await pdfDoc.save();
   return Buffer.from(pdfBytes);
 }

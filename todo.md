@@ -539,72 +539,72 @@ await trpc.userSync.linkUsers.mutate({
 ## Fase 34: Melhorias no Perfil do Paciente (Maio 2026)
 
 ### Aba Contato
-- [ ] Integrar CEP com API ViaCEP para autopreenchimento de rua, bairro, cidade, estado
-- [ ] Adicionar campo número da casa
-- [ ] Adicionar campo complemento
-- [ ] Botão Editar/Salvar em modo de visualização/edição na aba Contato
-- [ ] Migrar schema: adicionar addressNumber, addressComplement ao patients
+- [x] Integrar CEP com API ViaCEP para autopreenchimento de rua, bairro, cidade, estado
+- [x] Adicionar campo número da casa
+- [x] Adicionar campo complemento
+- [x] Botão Editar/Salvar em modo de visualização/edição na aba Contato
+- [x] Migrar schema: adicionar addressNumber, addressComplement ao patients
 
 ### Aba Saúde
-- [ ] Adicionar campo convênio (nome do plano)
-- [ ] Adicionar campo número da carteirinha
-- [ ] Adicionar campo tipo de plano
-- [ ] Adicionar campo validade do convênio
-- [ ] Botão Editar/Salvar em modo de visualização/edição na aba Saúde
-- [ ] Migrar schema: adicionar insuranceName, insuranceNumber, insurancePlan, insuranceExpiry ao patients
+- [x] Adicionar campo convênio (nome do plano)
+- [x] Adicionar campo número da carteirinha
+- [x] Adicionar campo tipo de plano
+- [x] Adicionar campo validade do convênio
+- [x] Botão Editar/Salvar em modo de visualização/edição na aba Saúde
+- [x] Migrar schema: adicionar insuranceName, insuranceNumber, insurancePlan, insuranceExpiry ao patients
 
 ### Aba Anamnese (padrão psicologia completo)
-- [ ] Dados de identificação: estado civil, profissão, escolaridade, religião
-- [ ] Queixa principal detalhada
-- [ ] História da doença atual (HDA)
-- [ ] Histórico psiquiátrico anterior (internações, crises, tentativas)
-- [ ] Histórico familiar (doenças mentais na família)
-- [ ] Histórico pessoal (infância, adolescência, traumas)
-- [ ] Histórico de relacionamentos
-- [ ] Histórico profissional/acadêmico
-- [ ] Uso de substâncias (álcool, drogas, tabaco)
-- [ ] Sono e alimentação
-- [ ] Vida sexual e afetiva
-- [ ] Objetivos terapêuticos
-- [ ] Diagnóstico CID-10/CID-11
-- [ ] Abordagem terapêutica
-- [ ] Fatores de risco e proteção
-- [ ] Anotações adicionais
-- [ ] Botão Editar/Salvar em modo de visualização/edição
-- [ ] Migrar schema: adicionar campos faltantes à tabela anamnese
+- [x] Dados de identificação: estado civil, profissão, escolaridade, religião
+- [x] Queixa principal detalhada
+- [x] História da doença atual (HDA)
+- [x] Histórico psiquiátrico anterior (internações, crises, tentativas)
+- [x] Histórico familiar (doenças mentais na família)
+- [x] Histórico pessoal (infância, adolescência, traumas)
+- [x] Histórico de relacionamentos
+- [x] Histórico profissional/acadêmico
+- [x] Uso de substâncias (álcool, drogas, tabaco)
+- [x] Sono e alimentação
+- [x] Vida sexual e afetiva
+- [x] Objetivos terapêuticos
+- [x] Diagnóstico CID-10/CID-11
+- [x] Abordagem terapêutica
+- [x] Fatores de risco e proteção
+- [x] Anotações adicionais
+- [x] Botão Editar/Salvar em modo de visualização/edição
+- [x] Migrar schema: adicionar campos faltantes à tabela anamnese
 
 ### Prontuário (reestruturado com 8 sub-abas estilo DocsPsi)
-- [ ] Criar página SessionNotes.tsx com sub-abas: Sessão, Avaliação, Intervenções, Evolução, Próxima, Riscos, Privado, Análise IA
-- [ ] Sub-aba Sessão: data, hora início, duração, nº sessão, tipo (individual/casal/grupo), modalidade (presencial/online), local
-- [ ] Sub-aba Avaliação: estado emocional, humor predominante, nível de sofrimento (slider 0-10), medicações em uso, apresentação geral, demanda principal, temas abordados, narrativa relevante, avaliação clínica, análise técnica
-- [ ] Sub-aba Intervenções: técnicas utilizadas, intervenções planejadas, tarefa de casa, planejamento terapêutico
-- [ ] Sub-aba Evolução: resposta ao tratamento, progresso dos objetivos, insights observados, resistências observadas
-- [ ] Sub-aba Próxima: data da próxima sessão, objetivos para próxima sessão, ajustes no plano de tratamento
-- [ ] Sub-aba Riscos: risco de prejuízo a si (ausente/baixo/moderado/alto/extremo), risco a terceiros, risco de suicídio
-- [ ] Sub-aba Privado: anotações privadas (contratransferência, hipóteses clínicas, dúvidas para supervisão, medicações, encaminhamentos, observações adicionais) — não incluídas em relatórios
-- [ ] Sub-aba Análise IA: feedback técnico do prontuário gerado por IA com aviso de ferramenta de apoio, botão "Solicitar Nova Análise"
-- [ ] Migrar schema: expandir tabela clinical_notes com todos os novos campos
-- [ ] Navegação paginada (1 de 8, Anterior/Próxima) entre sub-abas
-- [ ] Botão Salvar e Gerar PDF no prontuário
+- [x] Criar página SessionNotes.tsx com sub-abas: Sessão, Avaliação, Intervenções, Evolução, Próxima, Riscos, Privado, Análise IA
+- [x] Sub-aba Sessão: data, hora início, duração, nº sessão, tipo (individual/casal/grupo), modalidade (presencial/online), local
+- [x] Sub-aba Avaliação: estado emocional, humor predominante, nível de sofrimento (slider 0-10), medicações em uso, apresentação geral, demanda principal, temas abordados, narrativa relevante, avaliação clínica, análise técnica
+- [x] Sub-aba Intervenções: técnicas utilizadas, intervenções planejadas, tarefa de casa, planejamento terapêutico
+- [x] Sub-aba Evolução: resposta ao tratamento, progresso dos objetivos, insights observados, resistências observadas
+- [x] Sub-aba Próxima: data da próxima sessão, objetivos para próxima sessão, ajustes no plano de tratamento
+- [x] Sub-aba Riscos: risco de prejuízo a si (ausente/baixo/moderado/alto/extremo), risco a terceiros, risco de suicídio
+- [x] Sub-aba Privado: anotações privadas (contratransferência, hipóteses clínicas, dúvidas para supervisão, medicações, encaminhamentos, observações adicionais) — não incluídas em relatórios
+- [x] Sub-aba Análise IA: feedback técnico do prontuário gerado por IA com aviso de ferramenta de apoio, botão "Solicitar Nova Análise"
+- [x] Migrar schema: expandir tabela clinical_notes com todos os novos campos
+- [x] Navegação paginada (1 de 8, Anterior/Próxima) entre sub-abas
+- [x] Botão Salvar e Gerar PDF no prontuário
 
 ## Fase 35: Correções Críticas (Bugs Reportados - Maio 2026)
-- [ ] Corrigir crash "removeChild" / "Ocorreu um erro inesperado" ao abrir Sessões e Pacientes no site publicado
-- [ ] Corrigir erro de escrita "Pronúncia" → "Prontuário" onde aparecer no código
-- [ ] Corrigir botão Análise IA não gerando resposta no Prontuário
+- [x] Corrigir crash "removeChild" / "Ocorreu um erro inesperado" ao abrir Sessões e Pacientes no site publicado
+- [x] Corrigir erro de escrita "Pronúncia" → "Prontuário" onde aparecer no código
+- [x] Corrigir botão Análise IA não gerando resposta no Prontuário
 
 ## Fase 36: PDF do Prontuário Completo
 
-- [ ] Reescrever gerador de PDF do prontuário para incluir todas as 8 seções com títulos e campos completos
-- [ ] Cabeçalho com nome do paciente, data, nº sessão e dados do profissional
-- [ ] Seção 1 - Dados da Sessão: Nº, tipo, modalidade, local, data, status
-- [ ] Seção 2 - Avaliação Clínica: estado emocional, humor, sofrimento, demanda, narrativa, avaliação, análise técnica
-- [ ] Seção 3 - Intervenções: técnicas, intervenções planejadas, plano terapêutico, tarefas
-- [ ] Seção 4 - Evolução: resposta ao tratamento, progresso, insights, resistências
-- [ ] Seção 5 - Próxima Sessão: data, objetivos, ajustes
-- [ ] Seção 6 - Avaliação de Riscos: autolesão, terceiros, suicídio com labels legíveis
-- [ ] Seção 7 - Anotações Privadas: contratransferência, hipóteses, supervisão, encaminhamentos
-- [ ] Seção 8 - Análise IA: feedback técnico (se disponível)
-- [ ] Rodapé com aviso de confidencialidade
+- [x] Reescrever gerador de PDF do prontuário para incluir todas as 8 seções com títulos e campos completos
+- [x] Cabeçalho com nome do paciente, data, nº sessão e dados do profissional
+- [x] Seção 1 - Dados da Sessão: Nº, tipo, modalidade, local, data, status
+- [x] Seção 2 - Avaliação Clínica: estado emocional, humor, sofrimento, demanda, narrativa, avaliação, análise técnica
+- [x] Seção 3 - Intervenções: técnicas, intervenções planejadas, plano terapêutico, tarefas
+- [x] Seção 4 - Evolução: resposta ao tratamento, progresso, insights, resistências
+- [x] Seção 5 - Próxima Sessão: data, objetivos, ajustes
+- [x] Seção 6 - Avaliação de Riscos: autolesão, terceiros, suicídio com labels legíveis
+- [x] Seção 7 - Anotações Privadas: contratransferência, hipóteses, supervisão, encaminhamentos
+- [x] Seção 8 - Análise IA: feedback técnico (se disponível)
+- [x] Rodapé com aviso de confidencialidade
 
 ## Fase 37: Correções na Aba Gravações + Supervisão IA
 
@@ -615,29 +615,29 @@ await trpc.userSync.linkUsers.mutate({
 
 ## Fase 38: Diagnóstico e Correção Completa
 
-- [ ] Testar salvamento de dados na aba Perfil (patients.update) e verificar logs
-- [ ] Testar salvamento de dados na aba Contato (patients.update com campos de endereço)
-- [ ] Testar salvamento de dados na aba Saúde (patients.update com campos de saúde/convênio)
-- [ ] Testar salvamento de dados na aba Anamnese (anamnese.upsert)
-- [ ] Testar upload de gravação e verificar se é salvo no banco
-- [ ] Testar transcrição de áudio e verificar se o Whisper está sendo chamado corretamente
-- [ ] Verificar se todos os campos do schema estão no procedure patients.update
-- [ ] Verificar se o upload de documentos está funcionando
-- [ ] Corrigir todos os erros encontrados nos testes
+- [x] Testar salvamento de dados na aba Perfil (patients.update) e verificar logs
+- [x] Testar salvamento de dados na aba Contato (patients.update com campos de endereço)
+- [x] Testar salvamento de dados na aba Saúde (patients.update com campos de saúde/convênio)
+- [x] Testar salvamento de dados na aba Anamnese (anamnese.upsert)
+- [x] Testar upload de gravação e verificar se é salvo no banco
+- [x] Testar transcrição de áudio e verificar se o Whisper está sendo chamado corretamente
+- [x] Verificar se todos os campos do schema estão no procedure patients.update
+- [x] Verificar se o upload de documentos está funcionando
+- [x] Corrigir todos os erros encontrados nos testes
 
 ## Fase 39: Admin/Configurações e Dados do Profissional
 
-- [ ] Buscar dados reais do profissional no site integrado
-- [ ] Criar tabela `system_settings` no banco de dados (se não existir)
-- [ ] Criar procedures: settings.get / settings.update (expandir existente)
-- [ ] Criar página Admin/Configurações completa com seções editáveis
-- [ ] Seção: Dados do Profissional (nome, CRP, especialidade, foto, bio)
-- [ ] Seção: Dados da Clínica (nome, endereço, telefone, email, CNPJ)
-- [ ] Seção: Configurações de Sessão (duração padrão, valor padrão, modalidade)
-- [ ] Seção: Aparência (logo, cores, tema padrão)
-- [ ] Seção: Integrações (tokens de webhook, URL do site)
-- [ ] Atualizar dados do profissional com informações reais buscadas do site
-- [ ] Adicionar link "Configurações" no menu lateral (se não existir)
+- [x] Buscar dados reais do profissional no site integrado
+- [x] Criar tabela `system_settings` no banco de dados (se não existir)
+- [x] Criar procedures: settings.get / settings.update (expandir existente)
+- [x] Criar página Admin/Configurações completa com seções editáveis
+- [x] Seção: Dados do Profissional (nome, CRP, especialidade, foto, bio)
+- [x] Seção: Dados da Clínica (nome, endereço, telefone, email, CNPJ)
+- [x] Seção: Configurações de Sessão (duração padrão, valor padrão, modalidade)
+- [x] Seção: Aparência (logo, cores, tema padrão)
+- [x] Seção: Integrações (tokens de webhook, URL do site)
+- [x] Atualizar dados do profissional com informações reais buscadas do site
+- [x] Adicionar link "Configurações" no menu lateral (se não existir)
 
 ## Fase 40: Botão "Preencher com IA" no Prontuário
 
@@ -648,3 +648,14 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Campos preenchidos ficam editáveis para o psicólogo revisar antes de salvar
 - [x] Campo "Anotações Gerais da Sessão" adicionado à sub-aba Sessão
 - [x] Toast de sucesso "Prontuário preenchido! Revise e salve." exibido após preenchimento
+
+## Fase 41: Correção de Bug — Exportação de PDF de Paciente
+
+- [x] Investigar erro ao exportar PDF do paciente Josué (relatório completo)
+- [x] Identificar a causa raiz: valores rgb() inválidos no reportGenerator.ts (pdf-lib espera 0-1, não 0-255)
+- [x] Corrigir todos os valores rgb() no reportGenerator.ts para escala 0-1
+- [x] Adicionar suporte a exportar PDF apenas dos pacientes selecionados (patientIds no backend)
+- [x] Atualizar frontend para passar patientIds selecionados ao gerar PDF
+- [x] Atualizar label do botão para mostrar quantidade: "Exportar PDF (N)" quando há seleção
+- [x] Corrigir campo "Anotações Gerais da Sessão" exibindo HTML bruto (strip HTML ao carregar)
+- [x] Testar exportação com Josué selecionado — PDF gerado com sucesso

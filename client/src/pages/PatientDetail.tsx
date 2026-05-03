@@ -868,7 +868,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
     thirdPartyRisk: (note.thirdPartyRisk as RiskLevel) ?? "absent",
     suicideRisk: (note.suicideRisk as RiskLevel) ?? "absent",
     // Geral
-    content: (note.content as string) ?? "",
+    content: ((note.content as string) ?? "").replace(/<[^>]+>/g, "").trim(),
     // Privado
     countertransference: (note.countertransference as string) ?? "",
     clinicalHypotheses: (note.clinicalHypotheses as string) ?? "",
