@@ -159,8 +159,23 @@ const patientsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      await updatePatient(id, ctx.user.id, data);
+      const { id, ...rawData } = input;
+      // Filter out undefined and empty string values to avoid DB type errors
+      const data: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(rawData)) {
+        if (value !== undefined && value !== null && value !== '') {
+          data[key] = value;
+        }
+      }
+      // Convert sessionValue string to number if present
+      if (typeof data.sessionValue === 'string') {
+        const parsed = parseFloat(data.sessionValue);
+        data.sessionValue = isNaN(parsed) ? undefined : parsed;
+        if (data.sessionValue === undefined) delete data.sessionValue;
+      }
+      if (Object.keys(data).length > 0) {
+        await updatePatient(id, ctx.user.id, data as Parameters<typeof updatePatient>[2]);
+      }
       return { success: true };
     }),
 

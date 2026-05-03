@@ -612,3 +612,29 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Exibir texto transcrito após clicar em Transcrever (atualmente não aparece)
 - [x] Adicionar botão "Supervisão IA" que gera prognóstico clínico com passo a passo
 - [x] Implementar procedure `recordings.generateSupervision` no backend
+
+## Fase 38: Diagnóstico e Correção Completa
+
+- [ ] Testar salvamento de dados na aba Perfil (patients.update) e verificar logs
+- [ ] Testar salvamento de dados na aba Contato (patients.update com campos de endereço)
+- [ ] Testar salvamento de dados na aba Saúde (patients.update com campos de saúde/convênio)
+- [ ] Testar salvamento de dados na aba Anamnese (anamnese.upsert)
+- [ ] Testar upload de gravação e verificar se é salvo no banco
+- [ ] Testar transcrição de áudio e verificar se o Whisper está sendo chamado corretamente
+- [ ] Verificar se todos os campos do schema estão no procedure patients.update
+- [ ] Verificar se o upload de documentos está funcionando
+- [ ] Corrigir todos os erros encontrados nos testes
+
+## Fase 39: Admin/Configurações e Dados do Profissional
+
+- [ ] Buscar dados reais do profissional no site integrado
+- [ ] Criar tabela `system_settings` no banco de dados (se não existir)
+- [ ] Criar procedures: settings.get / settings.update (expandir existente)
+- [ ] Criar página Admin/Configurações completa com seções editáveis
+- [ ] Seção: Dados do Profissional (nome, CRP, especialidade, foto, bio)
+- [ ] Seção: Dados da Clínica (nome, endereço, telefone, email, CNPJ)
+- [ ] Seção: Configurações de Sessão (duração padrão, valor padrão, modalidade)
+- [ ] Seção: Aparência (logo, cores, tema padrão)
+- [ ] Seção: Integrações (tokens de webhook, URL do site)
+- [ ] Atualizar dados do profissional com informações reais buscadas do site
+- [ ] Adicionar link "Configurações" no menu lateral (se não existir)
