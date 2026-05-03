@@ -692,3 +692,11 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Implementar indicador visual: "Salvando..." (spinner) / "✓ Salvo" (verde) / "Erro ao salvar" (vermelho)
 - [x] Testar auto-save: texto adicionado, aguardar 2s, verificar POST `/api/trpc/clinicalNotes.update` — OK
 - [x] Testar persistência: sair do editor, reabrir — dados persistidos corretamente ("Teste auto-save." visível)
+
+## Fase 45: Correção do "Erro ao salvar" no Site Publicado
+
+- [x] Investigar causa do erro — auto-save disparava na inicialização do componente (antes do usuário digitar)
+- [x] Schema e backend corretos: `aiSuggestions` aceito pelo `clinicalNotes.update`
+- [x] Corrigir: adicionada flag `isDirtyRef` para impedir auto-save na montagem inicial
+- [x] Testar no site publicado: botão Salvar funcionou sem erros (200 OK)
+- [x] Confirmado que o "Erro ao salvar" era causado pelo auto-save prematuro na inicialização

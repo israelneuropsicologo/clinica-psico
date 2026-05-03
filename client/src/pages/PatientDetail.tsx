@@ -909,6 +909,8 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
   const [saveStatus, setSaveStatus] = React.useState<"idle" | "saving" | "saved" | "error">("idle");
   const autoSaveTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const doSaveRef = React.useRef<(() => void) | null>(null);
+  // Prevent auto-save on initial mount — only save after user makes a change
+  const isDirtyRef = React.useRef(false);
 
   const updateMutation = trpc.clinicalNotes.update.useMutation({
     onSuccess: () => {
@@ -1017,8 +1019,13 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
   // Keep ref in sync so auto-save timer always calls the latest version
   doSaveRef.current = doSave;
 
-  // Auto-save: trigger save 2s after last change
+  // Auto-save: trigger save 2s after last change (skip initial mount)
   React.useEffect(() => {
+    if (!isDirtyRef.current) {
+      // Mark as dirty after first render so subsequent changes trigger auto-save
+      isDirtyRef.current = true;
+      return;
+    }
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
       setSaveStatus("saving");
