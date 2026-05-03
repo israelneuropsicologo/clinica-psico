@@ -893,3 +893,34 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Aplicar fix em generateRelatorioMultiprofissional (Relatorio Multiprofissional)
 - [x] Testar todos os 6 tipos de documentos — 13 testes passando (100%)
 - [x] Verificar que recomendacoes agora aparecem como items com bullet points
+
+
+## Fase 57: Gerenciamento de Registros Financeiros (Editar e Apagar)
+
+### Backend — Procedures tRPC
+- [x] Criar procedure `financeiro.updateTransaction` para editar registro individual
+- [x] Criar procedure `financeiro.deleteTransaction` para apagar registro individual
+- [x] Criar procedure `financeiro.deleteTransactionsBulk` para apagar multiplos registros
+- [x] Validar permissoes de usuario (so pode editar/apagar seus proprios registros)
+
+### Frontend — Interface FinancialTab
+- [x] Adicionar coluna de checkbox para selecao em lote (como em Pacientes)
+- [x] Adicionar botoes de acao: Editar, Apagar, Apagar Selecionados
+- [x] Criar modal de edicao de registro financeiro
+- [x] Criar modal de confirmacao para apagar (individual)
+- [x] Criar modal de confirmacao para apagar em lote
+- [x] Implementar selecao/deselecao em lote com checkbox "Selecionar Tudo"
+- [x] Mostrar numero de registros selecionados
+
+### Funcionalidades
+- [x] Editar: valor, descricao, tipo (receita/despesa), data, metodo pagamento
+- [x] Apagar individual: com confirmacao
+- [x] Apagar em lote: com confirmacao e lista de registros a apagar
+- [x] Atualizar lista automaticamente apos edicao/delecao
+- [x] Toast de sucesso/erro para cada operacao
+
+### Testes
+- [x] Testar edicao de registro financeiro
+- [x] Testar delecao individual
+- [x] Testar delecao em lote
+- [x] Verificar validacoes de permissao

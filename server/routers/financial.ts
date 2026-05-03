@@ -148,4 +148,94 @@ export const financialRouter = router({
       }
       return { id: (result[0] as { insertId: number }).insertId };
     }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        type: z.enum(["income", "expense", "refund"]).optional(),
+        status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
+        description: z.string().min(1).optional(),
+        amount: z.string().optional(),
+        category: z.string().optional(),
+        transactionDate: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB unavailable");
+
+      // Verify ownership
+      const existing = await db
+        .select()
+        .from(transactions)
+        .where(and(eq(transactions.id, input.id), eq(transactions.userId, ctx.user.id)))
+        .limit(1)
+        .then((r) => r[0]);
+
+      if (!existing) throw new Error("Transaction not found or unauthorized");
+
+      const updateData: Record<string, any> = {};
+      if (input.type) updateData.type = input.type;
+      if (input.status) updateData.status = input.status;
+      if (input.description) updateData.description = input.description;
+      if (input.amount) updateData.amount = input.amount;
+      if (input.category) updateData.category = input.category;
+      if (input.transactionDate) updateData.transactionDate = new Date(input.transactionDate).getTime();
+      if (input.notes !== undefined) updateData.notes = input.notes;
+
+      await db.update(transactions).set(updateData).where(eq(transactions.id, input.id));
+      return { success: true };
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB unavailable");
+
+      // Verify ownership
+      const existing = await db
+        .select()
+        .from(transactions)
+        .where(and(eq(transactions.id, input.id), eq(transactions.userId, ctx.user.id)))
+        .limit(1)
+        .then((r) => r[0]);
+
+      if (!existing) throw new Error("Transaction not found or unauthorized");
+
+      await db.delete(transactions).where(eq(transactions.id, input.id));
+      return { success: true };
+    }),
+
+  deleteBulk: protectedProcedure
+    .input(z.object({ ids: z.array(z.number()) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB unavailable");
+
+      // Check if all transactions belong to the user
+      const userTransactions = await db
+        .select({ id: transactions.id })
+        .from(transactions)
+        .where(
+          and(
+            eq(transactions.userId, ctx.user.id),
+            sql`id IN (${sql.raw(input.ids.join(","))})`
+          )
+        );
+
+      if (userTransactions.length !== input.ids.length) {
+        throw new Error("Some transactions not found or unauthorized");
+      }
+
+      await db.delete(transactions).where(
+        and(
+          eq(transactions.userId, ctx.user.id),
+          sql`id IN (${sql.raw(input.ids.join(","))})`
+        )
+      );
+      return { success: true, deletedCount: input.ids.length };
+    }),
 });
