@@ -927,6 +927,8 @@ export const webhooksRouter = router({
 
         // Verificar se paciente já existe
         let patient = await checkCustomerExists(userId, input.email);
+        let patientId: number;
+        
         if (!patient) {
           // Criar novo paciente com status prospect
           const patientData: InsertPatient = {
@@ -940,22 +942,23 @@ export const webhooksRouter = router({
             interactionCount: 1,
             lastInteractionAt: new Date(),
           };
-          patient = await createPatient(patientData);
+          patientId = await createPatient(patientData);
         } else {
           // Atualizar status para prospect se ainda era lead
           if (patient.leadStatus === "lead") {
             await updatePatient(patient.id, { leadStatus: "prospect" });
           }
+          patientId = patient.id;
         }
 
         // Criar sessão
         const scheduledAtMs = new Date(input.scheduledAt).getTime();
         const sessionData: InsertSession = {
           userId,
-          patientId: patient.id,
+          patientId: patientId,
           scheduledAt: scheduledAtMs,
-          status: "pending",
-          sessionValue: input.sessionValue,
+          status: "scheduled",
+          sessionValue: input.sessionValue ? String(input.sessionValue) : undefined,
           isPaid: "pending",
         };
 
