@@ -949,10 +949,11 @@ export const webhooksRouter = router({
         }
 
         // Criar sessão
+        const scheduledAtMs = new Date(input.scheduledAt).getTime();
         const sessionData: InsertSession = {
           userId,
           patientId: patient.id,
-          scheduledAt: new Date(input.scheduledAt),
+          scheduledAt: scheduledAtMs,
           status: "pending",
           sessionValue: input.sessionValue,
           isPaid: "pending",
@@ -966,7 +967,7 @@ export const webhooksRouter = router({
           patientId: patient.id,
           sessionId: session.id,
           message: "Agendamento criado com sucesso",
-        };
+        }; 
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         throw error;
