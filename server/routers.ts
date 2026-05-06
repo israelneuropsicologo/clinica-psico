@@ -1,4 +1,19 @@
 // @ts-nocheck
+/**
+ * Main tRPC Router
+ * 
+ * Consolidated router for all API procedures:
+ * - Sessions management with proper isPaid enum validation
+ * - Patient management and leads tracking
+ * - Clinical notes and documents
+ * - Financial tracking and reports
+ * - Webhook integrations (chatbot, direct bookings, etc)
+ * - Management reports and analytics
+ * 
+ * All procedures use proper type validation with Zod schemas
+ * to ensure data integrity and prevent type mismatches.
+ */
+
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { and, eq, like } from "drizzle-orm";
@@ -233,6 +248,9 @@ const patientsRouter = router({
 });
 
 // ─── Sessions Router ────────────────────────────────────────────────────────
+// Handles all session/appointment management
+// Note: isPaid field uses enum validation ("pending" | "paid" | "waived")
+// to ensure database type consistency
 const sessionsRouter = router({
   list: protectedProcedure
     .input(

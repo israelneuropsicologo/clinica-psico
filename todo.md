@@ -1237,3 +1237,32 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Testar remoção de agendamentos do painel
 - [x] Testar detecção de fuso horário
 - [x] Testar sincronização de horários na agenda
+
+
+## Fase X: Melhorias no Chatbot - Expertise de Secretária Profissional
+
+### System Prompt e Context
+- [ ] Criar prompt de sistema com expertise de secretária profissional
+- [ ] Adicionar contexto sobre dados da clínica (nome, especialidades, profissional)
+- [ ] Implementar instruções claras para fluxo de agendamento
+- [ ] Adicionar validações de entidades (nome vs horário vs dados de paciente)
+- [ ] Criar estrutura de memória de contexto para conversas
+
+### Fluxo de Agendamento
+- [ ] Implementar cumprimento profissional
+- [ ] Adicionar coleta estruturada de dados do paciente
+- [ ] Implementar apresentação clara de horários disponíveis
+- [ ] Criar confirmação de agendamento com resumo
+- [ ] Adicionar tratamento de erros e esclarecimentos
+
+### Entity Recognition
+- [ ] Diferenciar nome do profissional vs nome do paciente
+- [ ] Reconhecer horários em diferentes formatos
+- [ ] Validar dados de contato (email, telefone)
+- [ ] Identificar tipo de serviço/especialidade solicitada
+
+### Testes
+- [ ] Testar fluxo completo de agendamento
+- [ ] Testar reconhecimento de nomes vs horários
+- [ ] Testar tratamento de dados incompletos
+- [ ] Testar esclarecimentos e correções
