@@ -1027,3 +1027,72 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Criar suite de testes com 7 testes validando todas as correções
 - [x] Todos os testes passando (100%)
 - [ ] Publicar e testar end-to-end com novo agendamento do site
+
+
+## 🟡 FASE 61: Implementar Modelo de Prontuário com 8 Abas (Baseado em docspsi.com.br)
+
+### Aba 1: Sessão
+- [ ] Campo: Paciente (seleção com busca)
+- [ ] Campo: Data da Sessão (date picker)
+- [ ] Campo: Hora de Início (time picker)
+- [ ] Campo: Duração em minutos (number)
+- [ ] Campo: Nº da Sessão (number)
+- [ ] Campo: Tipo de Sessão (dropdown: Individual, Casal, Família, Grupo)
+- [ ] Campo: Modalidade (dropdown: Presencial, Online)
+- [ ] Campo: Local (text)
+
+### Aba 2: Avaliação
+- [ ] Campo: Estado Emocional (dropdown)
+- [ ] Campo: Humor Predominante (dropdown)
+- [ ] Campo: Nível de Sofrimento (slider 0-10)
+- [ ] Campo: Medicações em Uso (textarea)
+- [ ] Campo: Apresentação Geral (textarea)
+- [ ] Campo: Demanda Principal (textarea)
+- [ ] Campo: Temas Abordados (textarea)
+- [ ] Campo: Narrativa Relevante (textarea)
+- [ ] Campo: Avaliação Clínica (textarea)
+- [ ] Campo: Análise Técnica (textarea)
+
+### Aba 3: Intervenções
+- [ ] Campo: Técnicas Utilizadas (textarea)
+- [ ] Campo: Intervenções Planejadas (textarea)
+- [ ] Campo: Tarefa de Casa (textarea)
+- [ ] Campo: Planejamento Terapêutico (textarea)
+
+### Aba 4: Evolução
+- [ ] Campo: Resposta ao Tratamento (textarea)
+- [ ] Campo: Progresso dos Objetivos (textarea)
+- [ ] Campo: Insights Observados (textarea)
+- [ ] Campo: Resistências Observadas (textarea)
+
+### Aba 5: Próxima
+- [ ] Campo: Data da Próxima Sessão (date picker)
+- [ ] Campo: Objetivos para a Próxima Sessão (textarea)
+- [ ] Campo: Ajustes no Plano de Tratamento (textarea)
+
+### Aba 6: Riscos
+- [ ] Campo: Risco de Prejuízo a Si (dropdown: Ausente, Baixo, Moderado, Alto, Extremo)
+- [ ] Campo: Risco a Terceiros (dropdown: Ausente, Baixo, Moderado, Alto, Extremo)
+- [ ] Campo: Risco de Suicídio (dropdown: Ausente, Baixo, Moderado, Alto, Extremo)
+
+### Aba 7: Privado
+- [ ] Campo: Contratransferência (textarea)
+- [ ] Campo: Hipóteses Clínicas (textarea)
+- [ ] Campo: Dúvidas para Supervisão (textarea)
+- [ ] Campo: Medicações em Uso (textarea)
+- [ ] Campo: Encaminhamentos (textarea)
+- [ ] Campo: Observações Adicionais (textarea)
+
+### Aba 8: Análise IA
+- [ ] Botão: "Solicitar Nova Análise"
+- [ ] Exibir: Feedback Técnico gerado pela IA
+- [ ] Exibir: Data/hora da última análise
+- [ ] Exibir: Tokens consumidos (se aplicável)
+
+### Funcionalidades Transversais
+- [ ] Autosave em tempo real com debounce de 1s em TODOS os campos
+- [ ] IA preenche apenas campos vazios (não sobrescreve conteúdo existente)
+- [ ] Botão "Salvar" como confirmação visual (não é o único mecanismo)
+- [ ] Botão "Gerar PDF" com todos os dados
+- [ ] Navegação entre abas com setas "Anterior" e "Próxima"
+- [ ] Indicador de progresso (página X de 8)

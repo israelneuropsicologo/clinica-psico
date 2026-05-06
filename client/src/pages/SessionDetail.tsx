@@ -24,6 +24,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { SessionDetailTabs } from "@/components/SessionTabs/SessionDetailTabs";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("pt-BR", {
@@ -60,6 +61,7 @@ export default function SessionDetail() {
   const [homework, setHomework] = useState("");
   const [aiResult, setAiResult] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const { data: patients } = trpc.patients.list.useQuery({ limit: 1000 });
 
   const existingNote = notes?.[0];
   const trpcUtils = trpc.useUtils();
