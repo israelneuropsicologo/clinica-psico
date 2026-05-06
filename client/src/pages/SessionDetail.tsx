@@ -20,7 +20,7 @@ import {
   User,
   XCircle,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
@@ -41,6 +41,13 @@ export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
   const sessionId = parseInt(id ?? "0");
   const [, navigate] = useLocation();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const { data: session, refetch: refetchSession } = trpc.sessions.getById.useQuery({ id: sessionId });
   const { data: notes, refetch: refetchNotes } = trpc.clinicalNotes.bySession.useQuery({ sessionId });
@@ -196,33 +203,37 @@ export default function SessionDetail() {
   });
 
   const handleSaveNote = (updatedData?: any) => {
-    // Merge tabs data with legacy fields
-    const dataToSave = {
-      ...tabsData,
-      ...updatedData,
-      content: noteContent,
-      mood,
-      progressRating,
-      goals,
-      interventions,
-      homework,
-    };
+    // Usar functional update para evitar closure stale
+    setTabsData((prevTabsData: any) => {
+      const dataToSave = {
+        ...prevTabsData,
+        ...updatedData,
+        content: noteContent,
+        mood,
+        progressRating,
+        goals,
+        interventions,
+        homework,
+      };
 
-    // Validate required fields
-    if (!session?.patientId) {
-      toast.error("Paciente não selecionado.");
-      return;
-    }
+      // Validate required fields
+      if (!session?.patientId) {
+        toast.error("Paciente não selecionado.");
+        return prevTabsData;
+      }
 
-    if (editingNoteId) {
-      updateNote.mutate({ id: editingNoteId, ...dataToSave });
-    } else {
-      createNote.mutate({
-        sessionId,
-        patientId: session.patientId,
-        ...dataToSave,
-      });
-    }
+      if (editingNoteId) {
+        updateNote.mutate({ id: editingNoteId, ...dataToSave });
+      } else {
+        createNote.mutate({
+          sessionId,
+          patientId: session.patientId,
+          ...dataToSave,
+        });
+      }
+      
+      return prevTabsData;
+    });
   };
 
   const handleAnalyzeAI = () => {
@@ -346,7 +357,9 @@ export default function SessionDetail() {
               patients={[]}
               onSave={(updatedData) => {
                 setTabsData({ ...tabsData, ...updatedData });
-                handleSaveNote(updatedData);
+                if (isMountedRef.current) {
+                  handleSaveNote(updatedData);
+                }
               }}
               onAnalyze={handleAnalyzeAI}
               isSaving={createNote.isPending || updateNote.isPending}

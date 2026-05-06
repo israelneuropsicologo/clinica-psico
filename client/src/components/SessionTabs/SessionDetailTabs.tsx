@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Save, AlertCircle } from "lucide-react";
@@ -45,38 +45,50 @@ export function SessionDetailTabs({
   const [currentTabId, setCurrentTabId] = useState(0);
   const [localData, setLocalData] = useState(data || {});
   const [hasChanges, setHasChanges] = useState(false);
-  const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
+
+  // Cleanup ao desmontar
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     setLocalData(data || {});
   }, [data]);
 
-  // Autosave com debounce
+  // Autosave com debounce - CORRIGIDO
   const handleFieldUpdate = useCallback(
     (field: string, value: any) => {
       setLocalData((prev: any) => {
         const updated = { ...prev, [field]: value };
         setHasChanges(true);
 
-        if (saveTimeout) {
-          clearTimeout(saveTimeout);
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
         }
 
-        const newTimeout = setTimeout(() => {
-          try {
-            onSave(updated);
-            setHasChanges(false);
-          } catch (error) {
-            console.error("Erro ao autosalvar:", error);
+        saveTimeoutRef.current = setTimeout(() => {
+          if (isMountedRef.current) {
+            try {
+              onSave(updated);
+              setHasChanges(false);
+            } catch (error) {
+              console.error("Erro ao autosalvar:", error);
+            }
           }
         }, 1000);
 
-        setSaveTimeout(newTimeout);
         return updated;
       });
     },
-    [onSave, saveTimeout]
+    [onSave]
   );
 
   const handlePreviousTab = () => {

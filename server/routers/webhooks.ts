@@ -19,7 +19,6 @@ import { logLGPDEvent, LGPDEventType } from "../_core/lgpdLogger";
 import type { InsertPatient, InsertSession, InsertTransaction } from "../../drizzle/schema";
 import { TRPCError } from "@trpc/server";
 import { eq, and } from "drizzle-orm";
-import z from "zod";
 
 
 export const webhooksRouter = router({
