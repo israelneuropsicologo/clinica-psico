@@ -884,21 +884,29 @@ export const webhooksRouter = router({
 
   /**
    * Criar agendamento direto do site (webhook)
+   * Cria paciente com leadSource="direct_booking" e sessão com status="scheduled"
+   * Recebe dados do site psicologo.manus.space
    */
   createDirectBooking: publicProcedure
     .input(
       z.object({
-        name: z.string().min(1),
-        email: z.string().email(),
-        phone: z.string().optional(),
-        scheduledAt: z.string(), // ISO date string
-        message: z.string().optional(),
-        sessionValue: z.number().optional().default(150),
         token: z.string().optional(),
+        customer_id: z.string(),
+        customer_name: z.string(),
+        customer_email: z.string().email(),
+        customer_phone: z.string().optional(),
+        appointment_date: z.string(), // YYYY-MM-DD
+        appointment_time: z.string(), // HH:mm
+        sessionValue: z.number().optional(),
+        service_type: z.string().default("consultation"),
+        notes: z.string().optional(),
+        session_type: z.enum(["presencial", "online"]).default("presencial"),
+        signature: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        // Validar token e obter userId
         let userId: number;
 
         if (input.token) {
@@ -918,61 +926,132 @@ export const webhooksRouter = router({
               message: `Rate limit excedido. Máximo 100 requisições por minuto.`,
             });
           }
+        } else if (ctx.user) {
+          userId = ctx.user.id;
         } else {
           throw new TRPCError({
             code: "UNAUTHORIZED",
-            message: "Token requerido",
+            message: "Token ou autenticação OAuth requerida",
           });
         }
 
-        // Verificar se paciente já existe
-        let patient = await checkCustomerExists(userId, input.email);
+        // ✅ FIX 1: Usar getPatientByExternalId em vez de checkCustomerExists
+        // checkCustomerExists retorna boolean, getPatientByExternalId retorna objeto
+        let existingPatient = await getPatientByExternalId(userId, input.customer_id);
         let patientId: number;
         
-        if (!patient) {
-          // Criar novo paciente com status prospect
+        if (!existingPatient) {
+          // Criar novo paciente com leadSource="direct_booking"
           const patientData: InsertPatient = {
             userId,
-            name: input.name,
-            email: input.email,
-            phone: input.phone || null,
+            externalCustomerId: input.customer_id,
+            name: input.customer_name,
+            email: input.customer_email,
+            phone: input.customer_phone || null,
             leadSource: "direct_booking",
-            leadStatus: "prospect",
+            leadStatus: "customer",
             status: "active",
             interactionCount: 1,
             lastInteractionAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
           };
           patientId = await createPatient(patientData);
         } else {
-          // Atualizar status para prospect se ainda era lead
-          if (patient.leadStatus === "lead") {
-            await updatePatient(patient.id, { leadStatus: "prospect" });
+          // ✅ FIX 2: Passar userId como segundo argumento para updatePatient
+          // Assinatura correta: updatePatient(id, userId, data)
+          patientId = existingPatient.id;
+          if (existingPatient.leadStatus === "lead") {
+            await updatePatient(patientId, userId, {
+              leadStatus: "customer",
+              interactionCount: (existingPatient.interactionCount || 0) + 1,
+              lastInteractionAt: new Date(),
+            });
           }
-          patientId = patient.id;
         }
 
-        // Criar sessão
-        const scheduledAtMs = new Date(input.scheduledAt).getTime();
+        // Parsear data e hora
+        const appointmentDateTime = new Date(`${input.appointment_date}T${input.appointment_time}`);
+        if (isNaN(appointmentDateTime.getTime())) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Data ou hora inválida",
+          });
+        }
+
+        // Mapear session_type para modality
+        const modality = input.session_type === "online" ? "online" : "in_person";
+
+        // ✅ FIX 3: Usar status="scheduled" (não "pending")
+        // O schema não permite status="pending" em sessions
+        // getDirectBookings filtra por status="scheduled"
         const sessionData: InsertSession = {
           userId,
-          patientId: patientId,
-          scheduledAt: scheduledAtMs,
-          status: "scheduled",
+          patientId,
+          scheduledAt: appointmentDateTime.getTime(),
+          status: "scheduled", // ✅ Correto: "scheduled" em vez de "pending"
+          sessionType: "individual",
+          modality: modality as "in_person" | "online",
+          notes: input.notes || `Agendamento direto do site - ${input.service_type}`,
           sessionValue: input.sessionValue ? String(input.sessionValue) : undefined,
           isPaid: "pending",
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
 
-        const session = await createSession(sessionData);
-        await logWebhook(userId, "direct_booking", input.email, input, "success", "Agendamento criado com sucesso");
+        const sessionId = await createSession(sessionData);
 
+        // Log LGPD
+        logLGPDEvent({
+          userId,
+          eventType: LGPDEventType.PATIENT_CREATED,
+          resourceType: "session",
+          resourceId: String(sessionId),
+          action: "CREATE",
+          dataClassification: "CONFIDENTIAL",
+          description: `Agendamento direto do site: ${input.customer_name} em ${input.appointment_date} às ${input.appointment_time}`,
+          status: "SUCCESS",
+        });
+
+        // Notificar proprietário
+        await notifyOwner({
+          title: "Novo Agendamento Direto do Site",
+          content: `${input.customer_name} agendou uma consulta para ${input.appointment_date} às ${input.appointment_time} (${input.session_type})`,
+        });
+
+        // Log de webhook
+        await logWebhook(userId, "direct_booking", input.customer_id, input, "success");
+
+        // ✅ FIX 4: Retornar patientId (não patient.id)
         return {
           success: true,
-          patientId: patient.id,
-          sessionId: session.id,
-          message: "Agendamento criado com sucesso",
+          sessionId,
+          patientId,
+          message: "Agendamento sincronizado com sucesso",
         }; 
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
+        let userId = 0;
+        try {
+          if (input.token) {
+            const apiToken = await validateApiToken(input.token);
+            if (apiToken) userId = apiToken.userId;
+          } else if (ctx.user) {
+            userId = ctx.user.id;
+          }
+        } catch {}
+
+        if (userId > 0) {
+          await logWebhook(
+            userId,
+            "direct_booking",
+            input.customer_id,
+            input,
+            "failed",
+            errorMessage
+          );
+        }
+
         throw error;
       }
     }),
@@ -1001,6 +1080,7 @@ export const webhooksRouter = router({
 
   /**
    * Listar agendamentos diretos do site
+   * Retorna sessões com status="scheduled" que foram criadas por agendamentos diretos
    */
   getDirectBookings: protectedProcedure
     .input(
@@ -1012,7 +1092,8 @@ export const webhooksRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível" });
 
-      // Buscar sessões pendentes que foram criadas por agendamentos diretos
+      // ✅ FIX: Filtrar por status="scheduled" (não "pending")
+      // O schema não permite status="pending" em sessions
       const bookings = await db
         .select({
           id: sessions.id,
@@ -1034,7 +1115,7 @@ export const webhooksRouter = router({
           and(
             eq(sessions.userId, ctx.user.id),
             eq(patients.leadSource, "direct_booking"),
-            eq(sessions.status, "pending")
+            eq(sessions.status, "scheduled") // ✅ Correto: "scheduled" em vez de "pending"
           )
         )
         .limit(input.limit);
