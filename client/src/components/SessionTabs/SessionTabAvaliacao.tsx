@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 
 interface SessionTabAvaliacaoProps {
@@ -18,7 +17,8 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
   }, [data]);
 
   const handleChange = (field: string, value: any) => {
-    setLocalData((prev: any) => ({ ...prev, [field]: value }));
+    const updated = { ...localData, [field]: value };
+    setLocalData(updated);
     onUpdate(field, value);
   };
 
@@ -28,17 +28,19 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
         {/* Estado Emocional */}
         <div className="space-y-2">
           <Label htmlFor="emotionalState">Estado Emocional</Label>
-          <Select value={localData?.emotionalState || ""} onValueChange={(val) => handleChange("emotionalState", val)}>
+          <Select
+            value={localData?.emotionalState || ""}
+            onValueChange={(val) => handleChange("emotionalState", val)}
+          >
             <SelectTrigger id="emotionalState">
-              <SelectValue placeholder="Selecione" />
+              <SelectValue placeholder="Selecione o estado" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="depressivo">Depressivo</SelectItem>
-              <SelectItem value="ansioso">Ansioso</SelectItem>
-              <SelectItem value="misto">Misto</SelectItem>
-              <SelectItem value="eufórico">Eufórico</SelectItem>
-              <SelectItem value="irritável">Irritável</SelectItem>
-              <SelectItem value="apático">Apático</SelectItem>
+              <SelectItem value="very_sad">Muito Triste</SelectItem>
+              <SelectItem value="sad">Triste</SelectItem>
+              <SelectItem value="neutral">Neutro</SelectItem>
+              <SelectItem value="good">Bem</SelectItem>
+              <SelectItem value="very_good">Muito Bem</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -46,44 +48,51 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
         {/* Humor Predominante */}
         <div className="space-y-2">
           <Label htmlFor="predominantMood">Humor Predominante</Label>
-          <Select value={localData?.predominantMood || ""} onValueChange={(val) => handleChange("predominantMood", val)}>
+          <Select
+            value={localData?.predominantMood || ""}
+            onValueChange={(val) => handleChange("predominantMood", val)}
+          >
             <SelectTrigger id="predominantMood">
-              <SelectValue placeholder="Selecione" />
+              <SelectValue placeholder="Selecione o humor" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="deprimido">Deprimido/Anedônico</SelectItem>
-              <SelectItem value="eufórico">Eufórico</SelectItem>
-              <SelectItem value="ansioso">Ansioso</SelectItem>
-              <SelectItem value="irritável">Irritável</SelectItem>
-              <SelectItem value="apático">Apático</SelectItem>
-              <SelectItem value="neutro">Neutro</SelectItem>
+              <SelectItem value="depressed">Deprimido</SelectItem>
+              <SelectItem value="anhedonic">Anedônico</SelectItem>
+              <SelectItem value="anxious">Ansioso</SelectItem>
+              <SelectItem value="irritable">Irritável</SelectItem>
+              <SelectItem value="stable">Estável</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      {/* Nível de Sofrimento */}
-      <div className="space-y-4">
-        <Label>Nível de Sofrimento: {localData?.sufferingLevel || 0}/10</Label>
+      {/* Nível de Sofrimento (Slider 0-10) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label>Nível de Sofrimento</Label>
+          <span className="text-sm font-semibold text-blue-600">
+            {localData?.sufferingLevel || 0}/10
+          </span>
+        </div>
         <Slider
-          value={[localData?.sufferingLevel || 0]}
-          onValueChange={(val) => handleChange("sufferingLevel", val[0])}
           min={0}
           max={10}
           step={1}
+          value={[localData?.sufferingLevel || 0]}
+          onValueChange={(val) => handleChange("sufferingLevel", val[0])}
           className="w-full"
         />
       </div>
 
-      {/* Medicações em Uso */}
+      {/* Uso de Medicamentos */}
       <div className="space-y-2">
-        <Label htmlFor="medications">Medicações em Uso</Label>
+        <Label htmlFor="medications">Uso de Medicamentos</Label>
         <Textarea
           id="medications"
-          placeholder="Descreva as medicações em uso..."
+          placeholder="Descreva os medicamentos em uso..."
           value={localData?.medications || ""}
           onChange={(e) => handleChange("medications", e.target.value)}
-          className="min-h-24"
+          rows={3}
         />
       </div>
 
@@ -92,10 +101,10 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
         <Label htmlFor="generalPresentation">Apresentação Geral</Label>
         <Textarea
           id="generalPresentation"
-          placeholder="Chorosa, apática, triste..."
+          placeholder="Descreva a apresentação geral do paciente..."
           value={localData?.generalPresentation || ""}
           onChange={(e) => handleChange("generalPresentation", e.target.value)}
-          className="min-h-24"
+          rows={3}
         />
       </div>
 
@@ -104,22 +113,22 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
         <Label htmlFor="mainDemand">Demanda Principal</Label>
         <Textarea
           id="mainDemand"
-          placeholder="Depressão e insônia..."
+          placeholder="Qual é a demanda principal do paciente?"
           value={localData?.mainDemand || ""}
           onChange={(e) => handleChange("mainDemand", e.target.value)}
-          className="min-h-24"
+          rows={3}
         />
       </div>
 
       {/* Temas Abordados */}
       <div className="space-y-2">
-        <Label htmlFor="addressedTopics">Temas Abordados</Label>
+        <Label htmlFor="addressedThemes">Temas Abordados</Label>
         <Textarea
-          id="addressedTopics"
-          placeholder="Trabalho, família, casamento, vontade de ter filhos..."
-          value={localData?.addressedTopics || ""}
-          onChange={(e) => handleChange("addressedTopics", e.target.value)}
-          className="min-h-24"
+          id="addressedThemes"
+          placeholder="Quais temas foram abordados na sessão?"
+          value={localData?.addressedThemes || ""}
+          onChange={(e) => handleChange("addressedThemes", e.target.value)}
+          rows={3}
         />
       </div>
 
@@ -128,10 +137,10 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
         <Label htmlFor="relevantNarrative">Narrativa Relevante</Label>
         <Textarea
           id="relevantNarrative"
-          placeholder="Razão pra viver, falta de foco, de sonhos. Frustração por não engravida..."
+          placeholder="Descreva narrativas relevantes compartilhadas pelo paciente..."
           value={localData?.relevantNarrative || ""}
           onChange={(e) => handleChange("relevantNarrative", e.target.value)}
-          className="min-h-24"
+          rows={3}
         />
       </div>
 
@@ -140,10 +149,10 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
         <Label htmlFor="clinicalAssessment">Avaliação Clínica</Label>
         <Textarea
           id="clinicalAssessment"
-          placeholder="Cliente apresenta estado emocional abalado, crise de ansiedade..."
+          placeholder="Sua avaliação clínica da sessão..."
           value={localData?.clinicalAssessment || ""}
           onChange={(e) => handleChange("clinicalAssessment", e.target.value)}
-          className="min-h-24"
+          rows={4}
         />
       </div>
 
@@ -152,10 +161,10 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
         <Label htmlFor="technicalAnalysis">Análise Técnica</Label>
         <Textarea
           id="technicalAnalysis"
-          placeholder="TCC, escuta ativa, reestruturação cognitiva..."
+          placeholder="Análise técnica da sessão..."
           value={localData?.technicalAnalysis || ""}
           onChange={(e) => handleChange("technicalAnalysis", e.target.value)}
-          className="min-h-24"
+          rows={4}
         />
       </div>
     </div>

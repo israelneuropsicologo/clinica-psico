@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight, Save, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SessionTabSession } from "./SessionTabSession";
 import { SessionTabAvaliacao } from "./SessionTabAvaliacao";
 import { SessionTabInterventions } from "./SessionTabInterventions";
@@ -21,15 +22,15 @@ interface SessionDetailTabsProps {
   isAnalyzing?: boolean;
 }
 
-const tabs = [
-  { id: "sessao", label: "Sessão", icon: "📋" },
-  { id: "avaliacao", label: "Avaliação", icon: "📊" },
-  { id: "intervencoes", label: "Intervenções", icon: "🎯" },
-  { id: "evolucao", label: "Evolução", icon: "📈" },
-  { id: "proxima", label: "Próxima", icon: "🔮" },
-  { id: "riscos", label: "Riscos", icon: "⚠️" },
-  { id: "privado", label: "Privado", icon: "🔒" },
-  { id: "analise-ia", label: "Análise IA", icon: "🤖" },
+const TABS = [
+  { id: 0, label: "Sessão", icon: "📋" },
+  { id: 1, label: "Avaliação", icon: "📊" },
+  { id: 2, label: "Intervenções", icon: "🎯" },
+  { id: 3, label: "Evolução", icon: "📈" },
+  { id: 4, label: "Próxima", icon: "🔮" },
+  { id: 5, label: "Riscos", icon: "⚠️" },
+  { id: 6, label: "Privado", icon: "🔒" },
+  { id: 7, label: "Análise IA", icon: "🤖" },
 ];
 
 export function SessionDetailTabs({
@@ -41,13 +42,14 @@ export function SessionDetailTabs({
   isSaving = false,
   isAnalyzing = false,
 }: SessionDetailTabsProps) {
-  const [currentTabIndex, setCurrentTabIndex] = useState(0);
-  const [localData, setLocalData] = useState(data);
+  const [currentTabId, setCurrentTabId] = useState(0);
+  const [localData, setLocalData] = useState(data || {});
   const [hasChanges, setHasChanges] = useState(false);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    setLocalData(data);
+    setLocalData(data || {});
   }, [data]);
 
   // Autosave com debounce
@@ -57,16 +59,18 @@ export function SessionDetailTabs({
         const updated = { ...prev, [field]: value };
         setHasChanges(true);
 
-        // Limpar timeout anterior
         if (saveTimeout) {
           clearTimeout(saveTimeout);
         }
 
-        // Definir novo timeout para autosave
-        const newTimeout = setTimeout(() => {
-          onSave(updated);
-          setHasChanges(false);
-        }, 1000); // 1 segundo de debounce
+        const newTimeout = setTimeout(async () => {
+          try {
+            await onSave(updated);
+            setHasChanges(false);
+          } catch (error) {
+            console.error("Erro ao autosalvar:", error);
+          }
+        }, 1000);
 
         setSaveTimeout(newTimeout);
         return updated;
@@ -76,14 +80,14 @@ export function SessionDetailTabs({
   );
 
   const handlePreviousTab = () => {
-    if (currentTabIndex > 0) {
-      setCurrentTabIndex(currentTabIndex - 1);
+    if (currentTabId > 0) {
+      setCurrentTabId(currentTabId - 1);
     }
   };
 
   const handleNextTab = () => {
-    if (currentTabIndex < tabs.length - 1) {
-      setCurrentTabIndex(currentTabIndex + 1);
+    if (currentTabId < TABS.length - 1) {
+      setCurrentTabId(currentTabId + 1);
     }
   };
 
@@ -91,115 +95,127 @@ export function SessionDetailTabs({
     if (saveTimeout) {
       clearTimeout(saveTimeout);
     }
-    await onSave(localData);
-    setHasChanges(false);
+    try {
+      await onSave(localData);
+      setHasChanges(false);
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+    }
   };
 
-  const currentTab = tabs[currentTabIndex];
+  const currentTab = TABS[currentTabId];
 
   return (
-    <div className="space-y-4">
-      {/* Header com indicador de progresso */}
+    <div className="space-y-4 w-full">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Editar Prontuário</h3>
           <p className="text-sm text-muted-foreground">
-            Página {currentTabIndex + 1} de {tabs.length}
+            {currentTab.label} ({currentTabId + 1} de {TABS.length})
           </p>
         </div>
-        <div className="flex gap-2">
-          {hasChanges && <span className="text-xs text-orange-600 font-medium">● Não salvo</span>}
+        <div className="flex items-center gap-2">
+          {hasChanges && (
+            <span className="text-xs text-orange-600 font-medium flex items-center gap-1">
+              <span className="w-2 h-2 bg-orange-600 rounded-full animate-pulse"></span>
+              Não salvo
+            </span>
+          )}
           <Button
             onClick={handleManualSave}
             disabled={!hasChanges || isSaving}
             size="sm"
-            variant="outline"
+            className="gap-2"
           >
-            <Save className="h-4 w-4 mr-2" />
+            <Save className="h-4 w-4" />
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={currentTab.id} onValueChange={(tabId) => {
-        const index = tabs.findIndex((t) => t.id === tabId);
-        if (index !== -1) setCurrentTabIndex(index);
-      }}>
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.id} className="text-xs">
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="sm:hidden">{tab.icon}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      {/* Stepper - Horizontal tabs */}
+      <div className="flex gap-1 overflow-x-auto pb-2 border-b">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setCurrentTabId(tab.id)}
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+              currentTabId === tab.id
+                ? "border-b-2 border-blue-600 text-blue-600"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span className="mr-1">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        {/* Aba: Sessão */}
-        <TabsContent value="sessao" className="space-y-4">
-          <SessionTabSession data={localData} onUpdate={handleFieldUpdate} patients={patients} />
-        </TabsContent>
+      {/* Content Area */}
+      <Card className="border">
+        <CardContent className="pt-6">
+          {currentTabId === 0 && (
+            <SessionTabSession
+              data={localData}
+              onUpdate={handleFieldUpdate}
+              patients={patients}
+            />
+          )}
+          {currentTabId === 1 && (
+            <SessionTabAvaliacao data={localData} onUpdate={handleFieldUpdate} />
+          )}
+          {currentTabId === 2 && (
+            <SessionTabInterventions data={localData} onUpdate={handleFieldUpdate} />
+          )}
+          {currentTabId === 3 && (
+            <SessionTabEvolution data={localData} onUpdate={handleFieldUpdate} />
+          )}
+          {currentTabId === 4 && (
+            <SessionTabNext data={localData} onUpdate={handleFieldUpdate} />
+          )}
+          {currentTabId === 5 && (
+            <SessionTabRisks data={localData} onUpdate={handleFieldUpdate} />
+          )}
+          {currentTabId === 6 && (
+            <SessionTabPrivate data={localData} onUpdate={handleFieldUpdate} />
+          )}
+          {currentTabId === 7 && (
+            <SessionTabAI
+              data={localData}
+              onAnalyze={onAnalyze}
+              isLoading={isAnalyzing}
+            />
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Aba: Avaliação */}
-        <TabsContent value="avaliacao" className="space-y-4">
-          <SessionTabAvaliacao data={localData} onUpdate={handleFieldUpdate} />
-        </TabsContent>
-
-        {/* Aba: Intervenções */}
-        <TabsContent value="intervencoes" className="space-y-4">
-          <SessionTabInterventions data={localData} onUpdate={handleFieldUpdate} />
-        </TabsContent>
-
-        {/* Aba: Evolução */}
-        <TabsContent value="evolucao" className="space-y-4">
-          <SessionTabEvolution data={localData} onUpdate={handleFieldUpdate} />
-        </TabsContent>
-
-        {/* Aba: Próxima */}
-        <TabsContent value="proxima" className="space-y-4">
-          <SessionTabNext data={localData} onUpdate={handleFieldUpdate} />
-        </TabsContent>
-
-        {/* Aba: Riscos */}
-        <TabsContent value="riscos" className="space-y-4">
-          <SessionTabRisks data={localData} onUpdate={handleFieldUpdate} />
-        </TabsContent>
-
-        {/* Aba: Privado */}
-        <TabsContent value="privado" className="space-y-4">
-          <SessionTabPrivate data={localData} onUpdate={handleFieldUpdate} />
-        </TabsContent>
-
-        {/* Aba: Análise IA */}
-        <TabsContent value="analise-ia" className="space-y-4">
-          <SessionTabAI data={localData} onAnalyze={onAnalyze} isLoading={isAnalyzing} />
-        </TabsContent>
-      </Tabs>
-
-      {/* Navegação entre abas */}
+      {/* Navigation Buttons */}
       <div className="flex items-center justify-between pt-4 border-t">
         <Button
           onClick={handlePreviousTab}
-          disabled={currentTabIndex === 0}
+          disabled={currentTabId === 0}
           variant="outline"
           size="sm"
+          className="gap-2"
         >
-          <ChevronLeft className="h-4 w-4 mr-2" />
+          <ChevronLeft className="h-4 w-4" />
           Anterior
         </Button>
 
-        <span className="text-sm text-muted-foreground">
-          {currentTab.label} ({currentTabIndex + 1}/{tabs.length})
-        </span>
+        <div className="text-sm text-muted-foreground">
+          {currentTab.label} ({currentTabId + 1}/{TABS.length})
+        </div>
 
         <Button
           onClick={handleNextTab}
-          disabled={currentTabIndex === tabs.length - 1}
+          disabled={currentTabId === TABS.length - 1}
           variant="outline"
           size="sm"
+          className="gap-2"
         >
           Próxima
-          <ChevronRight className="h-4 w-4 ml-2" />
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
     </div>

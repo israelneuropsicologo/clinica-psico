@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -15,57 +15,54 @@ export function SessionTabEvolution({ data, onUpdate }: SessionTabEvolutionProps
   }, [data]);
 
   const handleChange = (field: string, value: any) => {
-    setLocalData((prev: any) => ({ ...prev, [field]: value }));
+    const updated = { ...localData, [field]: value };
+    setLocalData(updated);
     onUpdate(field, value);
   };
 
   return (
     <div className="space-y-6">
-      {/* Resposta ao Tratamento */}
       <div className="space-y-2">
         <Label htmlFor="treatmentResponse">Resposta ao Tratamento</Label>
         <Textarea
           id="treatmentResponse"
-          placeholder="Como o paciente está respondendo ao tratamento..."
+          placeholder="Como o paciente respondeu ao tratamento?"
           value={localData?.treatmentResponse || ""}
           onChange={(e) => handleChange("treatmentResponse", e.target.value)}
-          className="min-h-32"
+          rows={4}
         />
       </div>
 
-      {/* Progresso dos Objetivos */}
       <div className="space-y-2">
-        <Label htmlFor="objectiveProgress">Progresso dos Objetivos</Label>
+        <Label htmlFor="goalsProgress">Progresso dos Objetivos</Label>
         <Textarea
-          id="objectiveProgress"
-          placeholder="Avanços nos objetivos terapêuticos..."
-          value={localData?.objectiveProgress || ""}
-          onChange={(e) => handleChange("objectiveProgress", e.target.value)}
-          className="min-h-32"
+          id="goalsProgress"
+          placeholder="Qual foi o progresso em relação aos objetivos?"
+          value={localData?.goalsProgress || ""}
+          onChange={(e) => handleChange("goalsProgress", e.target.value)}
+          rows={4}
         />
       </div>
 
-      {/* Insights Observados */}
       <div className="space-y-2">
         <Label htmlFor="observedInsights">Insights Observados</Label>
         <Textarea
           id="observedInsights"
-          placeholder="Momentos de insight, autopercepcão..."
+          placeholder="Quais insights foram observados?"
           value={localData?.observedInsights || ""}
           onChange={(e) => handleChange("observedInsights", e.target.value)}
-          className="min-h-32"
+          rows={4}
         />
       </div>
 
-      {/* Resistências Observadas */}
       <div className="space-y-2">
         <Label htmlFor="observedResistances">Resistências Observadas</Label>
         <Textarea
           id="observedResistances"
-          placeholder="Resistências, evitações, mecanismos de defesa..."
+          placeholder="Quais resistências foram observadas?"
           value={localData?.observedResistances || ""}
           onChange={(e) => handleChange("observedResistances", e.target.value)}
-          className="min-h-32"
+          rows={4}
         />
       </div>
     </div>

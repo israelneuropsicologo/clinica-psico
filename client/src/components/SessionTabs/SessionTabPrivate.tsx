@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,88 +17,83 @@ export function SessionTabPrivate({ data, onUpdate }: SessionTabPrivateProps) {
   }, [data]);
 
   const handleChange = (field: string, value: any) => {
-    setLocalData((prev: any) => ({ ...prev, [field]: value }));
+    const updated = { ...localData, [field]: value };
+    setLocalData(updated);
     onUpdate(field, value);
   };
 
   return (
     <div className="space-y-6">
-      <Alert>
-        <Lock className="h-4 w-4" />
-        <AlertDescription>
-          Estas anotações são de uso exclusivo do profissional. Não são incluídas em relatórios ou documentos compartilhados com o paciente.
+      <Alert className="border-blue-300 bg-blue-50">
+        <Lock className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-900">
+          🔒 <strong>Confidencial:</strong> As anotações desta aba são de uso exclusivo do profissional e NUNCA serão incluídas em relatórios ou documentos compartilhados com o paciente.
         </AlertDescription>
       </Alert>
 
-      {/* Contratransferência */}
       <div className="space-y-2">
         <Label htmlFor="countertransference">Contratransferência</Label>
         <Textarea
           id="countertransference"
-          placeholder="Sentimentos e reações do profissional durante a sessão..."
+          placeholder="Descreva suas reações emocionais e contratransferência..."
           value={localData?.countertransference || ""}
           onChange={(e) => handleChange("countertransference", e.target.value)}
-          className="min-h-32"
+          rows={4}
         />
       </div>
 
-      {/* Hipóteses Clínicas */}
       <div className="space-y-2">
         <Label htmlFor="clinicalHypotheses">Hipóteses Clínicas</Label>
         <Textarea
           id="clinicalHypotheses"
-          placeholder="Hipóteses diagnósticas e de compreensão do caso..."
+          placeholder="Quais são suas hipóteses clínicas?"
           value={localData?.clinicalHypotheses || ""}
           onChange={(e) => handleChange("clinicalHypotheses", e.target.value)}
-          className="min-h-32"
+          rows={4}
         />
       </div>
 
-      {/* Dúvidas para Supervisão */}
       <div className="space-y-2">
-        <Label htmlFor="supervisionQuestions">Dúvidas para Supervisão</Label>
+        <Label htmlFor="supervisoryQuestions">Dúvidas para Supervisão</Label>
         <Textarea
-          id="supervisionQuestions"
-          placeholder="Pontos a levar para supervisão clínica..."
-          value={localData?.supervisionQuestions || ""}
-          onChange={(e) => handleChange("supervisionQuestions", e.target.value)}
-          className="min-h-32"
+          id="supervisoryQuestions"
+          placeholder="Quais dúvidas você gostaria de discutir em supervisão?"
+          value={localData?.supervisoryQuestions || ""}
+          onChange={(e) => handleChange("supervisoryQuestions", e.target.value)}
+          rows={4}
         />
       </div>
 
-      {/* Medicações em Uso */}
       <div className="space-y-2">
-        <Label htmlFor="privateMedications">Medicações em Uso</Label>
+        <Label htmlFor="currentMedications">Medicações em Uso</Label>
         <Textarea
-          id="privateMedications"
-          placeholder="Anotações sobre medicações e efeitos observados..."
-          value={localData?.privateMedications || ""}
-          onChange={(e) => handleChange("privateMedications", e.target.value)}
-          className="min-h-32"
+          id="currentMedications"
+          placeholder="Descreva as medicações em uso (observações clínicas)..."
+          value={localData?.currentMedications || ""}
+          onChange={(e) => handleChange("currentMedications", e.target.value)}
+          rows={3}
         />
       </div>
 
-      {/* Encaminhamentos */}
       <div className="space-y-2">
         <Label htmlFor="referrals">Encaminhamentos</Label>
         <Textarea
           id="referrals"
-          placeholder="Encaminhamentos realizados ou necessários..."
+          placeholder="Descreva encaminhamentos necessários..."
           value={localData?.referrals || ""}
           onChange={(e) => handleChange("referrals", e.target.value)}
-          className="min-h-32"
+          rows={3}
         />
       </div>
 
-      {/* Observações Adicionais */}
       <div className="space-y-2">
         <Label htmlFor="additionalNotes">Observações Adicionais</Label>
         <Textarea
           id="additionalNotes"
-          placeholder="Qualquer informação adicional relevante..."
+          placeholder="Outras observações clínicas relevantes..."
           value={localData?.additionalNotes || ""}
           onChange={(e) => handleChange("additionalNotes", e.target.value)}
-          className="min-h-32"
+          rows={4}
         />
       </div>
     </div>

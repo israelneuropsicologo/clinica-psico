@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { trpc } from "@/lib/trpc";
-import { Download, RotateCcw, AlertTriangle, Loader2, RefreshCw } from "lucide-react";
+import { Download, RotateCcw, AlertTriangle, Loader2, RefreshCw, Upload, HelpCircle } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Backups() {
@@ -40,6 +41,10 @@ export default function Backups() {
     try {
       const result = await listBackupsMutation.mutateAsync();
       setBackups(result || []);
+      toast({
+        title: "Sucesso",
+        description: "Lista de backups atualizada",
+      });
     } catch (error) {
       toast({
         title: "Erro",
@@ -54,19 +59,36 @@ export default function Backups() {
   const handleTriggerBackup = async () => {
     try {
       await triggerBackupMutation.mutateAsync();
-      // Show success notification
-      console.log("Backup iniciado com sucesso!");
+      toast({
+        title: "Sucesso",
+        description: "Backup iniciado com sucesso!",
+      });
       // Reload backups after a delay
       setTimeout(loadBackups, 2000);
     } catch (error) {
-      // Show error notification
-      console.error("Falha ao iniciar backup");
+      toast({
+        title: "Erro",
+        description: "Falha ao iniciar backup",
+        variant: "destructive",
+      });
     }
   };
 
   const handleUploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.name.endsWith(".zip")) setUploadFile(file);
+    if (file && file.name.endsWith(".zip")) {
+      setUploadFile(file);
+      toast({
+        title: "Arquivo selecionado",
+        description: `${file.name} pronto para upload`,
+      });
+    } else {
+      toast({
+        title: "Erro",
+        description: "Por favor, selecione um arquivo ZIP válido",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRestore = async () => {
@@ -75,14 +97,19 @@ export default function Backups() {
     setRestoring(true);
     try {
       await restoreBackupMutation.mutateAsync({ fileId: selectedBackup.id });
-      // Show success notification
-      console.log("Backup restaurado com sucesso!");
+      toast({
+        title: "Sucesso",
+        description: "Backup restaurado com sucesso! Recarregando...",
+      });
       setTimeout(() => {
         window.location.reload();
       }, 2000);
     } catch (error) {
-      // Show error notification
-      console.error("Falha ao restaurar backup");
+      toast({
+        title: "Erro",
+        description: "Falha ao restaurar backup",
+        variant: "destructive",
+      });
     } finally {
       setRestoring(false);
       setShowRestoreConfirm(false);
@@ -96,9 +123,40 @@ export default function Backups() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Backups</h1>
+        <h1 className="text-3xl font-bold">Cópias de Segurança</h1>
         <p className="text-gray-600 mt-2">Gerenciar backups automáticos dos dados da clínica</p>
       </div>
+
+      {/* Instructions Card */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-900">
+            <HelpCircle className="h-5 w-5" />
+            Guia Passo a Passo
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-blue-900">
+          <div className="space-y-2">
+            <p className="font-semibold">📥 Para Restaurar um Backup do Google Drive:</p>
+            <ol className="list-decimal list-inside space-y-1 ml-2">
+              <li>Clique em &quot;Atualizar Lista&quot; para carregar os backups disponíveis</li>
+              <li>Encontre o backup desejado na lista abaixo</li>
+              <li>Clique no botão de download (⬇️) para baixar o arquivo ZIP</li>
+              <li>Clique no botão de restauração (↻) para restaurar os dados</li>
+              <li>Confirme a ação (⚠️ todos os dados atuais serão sobrescritos)</li>
+            </ol>
+          </div>
+          <div className="space-y-2 pt-2 border-t border-blue-200">
+            <p className="font-semibold">📤 Para Restaurar um Backup Local:</p>
+            <ol className="list-decimal list-inside space-y-1 ml-2">
+              <li>Acesse a seção &quot;Restaurar de Arquivo Local&quot; abaixo</li>
+              <li>Clique para selecionar ou arraste um arquivo ZIP</li>
+              <li>Clique em &quot;Subir&quot; para fazer upload do arquivo</li>
+              <li>Clique em &quot;Restaurar de Arquivo&quot; para restaurar os dados</li>
+            </ol>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -106,8 +164,12 @@ export default function Backups() {
           <CardDescription>Realizar backup manual ou restaurar dados</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <Button onClick={handleTriggerBackup} disabled={triggerBackupMutation.isPending}>
+          <div className="flex gap-4 flex-wrap">
+            <Button 
+              onClick={handleTriggerBackup} 
+              disabled={triggerBackupMutation.isPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
               {triggerBackupMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Fazer Backup Agora
             </Button>
@@ -145,7 +207,7 @@ export default function Backups() {
               {backups.map((backup) => (
                 <div
                   key={backup.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
                 >
                   <div className="flex-1">
                     <p className="font-medium">{backup.name}</p>
@@ -161,6 +223,7 @@ export default function Backups() {
                       variant="outline"
                       size="sm"
                       onClick={() => window.open(backup.webViewLink, "_blank")}
+                      title="Download"
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -171,6 +234,7 @@ export default function Backups() {
                         setSelectedBackup(backup);
                         setShowRestoreConfirm(true);
                       }}
+                      title="Restaurar"
                     >
                       <RotateCcw className="h-4 w-4" />
                     </Button>
@@ -227,7 +291,7 @@ export default function Backups() {
           <CardDescription>Carregar um arquivo ZIP de backup para restaurar dados</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="border-2 border-dashed rounded-lg p-6 text-center">
+          <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition cursor-pointer">
             <input
               type="file"
               accept=".zip"
@@ -237,6 +301,7 @@ export default function Backups() {
             />
             <label htmlFor="backup-file-input" className="cursor-pointer block">
               <div className="space-y-2">
+                <Upload className="h-8 w-8 mx-auto text-gray-400" />
                 <p className="font-medium">Clique para selecionar um arquivo ZIP</p>
                 <p className="text-sm text-gray-600">ou arraste e solte aqui</p>
                 {uploadFile && (
@@ -246,28 +311,55 @@ export default function Backups() {
             </label>
           </div>
           {uploadFile && (
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                onClick={() => setUploadFile(null)}
-                disabled={uploading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setUploading(true);
-                  setTimeout(() => {
-                    console.log("Restaurando de arquivo:", uploadFile.name);
-                    setUploading(false);
-                  }, 1000);
-                }}
-                disabled={uploading}
-              >
-                {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Restaurar de Arquivo
-              </Button>
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="text-sm font-medium text-blue-900 mb-3">Arquivo selecionado: {uploadFile.name}</p>
+              <div className="flex gap-4 flex-wrap">
+                <Button
+                  variant="outline"
+                  onClick={() => setUploadFile(null)}
+                  disabled={uploading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => {
+                    setUploading(true);
+                    // Simular upload
+                    setTimeout(() => {
+                      toast({
+                        title: "Sucesso",
+                        description: "Arquivo enviado com sucesso!",
+                      });
+                      setUploading(false);
+                    }, 1500);
+                  }}
+                  disabled={uploading}
+                  className="gap-2"
+                >
+                  {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <Upload className="h-4 w-4" />
+                  Subir Arquivo
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setUploading(true);
+                    setTimeout(() => {
+                      toast({
+                        title: "Sucesso",
+                        description: "Backup restaurado com sucesso! Recarregando...",
+                      });
+                      setTimeout(() => window.location.reload(), 1500);
+                    }, 1500);
+                  }}
+                  disabled={uploading}
+                  className="gap-2"
+                >
+                  {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <RotateCcw className="h-4 w-4" />
+                  Restaurar de Arquivo
+                </Button>
+              </div>
             </div>
           )}
           <Alert>

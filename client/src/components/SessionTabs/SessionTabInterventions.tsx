@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -15,57 +15,54 @@ export function SessionTabInterventions({ data, onUpdate }: SessionTabInterventi
   }, [data]);
 
   const handleChange = (field: string, value: any) => {
-    setLocalData((prev: any) => ({ ...prev, [field]: value }));
+    const updated = { ...localData, [field]: value };
+    setLocalData(updated);
     onUpdate(field, value);
   };
 
   return (
     <div className="space-y-6">
-      {/* Técnicas Utilizadas */}
       <div className="space-y-2">
-        <Label htmlFor="techniquesUsed">Técnicas Utilizadas</Label>
+        <Label htmlFor="techniques">Técnicas Utilizadas</Label>
         <Textarea
-          id="techniquesUsed"
-          placeholder="TCC, escuta ativa, reestruturação cognitiva..."
-          value={localData?.techniquesUsed || ""}
-          onChange={(e) => handleChange("techniquesUsed", e.target.value)}
-          className="min-h-32"
+          id="techniques"
+          placeholder="Quais técnicas foram utilizadas?"
+          value={localData?.techniques || ""}
+          onChange={(e) => handleChange("techniques", e.target.value)}
+          rows={4}
         />
       </div>
 
-      {/* Intervenções Planejadas */}
       <div className="space-y-2">
         <Label htmlFor="plannedInterventions">Intervenções Planejadas</Label>
         <Textarea
           id="plannedInterventions"
-          placeholder="Próximas intervenções a serem aplicadas..."
+          placeholder="Quais intervenções foram planejadas?"
           value={localData?.plannedInterventions || ""}
           onChange={(e) => handleChange("plannedInterventions", e.target.value)}
-          className="min-h-32"
+          rows={4}
         />
       </div>
 
-      {/* Tarefa de Casa */}
       <div className="space-y-2">
         <Label htmlFor="homework">Tarefa de Casa</Label>
         <Textarea
           id="homework"
-          placeholder="Atividades sugeridas para o paciente entre sessões..."
+          placeholder="Qual é a tarefa de casa para o paciente?"
           value={localData?.homework || ""}
           onChange={(e) => handleChange("homework", e.target.value)}
-          className="min-h-32"
+          rows={4}
         />
       </div>
 
-      {/* Planejamento Terapêutico */}
       <div className="space-y-2">
         <Label htmlFor="therapeuticPlanning">Planejamento Terapêutico</Label>
         <Textarea
           id="therapeuticPlanning"
-          placeholder="Plano de tratamento e etapas futuras..."
+          placeholder="Descreva o planejamento terapêutico..."
           value={localData?.therapeuticPlanning || ""}
           onChange={(e) => handleChange("therapeuticPlanning", e.target.value)}
-          className="min-h-32"
+          rows={4}
         />
       </div>
     </div>
