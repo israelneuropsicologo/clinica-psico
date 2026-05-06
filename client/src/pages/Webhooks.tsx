@@ -17,6 +17,11 @@ export default function Webhooks() {
   const [origin, setOrigin] = useState("");
   const [externalToken, setExternalToken] = useState("");
   const [savingToken, setSavingToken] = useState(false);
+  const [integration1Token, setIntegration1Token] = useState("");
+  const [integration2Token, setIntegration2Token] = useState("");
+  const [integration3Token, setIntegration3Token] = useState("");
+  const [integration4Token, setIntegration4Token] = useState("");
+  const [savingIntegration, setSavingIntegration] = useState<number | null>(null);
 
   // Evitar problema de hidratação: ler window.location.origin apenas no useEffect
   useEffect(() => {
@@ -26,7 +31,32 @@ export default function Webhooks() {
     if (savedToken) {
       setExternalToken(savedToken);
     }
+    // Carregar tokens de integracao salvos
+    const saved1 = localStorage.getItem("integrationToken1");
+    if (saved1) setIntegration1Token(saved1);
+    const saved2 = localStorage.getItem("integrationToken2");
+    if (saved2) setIntegration2Token(saved2);
+    const saved3 = localStorage.getItem("integrationToken3");
+    if (saved3) setIntegration3Token(saved3);
+    const saved4 = localStorage.getItem("integrationToken4");
+    if (saved4) setIntegration4Token(saved4);
   }, []);
+
+  const handleSaveIntegrationToken = async (integrationNumber: number, token: string) => {
+    if (!token.trim()) {
+      toast.error("Por favor, insira um token valido");
+      return;
+    }
+    setSavingIntegration(integrationNumber);
+    try {
+      localStorage.setItem(`integrationToken${integrationNumber}`, token);
+      toast.success("Token da Integracao " + integrationNumber + " salvo com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao salvar token");
+    } finally {
+      setSavingIntegration(null);
+    }
+  };
 
   const handleSaveExternalToken = async () => {
     if (!externalToken.trim()) {
@@ -330,6 +360,165 @@ export default function Webhooks() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Integration Tokens Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Integration 1 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Integração 1</CardTitle>
+              <CardDescription>
+                Token para integração futura
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="integration1Token" className="text-sm font-medium">
+                  Token de Integração
+                </label>
+                <Input
+                  id="integration1Token"
+                  type="text"
+                  placeholder="Cole aqui o token..."
+                  className="font-mono"
+                  value={integration1Token}
+                  onChange={(e) => setIntegration1Token(e.target.value)}
+                />
+              </div>
+              <Button
+                onClick={() => handleSaveIntegrationToken(1, integration1Token)}
+                disabled={savingIntegration === 1}
+                className="w-full bg-green-500 hover:bg-green-600 text-white transition-colors duration-300"
+              >
+                {savingIntegration === 1 ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  "Salvar e Publicar"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Integration 2 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Integração 2</CardTitle>
+              <CardDescription>
+                Token para integração futura
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="integration2Token" className="text-sm font-medium">
+                  Token de Integração
+                </label>
+                <Input
+                  id="integration2Token"
+                  type="text"
+                  placeholder="Cole aqui o token..."
+                  className="font-mono"
+                  value={integration2Token}
+                  onChange={(e) => setIntegration2Token(e.target.value)}
+                />
+              </div>
+              <Button
+                onClick={() => handleSaveIntegrationToken(2, integration2Token)}
+                disabled={savingIntegration === 2}
+                className="w-full bg-green-500 hover:bg-green-600 text-white transition-colors duration-300"
+              >
+                {savingIntegration === 2 ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  "Salvar e Publicar"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Integration 3 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Integração 3</CardTitle>
+              <CardDescription>
+                Token para integração futura
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="integration3Token" className="text-sm font-medium">
+                  Token de Integração
+                </label>
+                <Input
+                  id="integration3Token"
+                  type="text"
+                  placeholder="Cole aqui o token..."
+                  className="font-mono"
+                  value={integration3Token}
+                  onChange={(e) => setIntegration3Token(e.target.value)}
+                />
+              </div>
+              <Button
+                onClick={() => handleSaveIntegrationToken(3, integration3Token)}
+                disabled={savingIntegration === 3}
+                className="w-full bg-green-500 hover:bg-green-600 text-white transition-colors duration-300"
+              >
+                {savingIntegration === 3 ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  "Salvar e Publicar"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Integration 4 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Integração 4</CardTitle>
+              <CardDescription>
+                Token para integração futura
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="integration4Token" className="text-sm font-medium">
+                  Token de Integração
+                </label>
+                <Input
+                  id="integration4Token"
+                  type="text"
+                  placeholder="Cole aqui o token..."
+                  className="font-mono"
+                  value={integration4Token}
+                  onChange={(e) => setIntegration4Token(e.target.value)}
+                />
+              </div>
+              <Button
+                onClick={() => handleSaveIntegrationToken(4, integration4Token)}
+                disabled={savingIntegration === 4}
+                className="w-full bg-green-500 hover:bg-green-600 text-white transition-colors duration-300"
+              >
+                {savingIntegration === 4 ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  "Salvar e Publicar"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Webhook Configuration */}
         <Card>
