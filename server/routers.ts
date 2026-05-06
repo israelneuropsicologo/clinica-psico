@@ -46,6 +46,7 @@ import { financialRouter } from "./routers/financial";
 import { webhooksRouter } from "./routers/webhooks";
 import { websiteAppointmentsRouter } from "./routers/website-appointments";
 import { anamneseRouter, recordingsRouter, timelineRouter } from "./routers/patientProfile";
+import { managementReportsRouter } from "./routers/managementReports";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -927,6 +928,7 @@ export const appRouter = router({
   anamnese: anamneseRouter,
   recordings: recordingsRouter,
   timeline: timelineRouter,
+  managementReports: managementReportsRouter,
   userSync: userSyncRouter,
   calendar: router({
     getEvents: protectedProcedure

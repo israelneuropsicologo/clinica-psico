@@ -256,7 +256,7 @@
 
 ### Geração de PDF:
 - [ ] Criar endpoint `/api/reports/generate-pdf` no backend
-- [ ] Implementar botão "Gerar PDF" na interface
+- [x] Implementar botão "Gerar PDF" na interface
 - [ ] Formatar PDF com papel timbrado da clínica
 - [ ] Incluir tabelas e gráficos no PDF
 - [ ] Testar download do PDF
@@ -1168,3 +1168,40 @@ await trpc.userSync.linkUsers.mutate({
 - [ ] Botão "Gerar PDF" com todos os dados
 - [ ] Navegação entre abas com setas "Anterior" e "Próxima"
 - [ ] Indicador de progresso (página X de 8)
+
+
+## Fase X: Relatórios Gerenciais (Nova Feature)
+
+### Backend - Procedures e Data Fetching
+- [x] Criar tRPC procedure para buscar dados financeiros (receita bruta, despesas, pendências)
+- [x] Criar tRPC procedure para buscar métricas de pacientes (novos cadastros, sessões ativas, taxa de conversão)
+- [x] Criar tRPC procedure para buscar métricas clínicas (prontuários criados, uso de IA)
+- [x] Criar tRPC procedure para buscar status do último backup
+- [x] Implementar filtros de data (data início, data fim) nos procedures
+
+### Frontend - Interface de Relatórios
+- [x] Criar página AdminReports.tsx com layout de filtros
+- [x] Implementar seletores de data (Data Início, Data Fim)
+- [x] Implementar dropdown de Categoria de Relatório
+- [x] Criar componente ReportFilters.tsx para os filtros
+- [x] Criar componente ReportPreview.tsx para visualização em tela
+
+### Frontend - Módulos de Dados
+- [x] Criar componente FinancialSummary.tsx com tabela e gráfico de barras
+- [x] Criar componente PatientMetrics.tsx com dashboard de métricas
+- [x] Criar componente ClinicalManagement.tsx com contadores e estatísticas
+- [x] Criar componente SystemIntegrity.tsx com status de backup
+
+### PDF Generation
+- [x] Criar helper para geração de PDF com papel timbrado
+- [x] Implementar função para renderizar tabelas em PDF
+- [x] Implementar função para renderizar gráficos em PDF (Chart.js)
+- [x] Criar tRPC procedure para gerar PDF sob demanda
+- [x] Implementar botão "Gerar PDF" na interface
+
+### Testes e Validação
+- [ ] Testar filtros de data
+- [ ] Testar visualização de dados em tela
+- [ ] Testar geração de PDF com todos os módulos
+- [ ] Validar formatação e layout do PDF
+- [ ] Testar acesso apenas para admin
