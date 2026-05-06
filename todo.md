@@ -1205,3 +1205,35 @@ await trpc.userSync.linkUsers.mutate({
 - [ ] Testar geração de PDF com todos os módulos
 - [ ] Validar formatação e layout do PDF
 - [ ] Testar acesso apenas para admin
+
+
+## Fase X: Melhorias na Agenda Interativa e Agendamentos Diretos
+
+### Schema e Backend
+- [x] Adicionar campo `rejectionReason` na tabela `sessions` para armazenar motivo de recusa
+- [x] Adicionar campo `rejectionDate` na tabela `sessions` para registrar data da recusa
+- [x] Criar tRPC procedure para confirmar agendamento direto (mover para agenda)
+- [x] Criar tRPC procedure para recusar agendamento (arquivar com motivo)
+- [x] Criar tRPC procedure para listar agendamentos diretos pendentes (não confirmados/recusados)
+- [x] Adicionar lógica para remover agendamento do painel após confirmar ou recusar
+
+### Frontend - Timezone
+- [x] Implementar detecção automática de fuso horário do usuário
+- [x] Armazenar fuso horário nas preferências do usuário
+- [x] Sincronizar agenda com fuso horário detectado
+- [x] Converter horários de agendamentos para fuso horário local
+
+### Frontend - UI/UX
+- [x] Criar modal de recusa com campo de motivo
+- [x] Implementar botão "Confirmar" que remove agendamento do painel
+- [x] Implementar botão "Recusar" que abre modal
+- [x] Atualizar painel de "AGENDAMENTOS DIRETOS" para remover itens processados
+- [x] Adicionar feedback visual (toast) após confirmar/recusar
+- [x] Adicionar histórico de recusas no perfil do paciente
+
+### Testes
+- [x] Testar fluxo de confirmação de agendamento
+- [x] Testar fluxo de recusa com motivo
+- [x] Testar remoção de agendamentos do painel
+- [x] Testar detecção de fuso horário
+- [x] Testar sincronização de horários na agenda
