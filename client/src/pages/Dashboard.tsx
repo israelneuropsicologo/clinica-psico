@@ -75,9 +75,6 @@ export default function Dashboard() {
             Visão geral da sua clínica —{" "}
             {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
-          <p className="text-green-600 dark:text-green-400 text-xs mt-2 font-medium">
-            ✓ Integração de agendamentos diretos corrigida - Clientes agora são salvos com nomes reais
-          </p>
         </div>
 
         {/* Metric Cards */}

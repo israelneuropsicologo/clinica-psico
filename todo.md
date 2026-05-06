@@ -1006,12 +1006,24 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Testar atualizacao de leadStatus
 
 
-## 🟢 FASE 60: Correção Crítica da Integração de Agendamentos Diretos
-- [x] Clientes do site psicologo.manus.space agora são salvos na Clínica App
-- [x] Nomes reais dos clientes aparecem corretamente
-- [x] Agendamentos sincronizam para a agenda
-- [x] Investigar e corrigir 6 bugs críticos no webhook
-- [x] Corrigir sincronização de nomes e dados do paciente
-- [x] Criar suite de 7 testes validando todas as correções
-- [x] Publicar e disponibilizar para teste end-to-end
+## 🔴 CRÍTICO: Integração de Agendamentos Diretos Quebrada
+- [ ] Clientes do site psicologo.manus.space NÃO estão sendo salvos na Clínica App
+- [ ] Nomes reais dos clientes não aparecem (apenas IDs)
+- [ ] Agendamentos não sincronizam para a agenda
+- [ ] Investigar por que webhook não está recebendo dados corretamente
+- [ ] Corrigir sincronização de nomes e dados do paciente
+- [ ] Testar end-to-end com novo agendamento
 
+
+## 🟢 FASE 60: Correção Crítica da Integração de Agendamentos Diretos
+- [x] Investigar por que clientes não estão sendo salvos com nomes reais
+- [x] Identificar 6 bugs críticos no webhook createDirectBooking
+- [x] FIX 1: Usar getPatientByExternalId em vez de checkCustomerExists
+- [x] FIX 2: Passar userId como segundo argumento para updatePatient
+- [x] FIX 3: Usar status="scheduled" em vez de "pending"
+- [x] FIX 4: Retornar patientId correto
+- [x] FIX 5: Usar externalCustomerId para rastrear cliente
+- [x] FIX 6: Filtrar getDirectBookings por status="scheduled"
+- [x] Criar suite de testes com 7 testes validando todas as correções
+- [x] Todos os testes passando (100%)
+- [ ] Publicar e testar end-to-end com novo agendamento do site
