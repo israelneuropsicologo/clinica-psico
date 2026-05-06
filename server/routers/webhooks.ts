@@ -17,6 +17,7 @@ import { retryWithBackoff } from "../_core/retryHelper";
 import { verifyWebhookSignature } from "../_core/hmacValidator";
 import { encryptCPF, maskCPF } from "../_core/encryption";
 import { logLGPDEvent, LGPDEventType } from "../_core/lgpdLogger";
+import { normalizeIsPaid } from "../_core/dataSanitizer";
 import type { InsertPatient, InsertSession, InsertTransaction } from "../../drizzle/schema";
 import { TRPCError } from "@trpc/server";
 import { eq, and } from "drizzle-orm";
@@ -734,7 +735,7 @@ export const webhooksRouter = router({
           sessionType: "individual",
           modality: modality as "in_person" | "online",
           notes: input.notes || `Agendamento via ChatBot - ${input.service_type}`,
-          isPaid: "pending",
+          isPaid: normalizeIsPaid("pending"),
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -987,8 +988,8 @@ export const webhooksRouter = router({
           sessionType: "individual",
           modality: modality as "in_person" | "online",
           notes: input.notes || `Agendamento direto do site - ${input.service_type}`,
-          sessionValue: input.sessionValue ? String(input.sessionValue) : null,
-          isPaid: "pending",
+          sessionValue: input.sessionValue ? parseFloat(String(input.sessionValue)) : null,
+          isPaid: normalizeIsPaid("pending"),
           createdAt: new Date(),
           updatedAt: new Date(),
         };
