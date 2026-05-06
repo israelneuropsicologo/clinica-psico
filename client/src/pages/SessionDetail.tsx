@@ -244,103 +244,15 @@ export default function SessionDetail() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Clinical Notes Editor */}
           <div className="xl:col-span-2 space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-primary" />
-                  Prontuário Clínico
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <RichTextEditor
-                  content={noteContent}
-                  onChange={setNoteContent}
-                  placeholder="Escreva suas anotações clínicas aqui..."
-                />
-
-                {/* Mood & Progress */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Estado emocional do paciente</Label>
-                    <Select value={mood} onValueChange={(v) => setMood(v as typeof mood)}>
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="very_bad">😞 Muito ruim</SelectItem>
-                        <SelectItem value="bad">😕 Ruim</SelectItem>
-                        <SelectItem value="neutral">😐 Neutro</SelectItem>
-                        <SelectItem value="good">🙂 Bom</SelectItem>
-                        <SelectItem value="very_good">😊 Muito bom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Progresso ({progressRating}/10)</Label>
-                    <Slider
-                      value={[progressRating]}
-                      onValueChange={([v]) => setProgressRating(v)}
-                      min={1}
-                      max={10}
-                      step={1}
-                      className="mt-2"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Objetivos da sessão</Label>
-                  <textarea
-                    value={goals}
-                    onChange={(e) => setGoals(e.target.value)}
-                    placeholder="Objetivos trabalhados nesta sessão..."
-                    className="w-full min-h-[60px] px-3 py-2 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Intervenções realizadas</Label>
-                  <textarea
-                    value={interventions}
-                    onChange={(e) => setInterventions(e.target.value)}
-                    placeholder="Técnicas e intervenções utilizadas..."
-                    className="w-full min-h-[60px] px-3 py-2 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Tarefa para casa</Label>
-                  <textarea
-                    value={homework}
-                    onChange={(e) => setHomework(e.target.value)}
-                    placeholder="Atividades ou reflexões para o paciente..."
-                    className="w-full min-h-[60px] px-3 py-2 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleSaveNote}
-                    disabled={createNote.isPending || updateNote.isPending}
-                    className="flex-1 gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    {createNote.isPending || updateNote.isPending ? "Salvando..." : "Salvar Prontuário"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleAnalyzeAI}
-                    disabled={analyzeAI.isPending || !editingNoteId}
-                    className="gap-2 border-accent text-accent hover:bg-accent/10"
-                  >
-                    {analyzeAI.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-4 w-4" />
-                    )}
-                    Analisar com IA
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <SessionDetailTabs
+              sessionId={sessionId.toString()}
+              data={notes || {}}
+              patients={[]}
+              onSave={handleSaveNote}
+              onAnalyze={handleAnalyzeAI}
+              isSaving={createNote.isPending || updateNote.isPending}
+              isAnalyzing={analyzeAI.isPending}
+            />
           </div>
 
           {/* AI Panel */}

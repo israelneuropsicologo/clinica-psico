@@ -5,12 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 
-interface SessionTabAvaliacao Props {
+interface SessionTabAvaliacaoProps {
   data: any;
   onUpdate: (field: string, value: any) => void;
 }
 
-export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacao Props) {
+export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps) {
   const [localData, setLocalData] = useState(data);
 
   useEffect(() => {
