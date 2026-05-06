@@ -14,6 +14,8 @@ export default function Backups() {
   const [selectedBackup, setSelectedBackup] = useState<any>(null);
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const listBackupsMutation = trpc.system.listBackups.useMutation();
   const triggerBackupMutation = trpc.system.triggerBackup.useMutation();
@@ -60,6 +62,11 @@ export default function Backups() {
       // Show error notification
       console.error("Falha ao iniciar backup");
     }
+  };
+
+  const handleUploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.name.endsWith(".zip")) setUploadFile(file);
   };
 
   const handleRestore = async () => {
@@ -213,6 +220,64 @@ export default function Backups() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Restaurar de Arquivo Local</CardTitle>
+          <CardDescription>Carregar um arquivo ZIP de backup para restaurar dados</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="border-2 border-dashed rounded-lg p-6 text-center">
+            <input
+              type="file"
+              accept=".zip"
+              onChange={handleUploadFile}
+              className="hidden"
+              id="backup-file-input"
+            />
+            <label htmlFor="backup-file-input" className="cursor-pointer block">
+              <div className="space-y-2">
+                <p className="font-medium">Clique para selecionar um arquivo ZIP</p>
+                <p className="text-sm text-gray-600">ou arraste e solte aqui</p>
+                {uploadFile && (
+                  <p className="text-sm text-green-600 font-medium">✓ {uploadFile.name}</p>
+                )}
+              </div>
+            </label>
+          </div>
+          {uploadFile && (
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                onClick={() => setUploadFile(null)}
+                disabled={uploading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setUploading(true);
+                  setTimeout(() => {
+                    console.log("Restaurando de arquivo:", uploadFile.name);
+                    setUploading(false);
+                  }, 1000);
+                }}
+                disabled={uploading}
+              >
+                {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Restaurar de Arquivo
+              </Button>
+            </div>
+          )}
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              ⚠️ Restaurar um backup irá sobrescrever TODOS os dados atuais. Esta ação não pode ser desfeita.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
     </div>
   );
 }

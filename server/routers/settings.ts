@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { settings as settingsTable, InsertSettings } from "../../drizzle/schema";
 import { TRPCError } from "@trpc/server";
+import { executeFullBackup, listBackupsFromGoogleDrive } from "../_core/backupService";
 
 /**
  * Settings Router - Gerenciamento de configurações do sistema
@@ -158,4 +159,21 @@ export const settingsRouter = router({
 
       return updated[0];
     }),
+
+  triggerBackup: protectedProcedure.mutation(async () => {
+    try {
+      const result = await executeFullBackup();
+      return { success: true, timestamp: result.timestamp, driveLink: result.driveLink };
+    } catch (error: any) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+    }
+  }),
+
+  listBackups: protectedProcedure.query(async () => {
+    try {
+      return await listBackupsFromGoogleDrive();
+    } catch (error: any) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+    }
+  }),
 });
