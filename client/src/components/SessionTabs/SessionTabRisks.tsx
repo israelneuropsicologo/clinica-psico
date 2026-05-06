@@ -83,7 +83,7 @@ export function SessionTabRisks({ data, onUpdate }: SessionTabRisksProps) {
       {/* Risco a Terceiros */}
       <div className="space-y-3">
         <Label className="text-base font-semibold">Risco a Terceiros</Label>
-        {renderRiskButtons("harmToOthersRisk")}
+        {renderRiskButtons("thirdPartyRisk")}
       </div>
 
       {/* Risco de Suicídio */}

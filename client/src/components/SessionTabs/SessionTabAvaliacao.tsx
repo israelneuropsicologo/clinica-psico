@@ -86,12 +86,12 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
 
       {/* Uso de Medicamentos */}
       <div className="space-y-2">
-        <Label htmlFor="medications">Uso de Medicamentos</Label>
+        <Label htmlFor="currentMedications">Uso de Medicamentos</Label>
         <Textarea
-          id="medications"
+          id="currentMedications"
           placeholder="Descreva os medicamentos em uso..."
-          value={localData?.medications || ""}
-          onChange={(e) => handleChange("medications", e.target.value)}
+          value={localData?.currentMedications || ""}
+          onChange={(e) => handleChange("currentMedications", e.target.value)}
           rows={3}
         />
       </div>
@@ -122,12 +122,12 @@ export function SessionTabAvaliacao({ data, onUpdate }: SessionTabAvaliacaoProps
 
       {/* Temas Abordados */}
       <div className="space-y-2">
-        <Label htmlFor="addressedThemes">Temas Abordados</Label>
+        <Label htmlFor="topicsAddressed">Temas Abordados</Label>
         <Textarea
-          id="addressedThemes"
+          id="topicsAddressed"
           placeholder="Quais temas foram abordados na sessão?"
-          value={localData?.addressedThemes || ""}
-          onChange={(e) => handleChange("addressedThemes", e.target.value)}
+          value={localData?.topicsAddressed || ""}
+          onChange={(e) => handleChange("topicsAddressed", e.target.value)}
           rows={3}
         />
       </div>

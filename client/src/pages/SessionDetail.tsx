@@ -53,6 +53,7 @@ export default function SessionDetail() {
     { enabled: !!session?.patientId }
   );
 
+  // Legacy fields (kept for backward compatibility)
   const [noteContent, setNoteContent] = useState("");
   const [mood, setMood] = useState<"very_bad" | "bad" | "neutral" | "good" | "very_good">("neutral");
   const [progressRating, setProgressRating] = useState(5);
@@ -61,6 +62,51 @@ export default function SessionDetail() {
   const [homework, setHomework] = useState("");
   const [aiResult, setAiResult] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+
+  // New 8-tabs data structure
+  const [tabsData, setTabsData] = useState<any>({
+    // Session tab
+    sessionNumber: 0,
+    sessionType2: "individual",
+    modality2: "in_person",
+    sessionLocation: "",
+    // Avaliacao tab
+    emotionalState: "",
+    predominantMood: "",
+    sufferingLevel: 5,
+    currentMedications: "",
+    generalPresentation: "",
+    mainDemand: "",
+    topicsAddressed: "",
+    relevantNarrative: "",
+    clinicalAssessment: "",
+    technicalAnalysis: "",
+    // Interventions tab
+    techniquesUsed: "",
+    plannedInterventions: "",
+    therapeuticPlan: "",
+    // Evolution tab
+    treatmentResponse: "",
+    goalsProgress: "",
+    observedInsights: "",
+    observedResistances: "",
+    // Next tab
+    nextSessionDate: "",
+    nextSessionGoals: "",
+    treatmentPlanAdjustments: "",
+    // Risks tab
+    selfHarmRisk: "absent",
+    thirdPartyRisk: "absent",
+    suicideRisk: "absent",
+    // Private tab
+    countertransference: "",
+    clinicalHypotheses: "",
+    supervisionNotes: "",
+    referrals: "",
+    privateObservations: "",
+    // AI tab
+    aiTechnicalFeedback: "",
+  });
   const { data: patients } = trpc.patients.list.useQuery({ limit: 1000 });
 
   const existingNote = notes?.[0];
@@ -68,6 +114,7 @@ export default function SessionDetail() {
 
   useEffect(() => {
     if (existingNote) {
+      // Load legacy fields
       setNoteContent(existingNote.content);
       setMood((existingNote.mood as typeof mood) ?? "neutral");
       setProgressRating(existingNote.progressRating ?? 5);
@@ -76,6 +123,43 @@ export default function SessionDetail() {
       setHomework(existingNote.homework ?? "");
       setAiResult(existingNote.aiSuggestions ?? "");
       setEditingNoteId(existingNote.id);
+
+      // Load new 8-tabs data
+      setTabsData({
+        sessionNumber: existingNote.sessionNumber ?? 0,
+        sessionType2: existingNote.sessionType2 ?? "individual",
+        modality2: existingNote.modality2 ?? "in_person",
+        sessionLocation: existingNote.sessionLocation ?? "",
+        emotionalState: existingNote.emotionalState ?? "",
+        predominantMood: existingNote.predominantMood ?? "",
+        sufferingLevel: existingNote.sufferingLevel ?? 5,
+        currentMedications: existingNote.currentMedications ?? "",
+        generalPresentation: existingNote.generalPresentation ?? "",
+        mainDemand: existingNote.mainDemand ?? "",
+        topicsAddressed: existingNote.topicsAddressed ?? "",
+        relevantNarrative: existingNote.relevantNarrative ?? "",
+        clinicalAssessment: existingNote.clinicalAssessment ?? "",
+        technicalAnalysis: existingNote.technicalAnalysis ?? "",
+        techniquesUsed: existingNote.techniquesUsed ?? "",
+        plannedInterventions: existingNote.plannedInterventions ?? "",
+        therapeuticPlan: existingNote.therapeuticPlan ?? "",
+        treatmentResponse: existingNote.treatmentResponse ?? "",
+        goalsProgress: existingNote.goalsProgress ?? "",
+        observedInsights: existingNote.observedInsights ?? "",
+        observedResistances: existingNote.observedResistances ?? "",
+        nextSessionDate: existingNote.nextSessionDate ?? "",
+        nextSessionGoals: existingNote.nextSessionGoals ?? "",
+        treatmentPlanAdjustments: existingNote.treatmentPlanAdjustments ?? "",
+        selfHarmRisk: existingNote.selfHarmRisk ?? "absent",
+        thirdPartyRisk: existingNote.thirdPartyRisk ?? "absent",
+        suicideRisk: existingNote.suicideRisk ?? "absent",
+        countertransference: existingNote.countertransference ?? "",
+        clinicalHypotheses: existingNote.clinicalHypotheses ?? "",
+        supervisionNotes: existingNote.supervisionNotes ?? "",
+        referrals: existingNote.referrals ?? "",
+        privateObservations: existingNote.privateObservations ?? "",
+        aiTechnicalFeedback: existingNote.aiTechnicalFeedback ?? "",
+      });
     }
   }, [existingNote]);
 
@@ -111,20 +195,32 @@ export default function SessionDetail() {
     onError: (e) => toast.error(`Erro na IA: ${e.message}`),
   });
 
-  const handleSaveNote = () => {
-    if (!noteContent.trim()) { toast.error("Escreva as anotações antes de salvar."); return; }
+  const handleSaveNote = (updatedData?: any) => {
+    // Merge tabs data with legacy fields
+    const dataToSave = {
+      ...tabsData,
+      ...updatedData,
+      content: noteContent,
+      mood,
+      progressRating,
+      goals,
+      interventions,
+      homework,
+    };
+
+    // Validate required fields
+    if (!session?.patientId) {
+      toast.error("Paciente não selecionado.");
+      return;
+    }
+
     if (editingNoteId) {
-      updateNote.mutate({ id: editingNoteId, content: noteContent, mood, progressRating, goals, interventions, homework });
+      updateNote.mutate({ id: editingNoteId, ...dataToSave });
     } else {
       createNote.mutate({
         sessionId,
-        patientId: session?.patientId ?? 0,
-        content: noteContent,
-        mood,
-        progressRating,
-        goals,
-        interventions,
-        homework,
+        patientId: session.patientId,
+        ...dataToSave,
       });
     }
   };
@@ -246,9 +342,12 @@ export default function SessionDetail() {
           <div className="xl:col-span-2 space-y-4">
             <SessionDetailTabs
               sessionId={sessionId.toString()}
-              data={notes || {}}
+              data={tabsData}
               patients={[]}
-              onSave={handleSaveNote}
+              onSave={(updatedData) => {
+                setTabsData({ ...tabsData, ...updatedData });
+                handleSaveNote(updatedData);
+              }}
               onAnalyze={handleAnalyzeAI}
               isSaving={createNote.isPending || updateNote.isPending}
               isAnalyzing={analyzeAI.isPending}

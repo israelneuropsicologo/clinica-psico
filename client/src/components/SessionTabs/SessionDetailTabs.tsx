@@ -16,7 +16,7 @@ interface SessionDetailTabsProps {
   sessionId: string;
   data: any;
   patients: any[];
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: any) => void;
   onAnalyze: () => Promise<void>;
   isSaving?: boolean;
   isAnalyzing?: boolean;
@@ -63,9 +63,9 @@ export function SessionDetailTabs({
           clearTimeout(saveTimeout);
         }
 
-        const newTimeout = setTimeout(async () => {
+        const newTimeout = setTimeout(() => {
           try {
-            await onSave(updated);
+            onSave(updated);
             setHasChanges(false);
           } catch (error) {
             console.error("Erro ao autosalvar:", error);
@@ -91,12 +91,12 @@ export function SessionDetailTabs({
     }
   };
 
-  const handleManualSave = async () => {
+  const handleManualSave = () => {
     if (saveTimeout) {
       clearTimeout(saveTimeout);
     }
     try {
-      await onSave(localData);
+      onSave(localData);
       setHasChanges(false);
     } catch (error) {
       console.error("Erro ao salvar:", error);

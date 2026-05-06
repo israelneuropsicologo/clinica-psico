@@ -104,37 +104,35 @@ export function SessionTabSession({ data, onUpdate, patients }: SessionTabSessio
 
         {/* Tipo de Sessão */}
         <div className="space-y-2">
-          <Label htmlFor="sessionType">Tipo de Sessão</Label>
+          <Label htmlFor="sessionType2">Tipo de Sessão</Label>
           <Select
-            value={localData?.sessionType || ""}
-            onValueChange={(val) => handleChange("sessionType", val)}
+            value={localData?.sessionType2 || ""}
+            onValueChange={(val) => handleChange("sessionType2", val)}
           >
-            <SelectTrigger id="sessionType">
+            <SelectTrigger id="sessionType2">
               <SelectValue placeholder="Selecione o tipo" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="individual">Individual</SelectItem>
               <SelectItem value="couple">Casal</SelectItem>
-              <SelectItem value="family">Família</SelectItem>
               <SelectItem value="group">Grupo</SelectItem>
               <SelectItem value="evaluation">Avaliação</SelectItem>
-              <SelectItem value="feedback">Devolutiva</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* Modalidade */}
         <div className="space-y-2">
-          <Label htmlFor="modality">Modalidade</Label>
+          <Label htmlFor="modality2">Modalidade</Label>
           <Select
-            value={localData?.modality || ""}
-            onValueChange={(val) => handleChange("modality", val)}
+            value={localData?.modality2 || ""}
+            onValueChange={(val) => handleChange("modality2", val)}
           >
-            <SelectTrigger id="modality">
+            <SelectTrigger id="modality2">
               <SelectValue placeholder="Selecione a modalidade" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="presential">Presencial</SelectItem>
+              <SelectItem value="in_person">Presencial</SelectItem>
               <SelectItem value="online">Online</SelectItem>
             </SelectContent>
           </Select>
@@ -142,13 +140,13 @@ export function SessionTabSession({ data, onUpdate, patients }: SessionTabSessio
 
         {/* Local */}
         <div className="space-y-2">
-          <Label htmlFor="location">Local</Label>
+          <Label htmlFor="sessionLocation">Local</Label>
           <Input
-            id="location"
+            id="sessionLocation"
             type="text"
             placeholder="ex: Consultório, Tele atendimento"
-            value={localData?.location || ""}
-            onChange={(e) => handleChange("location", e.target.value)}
+            value={localData?.sessionLocation || ""}
+            onChange={(e) => handleChange("sessionLocation", e.target.value)}
           />
         </div>
       </div>

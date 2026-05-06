@@ -23,12 +23,12 @@ export function SessionTabInterventions({ data, onUpdate }: SessionTabInterventi
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="techniques">Técnicas Utilizadas</Label>
+        <Label htmlFor="techniquesUsed">Técnicas Utilizadas</Label>
         <Textarea
-          id="techniques"
+          id="techniquesUsed"
           placeholder="Quais técnicas foram utilizadas?"
-          value={localData?.techniques || ""}
-          onChange={(e) => handleChange("techniques", e.target.value)}
+          value={localData?.techniquesUsed || ""}
+          onChange={(e) => handleChange("techniquesUsed", e.target.value)}
           rows={4}
         />
       </div>
@@ -56,12 +56,12 @@ export function SessionTabInterventions({ data, onUpdate }: SessionTabInterventi
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="therapeuticPlanning">Planejamento Terapêutico</Label>
+        <Label htmlFor="therapeuticPlan">Planejamento Terapêutico</Label>
         <Textarea
-          id="therapeuticPlanning"
+          id="therapeuticPlan"
           placeholder="Descreva o planejamento terapêutico..."
-          value={localData?.therapeuticPlanning || ""}
-          onChange={(e) => handleChange("therapeuticPlanning", e.target.value)}
+          value={localData?.therapeuticPlan || ""}
+          onChange={(e) => handleChange("therapeuticPlan", e.target.value)}
           rows={4}
         />
       </div>

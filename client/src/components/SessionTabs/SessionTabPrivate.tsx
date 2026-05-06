@@ -54,24 +54,13 @@ export function SessionTabPrivate({ data, onUpdate }: SessionTabPrivateProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="supervisoryQuestions">Dúvidas para Supervisão</Label>
+        <Label htmlFor="supervisionNotes">Dúvidas para Supervisão</Label>
         <Textarea
-          id="supervisoryQuestions"
+          id="supervisionNotes"
           placeholder="Quais dúvidas você gostaria de discutir em supervisão?"
-          value={localData?.supervisoryQuestions || ""}
-          onChange={(e) => handleChange("supervisoryQuestions", e.target.value)}
+          value={localData?.supervisionNotes || ""}
+          onChange={(e) => handleChange("supervisionNotes", e.target.value)}
           rows={4}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="currentMedications">Medicações em Uso</Label>
-        <Textarea
-          id="currentMedications"
-          placeholder="Descreva as medicações em uso (observações clínicas)..."
-          value={localData?.currentMedications || ""}
-          onChange={(e) => handleChange("currentMedications", e.target.value)}
-          rows={3}
         />
       </div>
 
@@ -87,12 +76,12 @@ export function SessionTabPrivate({ data, onUpdate }: SessionTabPrivateProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="additionalNotes">Observações Adicionais</Label>
+        <Label htmlFor="privateObservations">Observações Adicionais</Label>
         <Textarea
-          id="additionalNotes"
+          id="privateObservations"
           placeholder="Outras observações clínicas relevantes..."
-          value={localData?.additionalNotes || ""}
-          onChange={(e) => handleChange("additionalNotes", e.target.value)}
+          value={localData?.privateObservations || ""}
+          onChange={(e) => handleChange("privateObservations", e.target.value)}
           rows={4}
         />
       </div>
