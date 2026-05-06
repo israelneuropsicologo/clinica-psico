@@ -348,6 +348,13 @@
 - [x] Criado teste abrangente: webhooks-direct-booking.test.ts com 8 testes
 - [x] Validado que webhook `createDirectBooking` cria paciente E sessão corretamente
 - [x] Servidor reiniciado e funcionando normalmente
+- [x] Corrigido bug: patientId era null ao criar sessão (createPatient retorna número, não objeto)
+- [x] Corrigido status da sessão: scheduled em vez de pending (enum válido)
+- [x] Corrigido sessionValue: convertido para string (decimal no banco)
+- [x] Webhook 100% funcional: pacientes e sessões criados automaticamente
+- [x] Testado com sucesso: João Motorista sincronizado
+- [x] Dashboard atualizado: 25 pacientes ativos, 30 sessões no mês
+- [x] Site psicologo.manus.space agora sincroniza perfeitamente com clinica-psico
 
 ## Fase 27: Sistema de Sincronização Multi-Conta
 - [x] Tabela `user_links` criada no schema (primaryUserId, linkedUserId)

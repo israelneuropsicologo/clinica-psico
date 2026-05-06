@@ -15,11 +15,34 @@ export default function Webhooks() {
   const [copiedToken, setCopiedToken] = useState(false);
   const [manualSyncLoading, setManualSyncLoading] = useState(false);
   const [origin, setOrigin] = useState("");
+  const [externalToken, setExternalToken] = useState("");
+  const [savingToken, setSavingToken] = useState(false);
 
   // Evitar problema de hidratação: ler window.location.origin apenas no useEffect
   useEffect(() => {
     setOrigin(window.location.origin);
+    // Carregar token externo salvo
+    const savedToken = localStorage.getItem("externalSiteToken");
+    if (savedToken) {
+      setExternalToken(savedToken);
+    }
   }, []);
+
+  const handleSaveExternalToken = async () => {
+    if (!externalToken.trim()) {
+      toast.error("Por favor, insira um token válido");
+      return;
+    }
+    setSavingToken(true);
+    try {
+      localStorage.setItem("externalSiteToken", externalToken);
+      toast.success("✓ Token salvo com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao salvar token");
+    } finally {
+      setSavingToken(false);
+    }
+  };
 
   const { data: status, isLoading: statusLoading } = trpc.webhooks.getStatus.useQuery();
   const { data: logs, isLoading: logsLoading } = trpc.webhooks.getLogs.useQuery({ limit: 20 });
@@ -263,6 +286,48 @@ export default function Webhooks() {
                 </p>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* External Token Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Token Externo (Site Psicólogo)</CardTitle>
+            <CardDescription>
+              Cole aqui o token do site psicologo.manus.space para sincronizar dados
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="externalToken" className="text-sm font-medium">
+                Token do Site Psicólogo
+              </label>
+              <Input
+                id="externalToken"
+                type="text"
+                placeholder="sk_xxxxxxxxxxxxx"
+                className="font-mono"
+                value={externalToken}
+                onChange={(e) => setExternalToken(e.target.value)}
+              />
+              <p className="text-xs text-gray-600">
+                Este token será usado para autenticar as requisições do site psicologo.manus.space
+              </p>
+            </div>
+            <Button
+              onClick={handleSaveExternalToken}
+              disabled={savingToken}
+              className="w-full bg-green-500 hover:bg-green-600 text-white transition-colors duration-300"
+            >
+              {savingToken ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar e Publicar"
+              )}
+            </Button>
           </CardContent>
         </Card>
 
