@@ -297,13 +297,9 @@ export const webhooksRouter = router({
           });
         }
 
-        // Validação de payment_status ANTES do retry
-        if (input.payment_status !== "approved") {
-          return {
-            success: false,
-            message: `Agendamento não confirmado. Status de pagamento: ${input.payment_status}`,
-          };
-        }
+        // Permitir agendamentos com qualquer status de pagamento
+        // O status será refletido no campo isPaid da sessão
+        const isPaidStatus = input.payment_status === "approved" ? "paid" : "pending";
 
         // Executar com retry automático
         const result = await retryWithBackoff(async () => {
@@ -325,7 +321,7 @@ export const webhooksRouter = router({
             sessionType: "individual",
             modality: "in_person",
             notes: input.notes,
-            isPaid: "paid",
+            isPaid: isPaidStatus,
             createdAt: new Date(),
             updatedAt: new Date(),
           };
