@@ -214,21 +214,52 @@
 ## Fase 64: 3 Correções Críticas do Sistema
 
 ### Correção 1: Filtro "Pendente" em Sessões
-- [ ] Adicionar opção "Pendente" ao filtro de status em Sessões
-- [ ] Validar que "Pendente" filtra corretamente as sessões agendadas não confirmadas
+- [x] Adicionar opção "Pendente" ao filtro de status em Sessões - FEITO
+- [x] Validar que "Pendente" filtra corretamente as sessões agendadas não confirmadas - FEITO
 - [ ] Testar filtro
 
 ### Correção 2: Fuso Horário (UTC → America/Sao_Paulo)
-- [ ] Corrigir exibição de horários na Agenda (UTC-3)
-- [ ] Agendamentos que chegam em UTC devem ser exibidos em horário de São Paulo
+- [x] Corrigir exibição de horários na Agenda (UTC-3) - FEITO (CustomCalendar)
+- [x] Agendamentos que chegam em UTC devem ser exibidos em horário de São Paulo - FEITO
 - [ ] Testar com agendamentos do site profissional
 
 ### Correção 3: Agenda Interativa com Nome do Paciente
-- [ ] Mostrar nome do paciente nos cards da Agenda (não apenas horário)
-- [ ] Ao clicar em um card, abrir modal com dados completos
-- [ ] Modal deve permitir edição (tipo Google Calendar)
-- [ ] Campos editáveis: nome, horário, tipo de consulta, observações
+- [x] Mostrar nome do paciente nos cards da Agenda (não apenas horário) - FEITO
+- [x] Ao clicar em um card, abrir modal com dados completos - FEITO
+- [x] Modal deve permitir edição (tipo Google Calendar) - FEITO
+- [x] Campos editáveis: nome, horário, tipo de consulta, observações - FEITO
 - [ ] Testar navegação e edição
+
+## Fase 65: Agenda Interativa com Modal de Edição
+
+### Componentes Separados (Sem Recompilação):
+- [ ] Criar `SessionsList.tsx` - Lista simples de sessões com nome do paciente
+- [ ] Criar `SessionEditModal.tsx` - Modal de edição separado
+- [ ] Adicionar `SessionsList` abaixo do Google Calendar em Calendar.tsx
+- [ ] Testar clique em sessão (abre modal)
+- [ ] Testar edição de horario, nome, tipo
+- [ ] Testar salvamento de mudanças
+- [ ] Validar que horarios estão em São Paulo (UTC-3)
+
+## Fase 66: Interface de Relatórios Gerenciais
+
+### Filtros e Visualização:
+- [ ] Criar página `Reports.tsx` com filtros (Data Início, Data Fim, Categoria)
+- [ ] Implementar botão "Aplicar" para filtrar dados
+- [ ] Criar visualização em tela dos dados filtrados
+
+### Módulos do Relatório:
+- [ ] **Resumo Financeiro**: Tabela + gráfico de barras (Receita Bruta, Despesas, Pendentes)
+- [ ] **Métricas de Pacientes**: Total novos cadastros, sessões ativas, taxa de conversão
+- [ ] **Gestão Clínica**: Contador de prontuários, uso de IA
+- [ ] **Integridade do Sistema**: Status do último backup
+
+### Geração de PDF:
+- [ ] Criar endpoint `/api/reports/generate-pdf` no backend
+- [ ] Implementar botão "Gerar PDF" na interface
+- [ ] Formatar PDF com papel timbrado da clínica
+- [ ] Incluir tabelas e gráficos no PDF
+- [ ] Testar download do PDF
 
 ## Próximas Fases (Planejadas)
 - [x] Sincronização de ChatBot (leads automáticos) - webhook já implementado

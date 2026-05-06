@@ -32,8 +32,11 @@ export default function Sessions() {
   const [selectedSessions, setSelectedSessions] = useState<Set<number>>(new Set());
   const [, navigate] = useLocation();
 
+  // Map "pending" to "scheduled" for backend compatibility
+  const backendStatus = statusFilter === "pending" ? "scheduled" : statusFilter;
+  
   const { data: sessions, isLoading, refetch } = trpc.sessions.list.useQuery({
-    status: statusFilter,
+    status: backendStatus,
   });
 
   const generatePatientPDFMutation = trpc.reports.generatePatientPDF.useMutation();
