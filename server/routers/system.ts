@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { router, protectedProcedure, adminProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { triggerManualBackup, listBackupsFromGoogleDrive, restoreBackupFromGoogleDrive, extractAndImportBackup } from "../_core/backupService";

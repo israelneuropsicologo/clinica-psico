@@ -94,26 +94,26 @@ export async function uploadBackupToGoogleDrive(
   let backupsFolderId: string | null = null;
 
   const folderList = await drive.files.list({
-    auth: authClient,
+    auth: authClient as any,
     q: "name='Backups' and mimeType='application/vnd.google-apps.folder' and trashed=false",
     spaces: "drive",
     fields: "files(id, name)",
     pageSize: 1,
   });
 
-  if (folderList.data.files && folderList.data.files.length > 0) {
+  if (folderList.data?.files && folderList.data.files.length > 0) {
     backupsFolderId = folderList.data.files[0].id!;
   } else {
     // Create "Backups" folder
     const folderRes = await drive.files.create({
-      auth: authClient,
+      auth: authClient as any,
       requestBody: {
         name: "Backups",
         mimeType: "application/vnd.google-apps.folder",
       },
       fields: "id",
     });
-    backupsFolderId = folderRes.data.id!;
+    backupsFolderId = folderRes.data?.id!;
   }
 
   // Upload ZIP file
@@ -121,7 +121,7 @@ export async function uploadBackupToGoogleDrive(
   const fileStream = fs.createReadStream(zipPath);
 
   const uploadRes = await drive.files.create({
-    auth: authClient,
+    auth: authClient as any,
     requestBody: {
       name: fileName,
       mimeType: "application/zip",
@@ -137,7 +137,7 @@ export async function uploadBackupToGoogleDrive(
   // Clean up local ZIP file
   fs.unlinkSync(zipPath);
 
-  return uploadRes.data.webViewLink || uploadRes.data.id || "";
+  return uploadRes.data?.webViewLink || uploadRes.data?.id || "";
 }
 
 // Trigger manual backup
@@ -180,14 +180,14 @@ export async function listBackupsFromGoogleDrive() {
 
   // Get "Backups" folder
   const folderList = await drive.files.list({
-    auth: authClient,
+    auth: authClient as any,
     q: "name='Backups' and mimeType='application/vnd.google-apps.folder' and trashed=false",
     spaces: "drive",
     fields: "files(id)",
     pageSize: 1,
   });
 
-  if (!folderList.data.files || folderList.data.files.length === 0) {
+  if (!folderList.data?.files || folderList.data.files.length === 0) {
     return [];
   }
 
@@ -195,7 +195,7 @@ export async function listBackupsFromGoogleDrive() {
 
   // List backup files
   const fileList = await drive.files.list({
-    auth: authClient,
+    auth: authClient as any,
     q: `'${backupsFolderId}' in parents and trashed=false`,
     spaces: "drive",
     fields: "files(id, name, createdTime, size, webViewLink)",
@@ -204,7 +204,7 @@ export async function listBackupsFromGoogleDrive() {
   });
 
   return (
-    fileList.data.files?.map((file) => ({
+    fileList.data?.files?.map((file) => ({
       id: file.id,
       name: file.name,
       createdTime: file.createdTime,
@@ -229,7 +229,7 @@ export async function restoreBackupFromGoogleDrive(fileId: string) {
 
   const res = await drive.files.get(
     {
-      auth: authClient,
+      auth: authClient as any,
       fileId,
       alt: "media",
     },
@@ -255,7 +255,8 @@ export async function restoreBackupFromGoogleDrive(fileId: string) {
 
 // Extract and import backup data
 export async function extractAndImportBackup(zipPath: string) {
-  const db = getDb();
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database connection failed");
   const extractDir = path.join(path.dirname(zipPath), `extract_${Date.now()}`);
 
   try {
@@ -288,37 +289,37 @@ export async function extractAndImportBackup(zipPath: string) {
     // Note: This is a destructive operation - it will replace all data
     if (backupData.data) {
       // Delete all existing data first
-      await db.delete(patients);
-      await db.delete(sessions);
-      await db.delete(transactions);
-      await db.delete(clinicalNotes);
-      await db.delete(users);
+      await dbInstance.delete(patients);
+      await dbInstance.delete(sessions);
+      await dbInstance.delete(transactions);
+      await dbInstance.delete(clinicalNotes);
+      await dbInstance.delete(users);
 
       console.log("[Restore] Existing data cleared");
 
       // Import data from backup
       if (backupData.data.patients && backupData.data.patients.length > 0) {
-        await db.insert(patients).values(backupData.data.patients);
+        await dbInstance.insert(patients).values(backupData.data.patients);
         console.log(`[Restore] Imported ${backupData.data.patients.length} patients`);
       }
 
       if (backupData.data.sessions && backupData.data.sessions.length > 0) {
-        await db.insert(sessions).values(backupData.data.sessions);
+        await dbInstance.insert(sessions).values(backupData.data.sessions);
         console.log(`[Restore] Imported ${backupData.data.sessions.length} sessions`);
       }
 
       if (backupData.data.transactions && backupData.data.transactions.length > 0) {
-        await db.insert(transactions).values(backupData.data.transactions);
+        await dbInstance.insert(transactions).values(backupData.data.transactions);
         console.log(`[Restore] Imported ${backupData.data.transactions.length} transactions`);
       }
 
       if (backupData.data.clinicalNotes && backupData.data.clinicalNotes.length > 0) {
-        await db.insert(clinicalNotes).values(backupData.data.clinicalNotes);
+        await dbInstance.insert(clinicalNotes).values(backupData.data.clinicalNotes);
         console.log(`[Restore] Imported ${backupData.data.clinicalNotes.length} clinical notes`);
       }
 
       if (backupData.data.users && backupData.data.users.length > 0) {
-        await db.insert(users).values(backupData.data.users);
+        await dbInstance.insert(users).values(backupData.data.users);
         console.log(`[Restore] Imported ${backupData.data.users.length} users`);
       }
     }

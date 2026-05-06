@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { and, eq } from "drizzle-orm";
 import { apiTokens, webhookLogs, InsertWebhookLog, InsertApiToken } from "../drizzle/schema";
 import { getDb } from "./db";

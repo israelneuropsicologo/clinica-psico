@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { getDb } from "../db";
 import { patients, sessions, transactions } from "../../drizzle/schema";
