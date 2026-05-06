@@ -987,7 +987,7 @@ export const webhooksRouter = router({
           sessionType: "individual",
           modality: modality as "in_person" | "online",
           notes: input.notes || `Agendamento direto do site - ${input.service_type}`,
-          sessionValue: input.sessionValue ? String(input.sessionValue) : undefined,
+          sessionValue: input.sessionValue ? String(input.sessionValue) : null,
           isPaid: "pending",
           createdAt: new Date(),
           updatedAt: new Date(),

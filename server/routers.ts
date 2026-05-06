@@ -239,7 +239,7 @@ const sessionsRouter = router({
       z.object({
         patientId: z.number().optional(),
         status: z.string().optional(),
-        isPaid: z.string().optional(),
+        isPaid: z.enum(["pending", "paid", "waived"]).optional(),
         from: z.number().optional(),
         to: z.number().optional(),
       })
