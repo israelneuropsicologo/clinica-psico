@@ -626,55 +626,79 @@ export default function Webhooks() {
         {/* Documentation */}
         <Card>
           <CardHeader>
-            <CardTitle>Documentação</CardTitle>
+            <CardTitle>Como Usar os Webhooks</CardTitle>
+            <CardDescription>Guia prático para sincronizar dados do seu site</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 text-sm">
-            <div>
-              <h4 className="font-medium mb-2">Payload: Sincronizar Paciente</h4>
-              <pre className="bg-gray-50 p-3 rounded overflow-auto text-xs">
-{`{
-  "customer_id": "cust_123",
-  "name": "João Silva",
-  "email": "joao@example.com",
-  "phone": "+55 11 99999-9999",
-  "birth_date": "1990-01-15",
-  "cpf": "123.456.789-00",
-  "address": "Rua A, 123",
-  "occupation": "Engenheiro",
-  "main_complaint": "Ansiedade",
-  "medical_history": "Sem histórico"
-}`}
+          <CardContent className="space-y-6">
+            {/* Sincronizar Paciente */}
+            <div className="border-l-4 border-blue-500 pl-4 py-2">
+              <h4 className="font-bold text-base mb-2">1️⃣ Sincronizar Novo Paciente</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                <strong>Quando usar:</strong> Quando alguém preenche o formulário de cadastro no seu site
+              </p>
+              <p className="text-sm text-gray-600 mb-3">
+                <strong>O que acontece:</strong> O paciente é criado automaticamente no sistema
+              </p>
+              <p className="text-xs text-gray-500 mb-2">Campos esperados:</p>
+              <pre className="bg-blue-50 p-3 rounded text-xs border border-blue-200">
+{`nome: "João Silva"
+email: "joao@example.com"
+telefone: "+55 11 99999-9999"
+data_nascimento: "1990-01-15"
+cpf: "123.456.789-00"
+endereco: "Rua A, 123"
+profissao: "Engenheiro"
+queixa_principal: "Ansiedade"
+historico_medico: "Sem histórico"`}
               </pre>
             </div>
 
-            <div>
-              <h4 className="font-medium mb-2">Payload: Sincronizar Agendamento</h4>
-              <pre className="bg-gray-50 p-3 rounded overflow-auto text-xs">
-{`{
-  "customer_id": "cust_123",
-  "appointment_date": "2026-05-15T14:00:00Z",
-  "service_type": "Psicoterapia",
-  "duration_minutes": 50,
-  "notes": "Primeira sessão",
-  "payment_status": "approved",
-  "transaction_id": "txn_456"
-}`}
+            {/* Sincronizar Agendamento */}
+            <div className="border-l-4 border-green-500 pl-4 py-2">
+              <h4 className="font-bold text-base mb-2">2️⃣ Sincronizar Agendamento</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                <strong>Quando usar:</strong> Quando o paciente faz um agendamento no site
+              </p>
+              <p className="text-sm text-gray-600 mb-3">
+                <strong>O que acontece:</strong> A sessão aparece na sua agenda automaticamente
+              </p>
+              <p className="text-xs text-gray-500 mb-2">Campos esperados:</p>
+              <pre className="bg-green-50 p-3 rounded text-xs border border-green-200">
+{`id_paciente: "cust_123"
+data_hora: "2026-05-15T14:00:00Z"
+tipo_servico: "Psicoterapia"
+duracao_minutos: 50
+observacoes: "Primeira sessão"
+status_pagamento: "aprovado"
+id_transacao: "txn_456"`}
               </pre>
             </div>
 
-            <div>
-              <h4 className="font-medium mb-2">Payload: Sincronizar Pagamento</h4>
-              <pre className="bg-gray-50 p-3 rounded overflow-auto text-xs">
-{`{
-  "transaction_id": "txn_456",
-  "customer_id": "cust_123",
-  "amount": 150.00,
-  "currency": "BRL",
-  "payment_status": "approved",
-  "appointment_id": "apt_789",
-  "payment_method": "credit_card"
-}`}
+            {/* Sincronizar Pagamento */}
+            <div className="border-l-4 border-purple-500 pl-4 py-2">
+              <h4 className="font-bold text-base mb-2">3️⃣ Sincronizar Pagamento</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                <strong>Quando usar:</strong> Quando o paciente realiza um pagamento no site
+              </p>
+              <p className="text-sm text-gray-600 mb-3">
+                <strong>O que acontece:</strong> O pagamento é registrado e a sessão é marcada como paga
+              </p>
+              <p className="text-xs text-gray-500 mb-2">Campos esperados:</p>
+              <pre className="bg-purple-50 p-3 rounded text-xs border border-purple-200">
+{`id_transacao: "txn_456"
+id_paciente: "cust_123"
+valor: 150.00
+moeda: "BRL"
+status: "aprovado"
+id_agendamento: "apt_789"
+metodo_pagamento: "cartao_credito"`}
               </pre>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
+              <p className="text-xs font-medium text-yellow-800">
+                💡 <strong>Dica:</strong> Use o token gerado acima no header de autenticação para validar as requisições
+              </p>
             </div>
           </CardContent>
         </Card>
