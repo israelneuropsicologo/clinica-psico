@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { getLoginUrl } from "@/const";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
