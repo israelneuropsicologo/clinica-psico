@@ -134,6 +134,7 @@ export default function Sessions() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
+              <SelectItem value="pending">Pendente</SelectItem>
               <SelectItem value="scheduled">Agendada</SelectItem>
               <SelectItem value="confirmed">Confirmada</SelectItem>
               <SelectItem value="completed">Realizada</SelectItem>

@@ -43,6 +43,7 @@ import { settingsRouter } from "./routers/settings";
 import { systemRouter } from "./routers/system";
 import { financialRouter } from "./routers/financial";
 import { webhooksRouter } from "./routers/webhooks";
+import { websiteAppointmentsRouter } from "./routers/website-appointments";
 import { anamneseRouter, recordingsRouter, timelineRouter } from "./routers/patientProfile";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
@@ -906,6 +907,7 @@ export const appRouter = router({
   settings: settingsRouter,
   reports: reportsRouter,
   webhooks: webhooksRouter,
+  websiteAppointments: websiteAppointmentsRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

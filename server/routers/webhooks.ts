@@ -530,8 +530,6 @@ export const webhooksRouter = router({
     }),
 
   /**
-
-  /**
    * Sincronizar lead do ChatBot
    */
   syncChatbotLead: publicProcedure
@@ -1117,6 +1115,8 @@ export const webhooksRouter = router({
 
       return bookings;
     }),
+
+
 
   /**
    * Obter status da integracao

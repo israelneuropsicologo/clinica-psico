@@ -1,9 +1,9 @@
-import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { GoogleCalendarEmbed } from "@/components/GoogleCalendarEmbed";
 import { Plus } from "lucide-react";
 import { useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
+import CustomCalendar from "@/components/CustomCalendar";
 
 export default function Calendar() {
   const [, navigate] = useLocation();
@@ -34,8 +34,12 @@ export default function Calendar() {
           </CardContent>
         </Card>
 
-        {/* Google Calendar Embed */}
-        <GoogleCalendarEmbed calendarId="israelneuropsicologo@gmail.com" height="700px" />
+        {/* Custom Calendar */}
+        <Card>
+          <CardContent className="pt-6">
+            <CustomCalendar />
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

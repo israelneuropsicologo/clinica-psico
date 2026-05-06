@@ -211,6 +211,25 @@
 - [x] Validar estrutura de entrada e saída
 - [x] 51 testes passando (58 total com skipped)
 
+## Fase 64: 3 Correções Críticas do Sistema
+
+### Correção 1: Filtro "Pendente" em Sessões
+- [ ] Adicionar opção "Pendente" ao filtro de status em Sessões
+- [ ] Validar que "Pendente" filtra corretamente as sessões agendadas não confirmadas
+- [ ] Testar filtro
+
+### Correção 2: Fuso Horário (UTC → America/Sao_Paulo)
+- [ ] Corrigir exibição de horários na Agenda (UTC-3)
+- [ ] Agendamentos que chegam em UTC devem ser exibidos em horário de São Paulo
+- [ ] Testar com agendamentos do site profissional
+
+### Correção 3: Agenda Interativa com Nome do Paciente
+- [ ] Mostrar nome do paciente nos cards da Agenda (não apenas horário)
+- [ ] Ao clicar em um card, abrir modal com dados completos
+- [ ] Modal deve permitir edição (tipo Google Calendar)
+- [ ] Campos editáveis: nome, horário, tipo de consulta, observações
+- [ ] Testar navegação e edição
+
 ## Próximas Fases (Planejadas)
 - [x] Sincronização de ChatBot (leads automáticos) - webhook já implementado
 - [x] Validar integração ponta a ponta (site → clinica-psico) - Endpoints tRPC funcionando
