@@ -318,7 +318,7 @@ export const webhooksRouter = router({
             patientId: patient.id, // Usar ID real do paciente
             scheduledAt: new Date(input.appointment_date).getTime(),
             durationMinutes: input.duration_minutes || 50,
-            status: "confirmed",
+            status: "scheduled", // ✅ Usar "scheduled" para aparecer no painel de agendamentos diretos
             sessionType: "individual",
             modality: "in_person",
             notes: input.notes,
@@ -731,7 +731,7 @@ export const webhooksRouter = router({
           userId,
           patientId,
           scheduledAt: appointmentDateTime.getTime(), // Converter para timestamp em ms
-          status: "confirmed",
+          status: "scheduled", // ✅ Usar "scheduled" para aparecer no painel de agendamentos diretos
           sessionType: "individual",
           modality: modality as "in_person" | "online",
           notes: input.notes || `Agendamento via ChatBot - ${input.service_type}`,
