@@ -94,8 +94,8 @@ export const sessions = mysqlTable("sessions", {
   sessionValue: decimal("sessionValue", { precision: 10, scale: 2 }),
   isPaid: mysqlEnum("isPaid", ["pending", "paid", "waived"]).default("pending").notNull(),
   cancelReason: text("cancelReason"),
-  rejectionReason: text("rejectionReason"), // Motivo da recusa do agendamento direto
-  rejectionDate: timestamp("rejectionDate"), // Data da recusa
+  rejectionReason: text("rejectionReason"), // ✅ Motivo da recusa do agendamento direto (adicionado em migration)
+  rejectionDate: timestamp("rejectionDate"), // ✅ Data da recusa (adicionado em migration)
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
