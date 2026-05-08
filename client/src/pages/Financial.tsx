@@ -14,6 +14,7 @@ import {
   AlertCircle,
   ArrowDownCircle,
   ArrowUpCircle,
+  BarChart3,
   CheckCircle,
   DollarSign,
   Edit2,
@@ -133,6 +134,14 @@ export default function Financial() {
               label="Exportar"
               onExport={(format: string) => handleExportFinancial(format)}
             />
+            <Button 
+              onClick={() => window.open('https://clinic-rep-ungcdbcu.manus.space', '_blank')} 
+              className="gap-2"
+              variant="outline"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Relatórios Gerenciais
+            </Button>
             <Button onClick={() => setShowCreate(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               Nova Transação
