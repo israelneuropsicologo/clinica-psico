@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `webhook_logs` (`id` int AUTO_INCREMENT NOT NULL, `userId` int NOT NULL, `webhookType` varchar(50) NOT NULL, `externalId` varchar(255) NOT NULL, `status` varchar(50) NOT NULL, `payload` text NOT NULL, `errorMessage` text, `syncedAt` timestamp NOT NULL DEFAULT (now()), `processedAt` timestamp, CONSTRAINT `webhook_logs_id` PRIMARY KEY(`id`));",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute CREATE TABLE IF NOT EXISTS `webhook_logs` (`id` int AUTO_INCREMENT NOT NULL, `userId` int NOT NULL, `webhookType` varchar(50) NOT NULL, `externalId` varchar(255) NOT NULL, `status` varchar(50) NOT NULL, `payload` text NOT NULL, `errorMessage` text, `syncedAt` timestamp NOT NULL DEFAULT (now()), `processedAt` timestamp, CONSTRAINT `webhook_logs_id` PRIMARY KEY(`id`));",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 339
+}
