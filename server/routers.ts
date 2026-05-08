@@ -13,7 +13,10 @@
  * All procedures use proper type validation with Zod schemas
  * to ensure data integrity and prevent type mismatches.
  * 
- * ✅ Database migration applied: isPaid column is now enum('pending','paid','waived')
+ * ✅ Database migrations applied:
+ * - isPaid column is now enum('pending','paid','waived')
+ * - api_tokens table created for API token management
+ * - webhook_logs table created for webhook tracking
  * This ensures webhook compatibility and prevents type mismatches.
  */
 
