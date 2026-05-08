@@ -12,6 +12,9 @@
  * 
  * All procedures use proper type validation with Zod schemas
  * to ensure data integrity and prevent type mismatches.
+ * 
+ * ✅ Database migration applied: isPaid column is now enum('pending','paid','waived')
+ * This ensures webhook compatibility and prevents type mismatches.
  */
 
 import { TRPCError } from "@trpc/server";
