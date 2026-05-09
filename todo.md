@@ -1368,3 +1368,12 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Validar que 6 leads aparecem na página
 - [x] Confirmar que cada lead exibe nome, email, telefone e data
 - [x] Validar botões "Converter" e "Deletar" funcionando
+
+
+## Fase 71: Correção de Bug em DirectBookings
+- [x] Identificar erro: `setRejectionReason` não definido em DirectBookings.tsx
+- [x] Remover chamada para função inexistente
+- [x] Testar botão "Confirmar" - funcionando
+- [x] Testar botão "Recusar" - funcionando
+- [x] Validar modal de rejeição - funcionando
+- [x] Confirmar que agendamentos são removidos após ação

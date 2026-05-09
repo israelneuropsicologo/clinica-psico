@@ -32,7 +32,6 @@ export default function DirectBookings() {
     onSuccess: () => {
       toast.success("Agendamento recusado e arquivado!");
       setRejectionModal(null);
-      setRejectionReason("");
       refetch();
     },
     onError: (e) => toast.error(e.message),
