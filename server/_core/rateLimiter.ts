@@ -9,41 +9,17 @@ const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minuto
 const RATE_LIMIT_MAX_REQUESTS = 100; // máximo de requisições por minuto
 
 export function checkRateLimit(tokenId: string): { allowed: boolean; remaining: number } {
-  const now = Date.now();
-  const current = requestCounts.get(tokenId);
-
-  if (!current || now >= current.resetTime) {
-    // Nova janela de tempo
-    requestCounts.set(tokenId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 };
-  }
-
-  if (current.count >= RATE_LIMIT_MAX_REQUESTS) {
-    // Limite atingido
-    return { allowed: false, remaining: 0 };
-  }
-
-  // Incrementar contador
-  current.count++;
-  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - current.count };
+  // ✅ TOKENS ILIMITADOS - Sem restrição de rate limit
+  return { allowed: true, remaining: Infinity };
 }
 
 export function getRateLimitStatus(tokenId: string): { limit: number; remaining: number; resetTime: number } {
+  // ✅ TOKENS ILIMITADOS - Retornar limite infinito
   const now = Date.now();
-  const current = requestCounts.get(tokenId);
-
-  if (!current || now >= current.resetTime) {
-    return {
-      limit: RATE_LIMIT_MAX_REQUESTS,
-      remaining: RATE_LIMIT_MAX_REQUESTS,
-      resetTime: now + RATE_LIMIT_WINDOW,
-    };
-  }
-
   return {
-    limit: RATE_LIMIT_MAX_REQUESTS,
-    remaining: RATE_LIMIT_MAX_REQUESTS - current.count,
-    resetTime: current.resetTime,
+    limit: Infinity,
+    remaining: Infinity,
+    resetTime: now + RATE_LIMIT_WINDOW,
   };
 }
 
