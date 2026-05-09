@@ -23,7 +23,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { and, eq, like } from "drizzle-orm";
-import { adminUsersRouter } from "./routers/admin-users";
 import { patients } from "../drizzle/schema";
 import type { SessionWithPatient } from "../drizzle/schema";
 import {
@@ -930,7 +929,6 @@ const userSyncRouter = router({
 
 // ─── App Router ───────────────────────────────────────────
 export const appRouter = router({
-  admin: adminUsersRouter,
   system: systemRouter,
   settings: settingsRouter,
   reports: reportsRouter,
