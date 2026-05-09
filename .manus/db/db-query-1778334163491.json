@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO `api_tokens` (`userId`, `token`, `name`, `description`, `isActive`) VALUES (1, 'sk_d1bms5phm9c8vgxyynqnsik', 'Site Psicólogo', 'Token para integração com o site do Dr. Israel', 1);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute INSERT INTO `api_tokens` (`userId`, `token`, `name`, `description`, `isActive`) VALUES (1, 'sk_d1bms5phm9c8vgxyynqnsik', 'Site Psicólogo', 'Token para integração com o site do Dr. Israel', 1);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1001
+}

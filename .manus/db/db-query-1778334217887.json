@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, userId, token, name, description, isActive FROM api_tokens WHERE token = 'sk_d1bms5phm9c8vgxyynqnsik';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute SELECT id, userId, token, name, description, isActive FROM api_tokens WHERE token = 'sk_d1bms5phm9c8vgxyynqnsik';",
+  "rows": [
+    {
+      "id": "1380001",
+      "userId": "1",
+      "token": "sk_d1bms5phm9c8vgxyynqnsik",
+      "name": "Site Psicólogo",
+      "description": "Token para integração com o site do Dr. Israel",
+      "isActive": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\ttoken\tname\tdescription\tisActive\n1380001\t1\tsk_d1bms5phm9c8vgxyynqnsik\tSite Psicólogo\tToken para integração com o site do Dr. Israel\t1\n",
+  "stderr": "",
+  "execution_time_ms": 264
+}
