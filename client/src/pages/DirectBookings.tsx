@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { RejectionModal } from "@/components/RejectionModal";
 import { initializeTimezone, formatDateWithTimezone } from "@/lib/timezoneHelper";
 
-export function DirectBookings() {
+export default function DirectBookings() {
   const { data: sessions, isLoading, refetch } = trpc.webhooks.getDirectBookings.useQuery({});
   const [rejectionModal, setRejectionModal] = useState<{ sessionId: number; patientName: string } | null>(null);
   const [userTimezone, setUserTimezone] = useState<string>("");

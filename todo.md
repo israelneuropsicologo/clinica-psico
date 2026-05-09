@@ -1302,3 +1302,31 @@ await trpc.userSync.linkUsers.mutate({
 - ✅ Servidor rodando sem erros
 - ✅ Menu navegação atualizado
 - ✅ Pronto para checkpoint e publicação
+
+
+## Fase 68: Correção de Páginas Vazias (Leads, DirectBookings, Documents)
+- [x] Corrigir export de Leads.tsx: mudar para default export
+- [x] Corrigir export de DirectBookings.tsx: mudar para default export
+- [x] Corrigir export de Documents.tsx: mudar para default export
+- [x] Atualizar imports em App.tsx para default imports
+- [x] Validar que página Leads agora exibe conteúdo corretamente
+- [x] Validar que página DirectBookings agora exibe conteúdo corretamente
+- [x] Validar que página Documents agora exibe conteúdo corretamente
+- [x] Todas as páginas funcionando normalmente
+
+### Problema Identificado:
+Componentes Leads, DirectBookings e Documents eram exportados como named exports (export function), mas importados como default exports em App.tsx. Isso causava falha no roteamento e páginas em branco.
+
+### Solução Aplicada:
+- Mudança de `export function Leads()` para `export default function Leads()`
+- Mudança de `export function DirectBookings()` para `export default function DirectBookings()`
+- Mudança de `export function Documents()` para `export default function Documents()`
+- Atualização de imports em App.tsx de `import { Leads }` para `import Leads`
+
+### Status:
+- ✅ Página Leads agora exibindo conteúdo ("Leads do Chatbot")
+- ✅ Página DirectBookings agora exibindo conteúdo
+- ✅ Página Documents agora exibindo conteúdo
+- ✅ Todos os exports corrigidos para default
+- ✅ App.tsx atualizado com imports corretos
+- ✅ Servidor rodando sem erros

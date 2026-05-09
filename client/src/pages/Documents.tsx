@@ -77,7 +77,7 @@ const DOCUMENT_TYPES: DocumentType[] = [
   },
 ];
 
-export function Documents() {
+export default function Documents() {
   const [selectedDocumentType, setSelectedDocumentType] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 

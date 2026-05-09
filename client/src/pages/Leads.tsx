@@ -8,7 +8,7 @@ import { AlertCircle, Mail, Phone, Trash2, CheckCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
-export function Leads() {
+export default function Leads() {
   const { data: patients, isLoading, refetch } = trpc.webhooks.getLeads.useQuery({});
 
   const convertLead = trpc.patients.update.useMutation({

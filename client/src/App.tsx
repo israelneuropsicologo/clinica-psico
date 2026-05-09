@@ -14,10 +14,10 @@ import Calendar from "./pages/Calendar";
 import Settings from "./pages/Settings";
 import Webhooks from "./pages/Webhooks";
 import Home from "./pages/Home";
-import { Documents } from "./pages/Documents";
+import Documents from "./pages/Documents";
 import Backups from "./pages/Backups";
-import { Leads } from "./pages/Leads";
-import { DirectBookings } from "./pages/DirectBookings";
+import Leads from "./pages/Leads";
+import DirectBookings from "./pages/DirectBookings";
 import AdminReports from "./pages/AdminReports";
 import Pistas from "./pages/Pistas";
 
