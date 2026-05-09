@@ -1,0 +1,45 @@
+{
+  "query": "SELECT p.id, p.name, p.userId, u.email, p.leadSource FROM patients p LEFT JOIN users u ON p.userId = u.id WHERE p.leadSource = 'chatbot' LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute SELECT p.id, p.name, p.userId, u.email, p.leadSource FROM patients p LEFT JOIN users u ON p.userId = u.id WHERE p.leadSource = 'chatbot' LIMIT 5;",
+  "rows": [
+    {
+      "id": "1410013",
+      "name": "Pedro Costa",
+      "userId": "1",
+      "email": "israelneuropsicologo@gmail.com",
+      "leadSource": "chatbot"
+    },
+    {
+      "id": "1410012",
+      "name": "Maria Santos",
+      "userId": "1",
+      "email": "israelneuropsicologo@gmail.com",
+      "leadSource": "chatbot"
+    },
+    {
+      "id": "1410011",
+      "name": "João Silva",
+      "userId": "1",
+      "email": "israelneuropsicologo@gmail.com",
+      "leadSource": "chatbot"
+    },
+    {
+      "id": "1080002",
+      "name": "Teste Cinco",
+      "userId": "1",
+      "email": "israelneuropsicologo@gmail.com",
+      "leadSource": "chatbot"
+    },
+    {
+      "id": "420011",
+      "name": "Ana Paula",
+      "userId": "1",
+      "email": "israelneuropsicologo@gmail.com",
+      "leadSource": "chatbot"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tuserId\temail\tleadSource\n1410013\tPedro Costa\t1\tisraelneuropsicologo@gmail.com\tchatbot\n1410012\tMaria Santos\t1\tisraelneuropsicologo@gmail.com\tchatbot\n1410011\tJoão Silva\t1\tisraelneuropsicologo@gmail.com\tchatbot\n1080002\tTeste Cinco\t1\tisraelneuropsicologo@gmail.com\tchatbot\n420011\tAna Paula\t1\tisraelneuropsicologo@gmail.com\tchatbot\n",
+  "stderr": "",
+  "execution_time_ms": 272
+}

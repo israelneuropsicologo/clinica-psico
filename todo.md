@@ -1359,3 +1359,12 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - ✅ Geração de sugestões com IA 100% operacional
 - ✅ Sugestões detalhadas e profissionais sendo geradas
 - ✅ Interface intuitiva e fácil de usar
+
+
+## Fase 70: Correção de Bug no Sistema de Leads
+- [x] Identificar bug: `patientsTable` não existe em webhooks.ts
+- [x] Corrigir nome da tabela para `patients` (linha 1069-1070)
+- [x] Testar função getLeads no banco de dados
+- [x] Validar que 6 leads aparecem na página
+- [x] Confirmar que cada lead exibe nome, email, telefone e data
+- [x] Validar botões "Converter" e "Deletar" funcionando

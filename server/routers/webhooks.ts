@@ -1066,8 +1066,8 @@ export const webhooksRouter = router({
 
       const leads = await db
         .select()
-        .from(patientsTable)
-        .where(and(eq(patientsTable.userId, ctx.user.id), eq(patientsTable.leadSource, "chatbot")))
+        .from(patients)
+        .where(and(eq(patients.userId, ctx.user.id), eq(patients.leadSource, "chatbot")))
         .limit(input.limit);
 
       return leads;
