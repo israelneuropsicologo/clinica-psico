@@ -65,6 +65,7 @@ import { webhooksRouter } from "./routers/webhooks";
 import { websiteAppointmentsRouter } from "./routers/website-appointments";
 import { anamneseRouter, recordingsRouter, timelineRouter } from "./routers/patientProfile";
 import { managementReportsRouter } from "./routers/managementReports";
+import { pistasRouter } from "./routers/pistas";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -924,7 +925,9 @@ const userSyncRouter = router({
     }),
 });
 
-// ─── App Router ───────────────────────────────────────────
+
+
+// ─── App Router ──────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
   settings: settingsRouter,
@@ -951,6 +954,7 @@ export const appRouter = router({
   timeline: timelineRouter,
   managementReports: managementReportsRouter,
   userSync: userSyncRouter,
+  pistas: pistasRouter,
   calendar: router({
     getEvents: protectedProcedure
       .input(z.object({

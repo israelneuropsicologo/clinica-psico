@@ -19,6 +19,7 @@ import Backups from "./pages/Backups";
 import { Leads } from "./pages/Leads";
 import { DirectBookings } from "./pages/DirectBookings";
 import AdminReports from "./pages/AdminReports";
+import Pistas from "./pages/Pistas";
 
 // App Router - v1.0.4 (Production Ready - isPaid Webhook Fix)
 function Router() {
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/direct-bookings" component={DirectBookings} />
       <Route path="/webhooks" component={Webhooks} />
       <Route path="/admin/reports" component={AdminReports} />
+      <Route path="/pistas" component={Pistas} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -40,6 +40,7 @@ import {
   HardDrive,
   Inbox,
   CheckSquare,
+  Lightbulb,
 } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -53,6 +54,7 @@ const menuItems = [
   { icon: CheckSquare, label: "Agendamentos Diretos", path: "/direct-bookings" },
   { icon: ClipboardList, label: "Sessões", path: "/sessions" },
   { icon: CalendarDays, label: "Agenda", path: "/calendar" },
+  { icon: Lightbulb, label: "Pistas de IA", path: "/pistas" },
   { icon: DollarSign, label: "Financeiro", path: "/financial" },
   { icon: FileText, label: "Documentos", path: "/documents" },
   { icon: SettingsIcon, label: "Configurações", path: "/settings" },

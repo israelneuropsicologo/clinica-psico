@@ -1266,3 +1266,39 @@ await trpc.userSync.linkUsers.mutate({
 - [ ] Testar reconhecimento de nomes vs horários
 - [ ] Testar tratamento de dados incompletos
 - [ ] Testar esclarecimentos e correções
+
+
+## Fase 67: Implementação da Feature "Pistas" (AI Treatment Suggestions)
+- [x] Criar router tRPC `pistas` com procedure `generateTreatmentSuggestions`
+- [x] Implementar lógica de busca de histórico clínico do paciente
+- [x] Integrar com LLM para gerar sugestões de tratamento
+- [x] Criar página frontend `Pistas.tsx` com interface de seleção de paciente
+- [x] Adicionar item "Pistas de IA" ao menu lateral (DashboardLayout)
+- [x] Mover `pistasRouter` para arquivo separado (`server/routers/pistas.ts`)
+- [x] Criar testes vitest para validar funcionalidade (`server/routers/pistas.test.ts`)
+- [x] Corrigir erros de compilação TypeScript (Pistas.tsx, chatbotValidator.ts)
+- [x] Aumentar heap do Node.js para evitar OOM durante compilação
+- [x] Servidor rodando corretamente na porta 3000
+- [x] Rota `/pistas` acessível no frontend
+- [x] Menu lateral exibindo "Pistas de IA" com ícone Lightbulb
+
+### Problemas Resolvidos:
+- [x] Erro de tipo em `Pistas.tsx`: result.suggestions retornando tipo incorreto
+- [x] Erro em `chatbotValidator.ts`: iteração de Set sem `downlevelIteration`
+- [x] Erro de memória durante compilação TypeScript (type explosion)
+- [x] Arquivo `routers.ts` muito grande causando inferência de tipos complexa
+- [x] NODE_OPTIONS não configurado para aumentar heap
+
+### Mudanças Técnicas:
+- [x] Quebra de `server/routers.ts` em módulos menores (extraído `pistasRouter`)
+- [x] Adição de NODE_OPTIONS=--max-old-space-size=4096 em package.json scripts
+- [x] Importação de `pistasRouter` em `server/routers.ts` do novo arquivo
+- [x] Adição de ícone Lightbulb ao menu lateral
+- [x] Correção de tipos em Pistas.tsx para aceitar string ou array
+
+### Status:
+- ✅ Feature completa e funcional
+- ✅ Testes vitest passando
+- ✅ Servidor rodando sem erros
+- ✅ Menu navegação atualizado
+- ✅ Pronto para checkpoint e publicação

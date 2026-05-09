@@ -229,5 +229,5 @@ export function getSuggestedAlternativeTimes(preferredTime: string): string[] {
     alternatives.push(...VALID_APPOINTMENT_TIMES.slice(0, 2));
   }
 
-  return [...new Set(alternatives)].slice(0, 3);
+  return Array.from(new Set(alternatives)).slice(0, 3);
 }
