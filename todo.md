@@ -1330,3 +1330,32 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - ✅ Todos os exports corrigidos para default
 - ✅ App.tsx atualizado com imports corretos
 - ✅ Servidor rodando sem erros
+
+
+## Fase 69: Reformulação de "Pistas de IA" com Lista de Pacientes
+- [x] Remover dropdown simples de pacientes
+- [x] Implementar lista com checkboxes (como em Pacientes)
+- [x] Adicionar campo de busca por nome/email/telefone
+- [x] Adicionar botão "Selecionar Todos"
+- [x] Implementar seleção múltipla de pacientes
+- [x] Botão "Gerar Sugestões" mostra contador de selecionados
+- [x] Testar seleção de paciente (Ana Paula)
+- [x] Testar geração de sugestões com IA
+- [x] Validar que sugestões são geradas corretamente
+- [x] Validar que card de sugestões exibe conteúdo da IA
+
+### Melhorias Implementadas:
+- Lista completa de 34 pacientes com checkboxes
+- Campo de busca para filtrar pacientes
+- Seleção múltipla (preparado para gerar sugestões em lote no futuro)
+- Botão "Gerar Sugestões" com contador dinâmico
+- Card de sugestões com título do paciente
+- Tratamento de erros e estados de carregamento
+
+### Status:
+- ✅ Página "Pistas de Tratamento" completamente reformulada
+- ✅ Lista de pacientes com checkboxes funcional
+- ✅ Busca de pacientes funcional
+- ✅ Geração de sugestões com IA 100% operacional
+- ✅ Sugestões detalhadas e profissionais sendo geradas
+- ✅ Interface intuitiva e fácil de usar
