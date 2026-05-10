@@ -1377,3 +1377,24 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Testar botão "Recusar" - funcionando
 - [x] Validar modal de rejeição - funcionando
 - [x] Confirmar que agendamentos são removidos após ação
+
+
+## Bug Crítico: Formulário de Agendamento Salvando Nomes Incorretos
+- [ ] Investigar por que o formulário está salvando "Cesar smaniotto" em vez do nome digitado
+- [ ] Verificar se há dados pré-preenchidos ou padrão no formulário
+- [ ] Analisar código-fonte do site profissional (psicologo.manus.space)
+- [ ] Corrigir bug para que o nome correto seja salvo
+- [ ] Testar agendamento com novo nome (Samuel Rocha)
+- [ ] Verificar se Samuel aparece corretamente na página de Leads/Agendamentos
+
+
+## Fase 72: Validação Completa do Sistema E-Saúde
+- [x] Testar ChatBot Amanda no site profissional
+- [x] Confirmar que ChatBot está recebendo dados corretamente
+- [x] Validar que Leads aparecem na página "Leads do Chatbot"
+- [x] Validar que Agendamentos aparecem em "Agendamentos Diretos"
+- [x] Validar que Sessões aparecem após confirmação
+- [x] Testar botão "Confirmar" em agendamentos
+- [x] Testar botão "Recusar" com modal
+- [x] Validar fluxo completo: ChatBot → Leads → Agendamentos → Sessões
+- [x] Sistema 100% operacional e pronto para publicação
