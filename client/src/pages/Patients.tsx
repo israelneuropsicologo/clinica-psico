@@ -266,7 +266,7 @@ function CreatePatientDialog({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     name: "",
     email: "",
     phone: "",
@@ -275,7 +275,7 @@ function CreatePatientDialog({
     occupation: "",
     mainComplaint: "",
     sessionValue: "",
-  });
+  }));
 
   const createMutation = trpc.patients.create.useMutation({
     onSuccess: () => {

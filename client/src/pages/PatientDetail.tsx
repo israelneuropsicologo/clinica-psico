@@ -732,15 +732,15 @@ function HealthTab({ patientId, anamneseData, refetch, patient, onEditPatient }:
   onEditPatient: () => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     bloodType: (anamneseData?.bloodType as string) ?? "",
     allergies: (anamneseData?.allergies as string) ?? "",
     chronicConditions: (anamneseData?.chronicConditions as string) ?? "",
     disabilities: (anamneseData?.disabilities as string) ?? "",
-  });
+  }));
 
   useEffect(() => {
-    if (anamneseData) {
+    if (!editing && anamneseData) {
       setForm({
         bloodType: (anamneseData.bloodType as string) ?? "",
         allergies: (anamneseData.allergies as string) ?? "",
@@ -748,7 +748,7 @@ function HealthTab({ patientId, anamneseData, refetch, patient, onEditPatient }:
         disabilities: (anamneseData.disabilities as string) ?? "",
       });
     }
-  }, [anamneseData]);
+  }, [anamneseData, editing]);
 
   const upsertMutation = trpc.anamnese.upsert.useMutation({
     onSuccess: () => { toast.success("Dados de saúde salvos!"); setEditing(false); refetch(); },
@@ -1047,7 +1047,7 @@ const sanitizeModality = (v: unknown): ModalityValue =>
 
 function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, unknown>; onBack: () => void; patientId: number }) {
   const [subTab, setSubTab] = useState("session");
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     // Sessão
     sessionNumber: String((note.sessionNumber as number) ?? ""),
     sessionType2: (note.sessionType2 as string) ?? "individual",
@@ -1091,7 +1091,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
     supervisionNotes: (note.supervisionNotes as string) ?? "",
     referrals: (note.referrals as string) ?? "",
     privateObservations: (note.privateObservations as string) ?? "",
-  });
+  }));
   const [aiFeedback, setAiFeedback] = useState((note.aiTechnicalFeedback as string) ?? "");
   const [aiFeedbackAt, setAiFeedbackAt] = useState((note.aiTechnicalFeedbackAt as number) ?? null);
 
@@ -1769,7 +1769,7 @@ function EditPatientDialog({ patient, open, onClose, onSuccess }: {
   onSuccess: () => void;
 }) {
   const [activeSection, setActiveSection] = useState("basic");
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     name: (patient.name as string) ?? "",
     email: (patient.email as string) ?? "",
     phone: (patient.phone as string) ?? "",
@@ -1804,7 +1804,7 @@ function EditPatientDialog({ patient, open, onClose, onSuccess }: {
     notes: (patient.notes as string) ?? "",
     sessionValue: (patient.sessionValue as string) ?? "",
     status: (patient.status as string) ?? "active",
-  });
+  }));
   const [cepLoading, setCepLoading] = useState(false);
 
   const updateMutation = trpc.patients.update.useMutation({

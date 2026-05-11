@@ -476,14 +476,14 @@ function CreateTransactionDialog({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     type: "income" as "income" | "expense",
     description: "",
     amount: "",
     category: "session_payment",
     transactionDate: new Date().toISOString().split("T")[0],
     status: "paid" as "paid" | "pending" | "overdue",
-  });
+  }));
 
   const createMutation = trpc.financial.create.useMutation({
     onSuccess: () => { toast.success("Transação registrada!"); onSuccess(); },
@@ -590,14 +590,14 @@ function EditTransactionDialog({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     type: transaction.type as "income" | "expense",
     description: transaction.description || "",
     amount: transaction.amount || "",
     category: transaction.category || "session_payment",
     transactionDate: new Date(transaction.transactionDate || transaction.createdAt).toISOString().split("T")[0],
     status: transaction.status as "paid" | "pending" | "overdue",
-  });
+  }));
 
   const updateMutation = trpc.financial.update.useMutation({
     onSuccess: () => { toast.success("Transação atualizada!"); onSuccess(); },
