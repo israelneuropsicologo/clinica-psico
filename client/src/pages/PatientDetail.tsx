@@ -826,6 +826,40 @@ function HealthTab({ patientId, anamneseData, refetch, patient, onEditPatient }:
   );
 }
 
+// ── Field Component (memoizado para evitar remontagem) ──────────────────────────────────────────────────────────────
+const AnamneseField = React.memo(function AnamneseField({ 
+  field, 
+  label, 
+  rows = 3, 
+  type = "textarea",
+  editing,
+  value,
+  onChange
+}: { 
+  field: string; 
+  label: string; 
+  rows?: number; 
+  type?: "input" | "textarea"
+  editing: boolean;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs font-medium">{label}</Label>
+      {editing ? (
+        type === "input"
+          ? <Input value={value} onChange={onChange} />
+          : <Textarea value={value} onChange={onChange} rows={rows} />
+      ) : (
+        <p className="text-sm text-muted-foreground min-h-[1.5rem]">
+          {value || <span className="italic text-xs">Não informado</span>}
+        </p>
+      )}
+    </div>
+  );
+});
+
 // ── Anamnese Tab ──────────────────────────────────────────────────────────────
 function AnamneseTab({ patientId, anamneseData, refetch }: {
   patientId: number;
@@ -833,7 +867,7 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
   refetch: () => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     mainComplaintDetail: (anamneseData?.mainComplaintDetail as string) ?? "",
     therapeuticGoals: (anamneseData?.therapeuticGoals as string) ?? "",
     cidCode: (anamneseData?.cidCode as string) ?? "",
@@ -853,10 +887,11 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
     riskFactors: (anamneseData?.riskFactors as string) ?? "",
     protectiveFactors: (anamneseData?.protectiveFactors as string) ?? "",
     additionalNotes: (anamneseData?.additionalNotes as string) ?? "",
-  });
+  }));
 
+  // Atualizar form apenas quando sair do modo de edição
   useEffect(() => {
-    if (anamneseData) {
+    if (!editing && anamneseData) {
       setForm({
         mainComplaintDetail: (anamneseData.mainComplaintDetail as string) ?? "",
         therapeuticGoals: (anamneseData.therapeuticGoals as string) ?? "",
@@ -879,7 +914,7 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
         additionalNotes: (anamneseData.additionalNotes as string) ?? "",
       });
     }
-  }, [anamneseData]);
+  }, [anamneseData, editing])
 
   const upsertMutation = trpc.anamnese.upsert.useMutation({
     onSuccess: () => { toast.success("Anamnese salva!"); setEditing(false); refetch(); },
@@ -888,21 +923,6 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
-
-  const Field = ({ field, label, rows = 3, type = "textarea" }: { field: string; label: string; rows?: number; type?: "input" | "textarea" }) => (
-    <div className="space-y-1.5">
-      <Label className="text-xs font-medium">{label}</Label>
-      {editing ? (
-        type === "input"
-          ? <Input value={form[field as keyof typeof form]} onChange={set(field)} />
-          : <Textarea value={form[field as keyof typeof form]} onChange={set(field)} rows={rows} />
-      ) : (
-        <p className="text-sm text-muted-foreground min-h-[1.5rem]">
-          {form[field as keyof typeof form] || <span className="italic text-xs">Não informado</span>}
-        </p>
-      )}
-    </div>
-  );
 
   return (
     <div className="space-y-4">
@@ -917,13 +937,13 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Queixa e Objetivos Terapêuticos</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <Field field="mainComplaintDetail" label="Queixa Principal Detalhada" rows={4} />
-          <Field field="therapeuticGoals" label="Objetivos Terapêuticos" rows={3} />
+          <AnamneseField field="mainComplaintDetail" label="Queixa Principal Detalhada" rows={4} editing={editing} value={form.mainComplaintDetail} onChange={set("mainComplaintDetail")} />
+          <AnamneseField field="therapeuticGoals" label="Objetivos Terapêuticos" rows={3} editing={editing} value={form.therapeuticGoals} onChange={set("therapeuticGoals")} />
           <div className="grid grid-cols-2 gap-3">
-            <Field field="cidCode" label="CID-10 / CID-11" type="input" />
-            <Field field="cidDescription" label="Descrição do CID" type="input" />
+            <AnamneseField field="cidCode" label="CID-10 / CID-11" type="input" editing={editing} value={form.cidCode} onChange={set("cidCode")} />
+            <AnamneseField field="cidDescription" label="Descrição do CID" type="input" editing={editing} value={form.cidDescription} onChange={set("cidDescription")} />
           </div>
-          <Field field="therapeuticApproach" label="Abordagem Terapêutica" type="input" />
+          <AnamneseField field="therapeuticApproach" label="Abordagem Terapêutica" type="input" editing={editing} value={form.therapeuticApproach} onChange={set("therapeuticApproach")} />
         </CardContent>
       </Card>
 
@@ -931,11 +951,11 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Histórico Clínico</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <Field field="currentDiseaseHistory" label="História da Doença Atual (HDA)" rows={4} />
-          <Field field="personalHistory" label="Histórico Pessoal" rows={3} />
-          <Field field="familyHistory" label="Histórico Familiar" rows={3} />
-          <Field field="psychiatricHistory" label="Histórico Psiquiátrico / Tratamentos Anteriores" rows={3} />
-          <Field field="previousTreatments" label="Outros Tratamentos Anteriores" rows={2} />
+          <AnamneseField field="currentDiseaseHistory" label="História da Doença Atual (HDA)" rows={4} editing={editing} value={form.currentDiseaseHistory} onChange={set("currentDiseaseHistory")} />
+          <AnamneseField field="personalHistory" label="Histórico Pessoal" rows={3} editing={editing} value={form.personalHistory} onChange={set("personalHistory")} />
+          <AnamneseField field="familyHistory" label="Histórico Familiar" rows={3} editing={editing} value={form.familyHistory} onChange={set("familyHistory")} />
+          <AnamneseField field="psychiatricHistory" label="Histórico Psiquiátrico / Tratamentos Anteriores" rows={3} editing={editing} value={form.psychiatricHistory} onChange={set("psychiatricHistory")} />
+          <AnamneseField field="previousTreatments" label="Outros Tratamentos Anteriores" rows={2} editing={editing} value={form.previousTreatments} onChange={set("previousTreatments")} />
         </CardContent>
       </Card>
 
@@ -943,9 +963,9 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Desenvolvimento e Contexto de Vida</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <Field field="childhoodHistory" label="Histórico da Infância e Adolescência" rows={3} />
-          <Field field="relationshipHistory" label="Histórico Afetivo e Relacional" rows={3} />
-          <Field field="professionalHistory" label="Histórico Profissional e Acadêmico" rows={3} />
+          <AnamneseField field="childhoodHistory" label="Histórico da Infância e Adolescência" rows={3} editing={editing} value={form.childhoodHistory} onChange={set("childhoodHistory")} />
+          <AnamneseField field="relationshipHistory" label="Histórico Afetivo e Relacional" rows={3} editing={editing} value={form.relationshipHistory} onChange={set("relationshipHistory")} />
+          <AnamneseField field="professionalHistory" label="Histórico Profissional e Acadêmico" rows={3} editing={editing} value={form.professionalHistory} onChange={set("professionalHistory")} />
         </CardContent>
       </Card>
 
@@ -953,9 +973,9 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Hábitos e Estilo de Vida</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <Field field="substanceUse" label="Uso de Substâncias (álcool, tabaco, drogas)" rows={2} />
-          <Field field="sleepAndEating" label="Sono e Alimentação" rows={2} />
-          <Field field="sexualAffectiveLife" label="Vida Sexual e Afetiva" rows={2} />
+          <AnamneseField field="substanceUse" label="Uso de Substâncias (álcool, tabaco, drogas)" rows={2} editing={editing} value={form.substanceUse} onChange={set("substanceUse")} />
+          <AnamneseField field="sleepAndEating" label="Sono e Alimentação" rows={2} editing={editing} value={form.sleepAndEating} onChange={set("sleepAndEating")} />
+          <AnamneseField field="sexualAffectiveLife" label="Vida Sexual e Afetiva" rows={2} editing={editing} value={form.sexualAffectiveLife} onChange={set("sexualAffectiveLife")} />
         </CardContent>
       </Card>
 
@@ -963,9 +983,9 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fatores de Risco e Proteção</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <Field field="riskFactors" label="Fatores de Risco" rows={3} />
-          <Field field="protectiveFactors" label="Fatores Protetivos" rows={3} />
-          <Field field="additionalNotes" label="Observações Adicionais" rows={4} />
+          <AnamneseField field="riskFactors" label="Fatores de Risco" rows={3} editing={editing} value={form.riskFactors} onChange={set("riskFactors")} />
+          <AnamneseField field="protectiveFactors" label="Fatores Protetivos" rows={3} editing={editing} value={form.protectiveFactors} onChange={set("protectiveFactors")} />
+          <AnamneseField field="additionalNotes" label="Observações Adicionais" rows={4} editing={editing} value={form.additionalNotes} onChange={set("additionalNotes")} />
         </CardContent>
       </Card>
 
