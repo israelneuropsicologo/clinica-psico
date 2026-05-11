@@ -1398,3 +1398,29 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Testar botão "Recusar" com modal
 - [x] Validar fluxo completo: ChatBot → Leads → Agendamentos → Sessões
 - [x] Sistema 100% operacional e pronto para publicação
+
+
+## Bug Crítico: Digitação em Anamnese (Página se Move, 1 Caractere por Vez)
+- [ ] Investigar página de Anamnese para encontrar causa do bug
+- [ ] Verificar se há re-renderização excessiva durante digitação
+- [ ] Verificar se há scroll automático ou movimento de página
+- [ ] Corrigir problema de performance
+- [ ] Testar digitação normal em todos os campos
+- [ ] Validar que a página não se move mais durante digitação
+
+
+## Bug Crítico: Digitação em Anamnese
+- [ ] Investigar causa do bug (re-renderização, event listeners, scroll automático)
+- [ ] Corrigir aceitação de múltiplos caracteres por vez
+- [ ] Remover scroll automático ao digitar
+- [ ] Testar digitação normal em todos os campos da Anamnese
+
+## Fase 73: Implementação de Página de Relatórios Completa
+- [ ] Criar rota `/reports` em App.tsx
+- [ ] Criar página Reports.tsx com filtros (data, paciente, tipo de relatório)
+- [ ] Integrar dados de pacientes, sessões e receita
+- [ ] Criar gráficos de relatórios (faturamento, sessões, pacientes, conversão)
+- [ ] Implementar botão "Gerar PDF" para exportar relatórios
+- [ ] Testar geração de relatórios com dados reais
+- [ ] Validar que todos os dados estão sendo exibidos corretamente
+- [ ] Adicionar item "Relatórios" ao menu lateral

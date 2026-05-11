@@ -17,7 +17,7 @@ import { ClinicalManagement } from "@/components/Reports/ClinicalManagement";
 import { SystemIntegrity } from "@/components/Reports/SystemIntegrity";
 
 export default function AdminReports() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [startDate, setStartDate] = useState(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
@@ -28,8 +28,28 @@ export default function AdminReports() {
   const [hasApplied, setHasApplied] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Check if user is admin
-  if (user?.role !== "admin") {
+  // Fetch report data - ALWAYS call hooks, even if not used
+  const { data: reportData, isLoading, error } = trpc.managementReports.generateReport.useQuery(
+    {
+      startDate,
+      endDate,
+      category: category as any,
+    },
+    { enabled: hasApplied }
+  );
+
+  // Check if user is admin - AFTER all hooks
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!user || user?.role !== "admin") {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -43,16 +63,6 @@ export default function AdminReports() {
       </DashboardLayout>
     );
   }
-
-  // Fetch report data
-  const { data: reportData, isLoading, error } = trpc.managementReports.generateReport.useQuery(
-    {
-      startDate,
-      endDate,
-      category: category as any,
-    },
-    { enabled: hasApplied }
-  );
 
   const handleApplyFilters = () => {
     if (!startDate || !endDate) {

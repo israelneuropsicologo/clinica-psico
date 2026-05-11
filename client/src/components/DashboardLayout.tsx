@@ -41,6 +41,7 @@ import {
   Inbox,
   CheckSquare,
   Lightbulb,
+  BarChart3,
 } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -60,9 +61,11 @@ const menuItems = [
   { icon: SettingsIcon, label: "Configurações", path: "/settings" },
   { icon: Zap, label: "Integração", path: "/webhooks" },
   { icon: HardDrive, label: "Backups", path: "/backups", adminOnly: true },
+  { icon: BarChart3, label: "Relatórios Gerenciais", path: "/admin/reports", adminOnly: true },
 ];
 
 const externalLinks = [
+  { icon: ExternalLink, label: "Módulo de Relatórios", url: "https://clinic-rep-ungcdbcu.manus.space" },
   { icon: ExternalLink, label: "Backoffice do Site", url: "https://psicologo.manus.space/admin/configuracoes" },
   { icon: ExternalLink, label: "Site Profissional", url: "https://psicologo.manus.space" },
 ];
