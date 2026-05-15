@@ -216,19 +216,19 @@
 ### Correção 1: Filtro "Pendente" em Sessões
 - [x] Adicionar opção "Pendente" ao filtro de status em Sessões - FEITO
 - [x] Validar que "Pendente" filtra corretamente as sessões agendadas não confirmadas - FEITO
-- [ ] Testar filtro
+- [x] Testar filtro - FEITO (Filtro funcionando corretamente, mostrando 4 sessões pendentes)
 
 ### Correção 2: Fuso Horário (UTC → America/Sao_Paulo)
 - [x] Corrigir exibição de horários na Agenda (UTC-3) - FEITO (CustomCalendar)
 - [x] Agendamentos que chegam em UTC devem ser exibidos em horário de São Paulo - FEITO
-- [ ] Testar com agendamentos do site profissional
+- [x] Testar com agendamentos do site profissional - FEITO (Horários exibidos corretamente: 10:00, 07:00, 09:00)
 
 ### Correção 3: Agenda Interativa com Nome do Paciente
 - [x] Mostrar nome do paciente nos cards da Agenda (não apenas horário) - FEITO
 - [x] Ao clicar em um card, abrir modal com dados completos - FEITO
 - [x] Modal deve permitir edição (tipo Google Calendar) - FEITO
 - [x] Campos editáveis: nome, horário, tipo de consulta, observações - FEITO
-- [ ] Testar navegação e edição
+- [x] Testar navegação e edição - FEITO (Modal abre, edita e fecha corretamente)
 
 ## Fase 65: Agenda Interativa com Modal de Edição
 
