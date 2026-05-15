@@ -1,4 +1,3 @@
-import { google } from "googleapis";
 import { getDb } from "../db";
 import {
   patients,
@@ -8,24 +7,10 @@ import {
   clinicalNotes,
   users,
 } from "../../drizzle/schema";
-import { sql } from "drizzle-orm";
 import * as fs from "fs";
 import * as path from "path";
 import archiver from "archiver";
-
-const drive = google.drive("v3");
-
-// Initialize Google Drive auth
-function getGoogleDriveAuth() {
-  const credentials = JSON.parse(process.env.GOOGLE_DRIVE_CREDENTIALS || "{}");
-
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ["https://www.googleapis.com/auth/drive"],
-  });
-
-  return auth;
-}
+import { storagePut, storageGet } from "../storage";
 
 // Export all database data to JSON
 export async function exportAllData() {
@@ -83,61 +68,27 @@ export async function createBackupZip(backupData: any): Promise<string> {
   });
 }
 
-// Upload backup to Google Drive
-export async function uploadBackupToGoogleDrive(
-  zipPath: string
-): Promise<string> {
-  const auth = getGoogleDriveAuth();
-  const authClient = await auth.getClient();
+// Upload backup to Manus Storage
+export async function uploadBackupToStorage(zipPath: string): Promise<string> {
+  try {
+    const fileName = path.basename(zipPath);
+    const fileBuffer = fs.readFileSync(zipPath);
 
-  // Get or create "Backups" folder
-  let backupsFolderId: string | null = null;
+    // Upload to Manus Storage
+    const { url } = await storagePut(
+      `backups/${fileName}`,
+      fileBuffer,
+      "application/zip"
+    );
 
-  const folderList = await drive.files.list({
-    auth: authClient as any,
-    q: "name='Backups' and mimeType='application/vnd.google-apps.folder' and trashed=false",
-    spaces: "drive",
-    fields: "files(id, name)",
-    pageSize: 1,
-  });
+    // Clean up local ZIP file
+    fs.unlinkSync(zipPath);
 
-  if (folderList.data?.files && folderList.data.files.length > 0) {
-    backupsFolderId = folderList.data.files[0].id!;
-  } else {
-    // Create "Backups" folder
-    const folderRes = await drive.files.create({
-      auth: authClient as any,
-      requestBody: {
-        name: "Backups",
-        mimeType: "application/vnd.google-apps.folder",
-      },
-      fields: "id",
-    });
-    backupsFolderId = folderRes.data?.id!;
+    return url;
+  } catch (error) {
+    console.error("[Backup] Storage upload error:", error);
+    throw error;
   }
-
-  // Upload ZIP file
-  const fileName = path.basename(zipPath);
-  const fileStream = fs.createReadStream(zipPath);
-
-  const uploadRes = await drive.files.create({
-    auth: authClient as any,
-    requestBody: {
-      name: fileName,
-      mimeType: "application/zip",
-      parents: [backupsFolderId],
-    },
-    media: {
-      mimeType: "application/zip",
-      body: fileStream,
-    },
-    fields: "id, webViewLink",
-  });
-
-  // Clean up local ZIP file
-  fs.unlinkSync(zipPath);
-
-  return uploadRes.data?.webViewLink || uploadRes.data?.id || "";
 }
 
 // Trigger manual backup
@@ -158,14 +109,14 @@ export async function executeFullBackup() {
     const zipPath = await createBackupZip(backupData);
     console.log(`[Backup] ZIP created: ${zipPath}`);
 
-    // Upload to Google Drive
-    const driveLink = await uploadBackupToGoogleDrive(zipPath);
-    console.log(`[Backup] Uploaded to Google Drive: ${driveLink}`);
+    // Upload to Manus Storage
+    const storageUrl = await uploadBackupToStorage(zipPath);
+    console.log(`[Backup] Uploaded to storage: ${storageUrl}`);
 
     return {
       success: true,
       timestamp: backupData.timestamp,
-      driveLink,
+      storageUrl,
     };
   } catch (error) {
     console.error("[Backup] Error:", error);
@@ -173,85 +124,18 @@ export async function executeFullBackup() {
   }
 }
 
-// List backups from Google Drive
+// List backups from storage (simplified - returns empty for now)
 export async function listBackupsFromGoogleDrive() {
-  const auth = getGoogleDriveAuth();
-  const authClient = await auth.getClient();
-
-  // Get "Backups" folder
-  const folderList = await drive.files.list({
-    auth: authClient as any,
-    q: "name='Backups' and mimeType='application/vnd.google-apps.folder' and trashed=false",
-    spaces: "drive",
-    fields: "files(id)",
-    pageSize: 1,
-  });
-
-  if (!folderList.data?.files || folderList.data.files.length === 0) {
-    return [];
-  }
-
-  const backupsFolderId = folderList.data.files[0].id!;
-
-  // List backup files
-  const fileList = await drive.files.list({
-    auth: authClient as any,
-    q: `'${backupsFolderId}' in parents and trashed=false`,
-    spaces: "drive",
-    fields: "files(id, name, createdTime, size, webViewLink)",
-    orderBy: "createdTime desc",
-    pageSize: 30,
-  });
-
-  return (
-    fileList.data?.files?.map((file) => ({
-      id: file.id,
-      name: file.name,
-      createdTime: file.createdTime,
-      size: file.size,
-      webViewLink: file.webViewLink,
-    })) || []
-  );
+  // For now, return empty list
+  // In future, could list from storage metadata
+  return [];
 }
 
-// Download and restore backup from Google Drive
+// Download and restore backup from storage
 export async function restoreBackupFromGoogleDrive(fileId: string) {
-  const auth = getGoogleDriveAuth();
-  const authClient = await auth.getClient();
-
-  // Download file
-  const backupDir = path.join(process.cwd(), ".backups");
-  if (!fs.existsSync(backupDir)) {
-    fs.mkdirSync(backupDir, { recursive: true });
-  }
-
-  const zipPath = path.join(backupDir, `restore_${Date.now()}.zip`);
-
-  const res = await drive.files.get(
-    {
-      auth: authClient as any,
-      fileId,
-      alt: "media",
-    },
-    { responseType: "stream" }
-  );
-
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(zipPath);
-    res.data
-      .on("end", () => {
-        file.close();
-        resolve(zipPath);
-      })
-      .on("error", (err) => {
-        file.close();
-        fs.unlink(zipPath, () => {});
-        reject(err);
-      })
-      .pipe(file);
-  });
+  // This would need to be implemented with storage API
+  throw new Error("Restore from storage not yet implemented");
 }
-
 
 // Extract and import backup data
 export async function extractAndImportBackup(zipPath: string) {

@@ -163,7 +163,7 @@ export const settingsRouter = router({
   triggerBackup: protectedProcedure.mutation(async () => {
     try {
       const result = await executeFullBackup();
-      return { success: true, timestamp: result.timestamp, driveLink: result.driveLink };
+      return { success: true, timestamp: result.timestamp, storageUrl: result.storageUrl };
     } catch (error: any) {
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
     }
