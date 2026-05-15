@@ -233,13 +233,13 @@
 ## Fase 65: Agenda Interativa com Modal de Edição
 
 ### Componentes Separados (Sem Recompilação):
-- [ ] Criar `SessionsList.tsx` - Lista simples de sessões com nome do paciente
-- [ ] Criar `SessionEditModal.tsx` - Modal de edição separado
-- [ ] Adicionar `SessionsList` abaixo do Google Calendar em Calendar.tsx
-- [ ] Testar clique em sessão (abre modal)
-- [ ] Testar edição de horario, nome, tipo
-- [ ] Testar salvamento de mudanças
-- [ ] Validar que horarios estão em São Paulo (UTC-3)
+- [x] Criar `SessionsList.tsx` - Lista simples de sessões com nome do paciente - FEITO
+- [x] Criar `SessionEditModal.tsx` - Modal de edição separado - FEITO
+- [x] Adicionar `SessionsList` abaixo do Google Calendar em Calendar.tsx - FEITO
+- [x] Testar clique em sessão (abre modal) - FEITO
+- [x] Testar edição de horario, nome, tipo - FEITO
+- [x] Testar salvamento de mudanças - FEITO
+- [x] Validar que horarios estão em São Paulo (UTC-3) - FEITO
 
 ## Fase 66: Interface de Relatórios Gerenciais
 
