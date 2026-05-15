@@ -1,6 +1,8 @@
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -11,6 +13,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Backups() {
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   const [backups, setBackups] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<any>(null);
@@ -19,29 +22,20 @@ export default function Backups() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  const listBackupsQuery = trpc.system.listBackups.useQuery();
+  const listBackupsQuery = trpc.system.listBackups.useQuery({ enabled: user?.role === "admin" });
   const triggerBackupMutation = trpc.system.triggerBackup.useMutation();
   const restoreBackupMutation = trpc.system.restoreBackup.useMutation();
 
-  // Check if user is admin
-  if (user?.role !== "admin") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Alert className="max-w-md">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar backups.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (listBackupsQuery.data) {
+      setBackups(listBackupsQuery.data);
+    }
+  }, [listBackupsQuery.data]);
 
   const loadBackups = async () => {
     setLoading(true);
     try {
-      const result = listBackupsQuery.data;
-      setBackups(result || []);
+      await listBackupsQuery.refetch();
       toast.success("Lista de backups atualizada");
     } catch (error) {
       toast.error("Falha ao carregar backups");
@@ -89,15 +83,30 @@ export default function Backups() {
     }
   };
 
-  useEffect(() => {
-    loadBackups();
-  }, []);
+  // Check if user is admin
+  if (user?.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Alert className="max-w-md">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Você não tem permissão para acessar esta página. Apenas administradores podem gerenciar backups.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Cópias de Segurança</h1>
-        <p className="text-gray-600 mt-2">Gerenciar backups automáticos dos dados da clínica</p>
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold">Cópias de Segurança</h1>
+          <p className="text-gray-600 mt-2">Gerenciar backups automáticos dos dados da clínica</p>
+        </div>
       </div>
 
       {/* Instructions Card */}

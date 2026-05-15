@@ -1,14 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  FileText,
-  CheckCircle,
-  ClipboardList,
-  MessageSquare,
-  BarChart3,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, FileText, CheckCircle, ClipboardList, MessageSquare, BarChart3, Users } from "lucide-react";
 import { DocumentGenerationWithPatientSelector } from "@/components/DocumentGenerationWithPatientSelector";
 
 export interface DocumentType {
@@ -78,6 +72,7 @@ const DOCUMENT_TYPES: DocumentType[] = [
 ];
 
 export default function Documents() {
+  const [, navigate] = useLocation();
   const [selectedDocumentType, setSelectedDocumentType] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -93,16 +88,21 @@ export default function Documents() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Documentos Psicológicos
-        </h1>
-        <p className="text-muted-foreground">
-          Gere documentos profissionais personalizados para seus pacientes
-        </p>
-        <p className="text-sm text-muted-foreground/70 mt-1">
-          Selecione um tipo de documento para começar
-        </p>
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Documentos Psicológicos
+          </h1>
+          <p className="text-muted-foreground">
+            Gere documentos profissionais personalizados para seus pacientes
+          </p>
+          <p className="text-sm text-muted-foreground/70 mt-1">
+            Selecione um tipo de documento para começar
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
