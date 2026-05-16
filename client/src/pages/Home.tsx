@@ -38,7 +38,7 @@ export default function Home() {
         </div>
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
         <p className="text-muted-foreground text-sm">Carregando E-Saúde...</p>
-        <p className="text-muted-foreground text-xs mt-4">Sistema de Gestão Clínica v1.0.0</p>
+        <p className="text-muted-foreground text-xs mt-4">Sistema de Gestão Clínica v1.0.1 - Publicado em 16/05/2026</p>
       </div>
     </div>
   );
