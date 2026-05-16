@@ -38,6 +38,9 @@ export default function AdminReports() {
     { enabled: hasApplied }
   );
 
+  // Mutation para gerar PDF - DEVE estar antes de qualquer return condicional
+  const generatePDFMutation = trpc.managementReports.generateReportPDF.useMutation();
+
   // Check if user is admin - AFTER all hooks
   if (loading) {
     return (
@@ -84,14 +87,31 @@ export default function AdminReports() {
 
     setIsGeneratingPDF(true);
     try {
-      // Aqui você pode chamar uma API para gerar o PDF
-      // Por enquanto, vamos simular o download
-      const element = document.getElementById("report-content");
-      if (element) {
-        // Usar html2pdf ou similar para gerar PDF
-        toast.success("PDF gerado com sucesso!");
+      const result = await generatePDFMutation.mutateAsync({
+        startDate,
+        endDate,
+        category: category as any,
+      });
+
+      // Converter base64 para blob e fazer download
+      const binaryString = atob(result.pdf);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
       }
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("PDF gerado e baixado com sucesso!");
     } catch (err) {
+      console.error(err);
       toast.error("Erro ao gerar PDF");
     } finally {
       setIsGeneratingPDF(false);

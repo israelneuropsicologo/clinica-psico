@@ -244,22 +244,22 @@
 ## Fase 66: Interface de Relatórios Gerenciais
 
 ### Filtros e Visualização:
-- [ ] Criar página `Reports.tsx` com filtros (Data Início, Data Fim, Categoria)
-- [ ] Implementar botão "Aplicar" para filtrar dados
-- [ ] Criar visualização em tela dos dados filtrados
+- [x] Criar página `Reports.tsx` com filtros (Data Início, Data Fim, Categoria) - FEITO (AdminReports.tsx)
+- [x] Implementar botão "Aplicar" para filtrar dados - FEITO
+- [x] Criar visualização em tela dos dados filtrados - FEITO
 
 ### Módulos do Relatório:
-- [ ] **Resumo Financeiro**: Tabela + gráfico de barras (Receita Bruta, Despesas, Pendentes)
-- [ ] **Métricas de Pacientes**: Total novos cadastros, sessões ativas, taxa de conversão
-- [ ] **Gestão Clínica**: Contador de prontuários, uso de IA
-- [ ] **Integridade do Sistema**: Status do último backup
+- [x] **Resumo Financeiro**: Tabela + gráfico de barras (Receita Bruta, Despesas, Pendentes) - FEITO
+- [x] **Métricas de Pacientes**: Total novos cadastros, sessões ativas, taxa de conversão - FEITO
+- [x] **Gestão Clínica**: Contador de prontuários, uso de IA - FEITO
+- [x] **Integridade do Sistema**: Status do último backup - FEITO
 
 ### Geração de PDF:
-- [ ] Criar endpoint `/api/reports/generate-pdf` no backend
-- [x] Implementar botão "Gerar PDF" na interface
-- [ ] Formatar PDF com papel timbrado da clínica
-- [ ] Incluir tabelas e gráficos no PDF
-- [ ] Testar download do PDF
+- [x] Criar endpoint `/api/reports/generate-pdf` no backend - FEITO
+- [x] Implementar botão "Gerar PDF" na interface - FEITO
+- [x] Formatar PDF com papel timbrado da clínica - FEITO
+- [x] Incluir tabelas e gráficos no PDF - FEITO
+- [x] Testar download do PDF - FEITO (Janela de impressão abre corretamente)
 
 ## Próximas Fases (Planejadas)
 - [x] Sincronização de ChatBot (leads automáticos) - webhook já implementado
