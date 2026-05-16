@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Backups() {
+  const [, navigate] = useLocation();
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const [backups, setBackups] = useState<any[]>([]);
