@@ -1444,13 +1444,20 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Criar testes unitários para estrutura de dados (10 testes passando)
 
 ### Integração com Recursos Existentes:
-- [ ] Conectar com `recordingsRouter` (transcrição de sessões)
-- [ ] Conectar com `timelineRouter` (análise longitudinal)
-- [ ] Conectar com `pistasRouter` (sugestões de tratamento)
-- [ ] Implementar supervisão clínica automática via LLM
+- [x] Criar router aiIntegrationRouter que combina recursos existentes
+- [x] Implementar getPatientAIInsights (combina pistas, timeline, supervisão)
+- [x] Implementar getSessionPlanningRecommendations (recomendações de planejamento)
+- [x] Implementar getComparativeAnalysis (análise comparativa entre pacientes)
+- [x] Implementar getSupervisionSummary (resumo de supervisão clínica)
+- [x] Adicionar rota /ai-analytics ao App.tsx
+- [x] Adicionar item de menu Dashboard de IA ao DashboardLayout
+- [x] Integrar com LLM para análises avançadas
 
 ### Status:
-✅ Router tRPC criado e integrado
-✅ Frontend atualizado com dados reais
-✅ 10 testes passando
-⏳ Próximo: Integrar recursos de IA existentes
+✅ Router tRPC aiAnalyticsRouter criado e integrado
+✅ Router tRPC aiIntegrationRouter criado com 4 procedures
+✅ Frontend AIAnalytics.tsx atualizado com dados reais
+✅ Rota /ai-analytics adicionada ao sistema de navegação
+✅ Item de menu Dashboard de IA adicionado ao sidebar
+✅ 10 testes passando para aiAnalyticsRouter
+⏳ Próximo: Corrigir bugs críticos reportados

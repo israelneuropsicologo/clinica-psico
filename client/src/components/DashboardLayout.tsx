@@ -42,6 +42,7 @@ import {
   CheckSquare,
   Lightbulb,
   BarChart3,
+  Brain,
 } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -56,6 +57,7 @@ const menuItems = [
   { icon: ClipboardList, label: "Sessões", path: "/sessions" },
   { icon: CalendarDays, label: "Agenda", path: "/calendar" },
   { icon: Lightbulb, label: "Pistas de IA", path: "/pistas" },
+  { icon: Brain, label: "Dashboard de IA", path: "/ai-analytics" },
   { icon: DollarSign, label: "Financeiro", path: "/financial" },
   { icon: FileText, label: "Documentos", path: "/documents" },
   { icon: SettingsIcon, label: "Configurações", path: "/settings" },

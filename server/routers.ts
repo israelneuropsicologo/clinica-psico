@@ -67,6 +67,7 @@ import { anamneseRouter, recordingsRouter, timelineRouter } from "./routers/pati
 import { managementReportsRouter } from "./routers/managementReports";
 import { pistasRouter } from "./routers/pistas";
 import { aiAnalyticsRouter } from "./routers/aiAnalytics";
+import { aiIntegrationRouter } from "./routers/aiIntegration";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -957,6 +958,7 @@ export const appRouter = router({
   userSync: userSyncRouter,
   pistas: pistasRouter,
   aiAnalytics: aiAnalyticsRouter,
+  aiIntegration: aiIntegrationRouter,
   calendar: router({
     getEvents: protectedProcedure
       .input(z.object({
