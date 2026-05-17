@@ -178,20 +178,20 @@ Forneça recomendações em formato estruturado:
       // Get data for each patient
       const patientData = await Promise.all(
         validPatients.map(async (patient) => {
-          const sessions = await db
+          const patientSessions = await db
             .select()
             .from(sessions)
             .where(eq(sessions.patientId, patient.id));
 
-          const notes = await db
+          const patientNotes = await db
             .select()
             .from(clinicalNotes)
             .where(eq(clinicalNotes.patientId, patient.id));
 
           return {
             name: patient.name,
-            sessionsCount: sessions.length,
-            notesCount: notes.length,
+            sessionsCount: patientSessions.length,
+            notesCount: patientNotes.length,
             mainComplaint: patient.mainComplaint,
             status: patient.status,
           };
