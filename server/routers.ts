@@ -66,6 +66,7 @@ import { websiteAppointmentsRouter } from "./routers/website-appointments";
 import { anamneseRouter, recordingsRouter, timelineRouter } from "./routers/patientProfile";
 import { managementReportsRouter } from "./routers/managementReports";
 import { pistasRouter } from "./routers/pistas";
+import { aiAnalyticsRouter } from "./routers/aiAnalytics";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -955,6 +956,7 @@ export const appRouter = router({
   managementReports: managementReportsRouter,
   userSync: userSyncRouter,
   pistas: pistasRouter,
+  aiAnalytics: aiAnalyticsRouter,
   calendar: router({
     getEvents: protectedProcedure
       .input(z.object({

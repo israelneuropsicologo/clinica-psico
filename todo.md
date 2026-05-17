@@ -1424,3 +1424,33 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [ ] Testar geração de relatórios com dados reais
 - [ ] Validar que todos os dados estão sendo exibidos corretamente
 - [ ] Adicionar item "Relatórios" ao menu lateral
+
+
+## Fase 67: Expansão de Funcionalidades de IA (Prioridade #2)
+
+### Dashboard de IA com Dados Reais:
+- [x] Criar router tRPC `aiAnalyticsRouter` com procedures:
+  - `getDashboardData`: Retorna análise completa com dados reais de pacientes
+  - `getPatientAnalysis`: Análise específica por paciente
+- [x] Integrar com dados reais do banco (sessions, clinical_notes, transactions)
+- [x] Calcular padrões emocionais por mês (últimos 5 meses)
+- [x] Calcular efetividade de intervenções baseado em sessões
+- [x] Identificar fatores de risco automaticamente
+- [x] Gerar recomendações baseadas em análise de IA
+- [x] Calcular KPIs (taxa de melhora, pacientes em risco, efetividade média, insights)
+- [x] Atualizar frontend AIAnalytics.tsx para usar dados reais via tRPC
+- [x] Adicionar seletor de período (1, 3, 5, 12 meses)
+- [x] Implementar loading states e error handling
+- [x] Criar testes unitários para estrutura de dados (10 testes passando)
+
+### Integração com Recursos Existentes:
+- [ ] Conectar com `recordingsRouter` (transcrição de sessões)
+- [ ] Conectar com `timelineRouter` (análise longitudinal)
+- [ ] Conectar com `pistasRouter` (sugestões de tratamento)
+- [ ] Implementar supervisão clínica automática via LLM
+
+### Status:
+✅ Router tRPC criado e integrado
+✅ Frontend atualizado com dados reais
+✅ 10 testes passando
+⏳ Próximo: Integrar recursos de IA existentes
