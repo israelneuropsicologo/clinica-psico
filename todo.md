@@ -1495,10 +1495,13 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Implementar getPatientAnalysisFiltered com cache
 
 ### 2. Expandir Recursos de IA Avançada
-- [ ] Integrar análise de sentimento em transcrições de sessões
-- [ ] Criar alertas automáticos para pacientes em risco
-- [ ] Implementar recomendações de tratamento baseadas em padrões históricos
-- [ ] Adicionar scoring de progresso clínico
+- [x] Integrar análise de sentimento em transcrições de sessões (analyzeSentiment)
+- [x] Criar alertas automáticos para pacientes em risco (detectRiskPatterns)
+- [x] Implementar recomendações de tratamento baseadas em padrões históricos (getPatternBasedRecommendations)
+- [x] Adicionar scoring de progresso clínico (getSentimentTrend)
+- [x] Implementar getActiveRiskAlerts para agregação de alertas
+- [x] Criar 20 testes para validar todas as funcionalidades
+- [x] Integrar com LLM para análises avançadas via JSON schema
 
 ### 3. Melhorar UX/UI com Gráficos e Relatórios
 - [ ] Adicionar gráficos interativos no Dashboard de IA (Chart.js/Recharts)

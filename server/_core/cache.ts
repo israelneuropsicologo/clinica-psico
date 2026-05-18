@@ -86,7 +86,8 @@ class CacheManager {
     const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
     let count = 0;
 
-    for (const key of this.cache.keys()) {
+    const keys = Array.from(this.cache.keys());
+    for (const key of keys) {
       if (regex.test(key)) {
         this.cache.delete(key);
         count++;
@@ -133,7 +134,8 @@ class CacheManager {
       const now = Date.now();
       let cleaned = 0;
 
-      for (const [key, entry] of this.cache.entries()) {
+      const entries = Array.from(this.cache.entries());
+      for (const [key, entry] of entries) {
         if (now - entry.timestamp > entry.ttl) {
           this.cache.delete(key);
           cleaned++;
