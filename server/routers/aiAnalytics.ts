@@ -9,6 +9,7 @@ import {
 } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { protectedProcedure, router } from "../_core/trpc";
+import { cacheManager, cacheKeys, cacheInvalidation } from "../_core/cache";
 
 /**
  * AI Analytics Router
