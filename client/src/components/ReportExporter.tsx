@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Download, FileText, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 interface ReportData {
   patientId: number;
@@ -50,7 +49,6 @@ export function ReportExporter({
   description = "Generate and download comprehensive analysis report",
 }: ReportExporterProps) {
   const [isExporting, setIsExporting] = useState(false);
-  const { toast } = useToast();
 
   const generatePDFReport = async () => {
     setIsExporting(true);
@@ -132,17 +130,9 @@ For clinical decisions, please consult with qualified professionals.
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast({
-        title: "Relatório Exportado",
-        description: "O relatório foi baixado com sucesso.",
-      });
+      console.log("Relatório exportado com sucesso");
     } catch (error) {
-      console.error("Error exporting report:", error);
-      toast({
-        title: "Erro ao Exportar",
-        description: "Não foi possível gerar o relatório.",
-        variant: "destructive",
-      });
+      console.error("Erro ao exportar relatório:", error);
     } finally {
       setIsExporting(false);
     }
@@ -162,17 +152,9 @@ For clinical decisions, please consult with qualified professionals.
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast({
-        title: "Relatório JSON Exportado",
-        description: "O arquivo JSON foi baixado com sucesso.",
-      });
+      console.log("Relatório JSON exportado com sucesso");
     } catch (error) {
-      console.error("Error exporting JSON:", error);
-      toast({
-        title: "Erro ao Exportar",
-        description: "Não foi possível gerar o arquivo JSON.",
-        variant: "destructive",
-      });
+      console.error("Erro ao exportar JSON:", error);
     } finally {
       setIsExporting(false);
     }
