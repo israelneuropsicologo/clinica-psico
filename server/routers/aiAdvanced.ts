@@ -110,7 +110,8 @@ Respond in JSON format: { "score": number, "label": string, "confidence": number
       });
 
       const content = response.choices[0]?.message.content;
-      const result = JSON.parse(content || "{}") as SentimentResult;
+      const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+      const result = JSON.parse(contentStr || "{}") as SentimentResult;
 
       return {
         patientId: input.patientId,
@@ -163,7 +164,7 @@ Respond in JSON format: { "score": number, "label": string, "confidence": number
         .limit(5);
 
       // Analyze risk factors
-      const notesText = recentNotes.map((n) => n.notes).join("\n");
+      const notesText = recentNotes.map((n) => n.content).join("\n");
 
       const response = await invokeLLM({
         messages: [
@@ -202,7 +203,8 @@ Consider factors like: suicidal ideation, substance abuse, severe depression, an
       });
 
       const content = response.choices[0]?.message.content;
-      const analysis = JSON.parse(content || "{}");
+      const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+      const analysis = JSON.parse(contentStr || "{}");
 
       const alert: RiskAlert = {
         patientId: input.patientId,
@@ -262,7 +264,7 @@ Consider factors like: suicidal ideation, substance abuse, severe depression, an
         .limit(10);
 
       // Analyze patterns
-      const historyText = allNotes.map((n) => n.notes).join("\n");
+      const historyText = allNotes.map((n) => n.content).join("\n");
 
       const response = await invokeLLM({
         messages: [
@@ -288,7 +290,8 @@ Provide JSON with array of recommendations:
       });
 
       const content = response.choices[0]?.message.content;
-      const recommendations = JSON.parse(content || "[]") as PatternRecommendation[];
+      const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+      const recommendations = JSON.parse(contentStr || "[]") as PatternRecommendation[];
 
       const result = {
         patientId: input.patientId,
