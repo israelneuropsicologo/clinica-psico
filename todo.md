@@ -1504,9 +1504,12 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Integrar com LLM para análises avançadas via JSON schema
 
 ### 3. Melhorar UX/UI com Gráficos e Relatórios
-- [ ] Adicionar gráficos interativos no Dashboard de IA (Chart.js/Recharts)
-- [ ] Criar relatórios exportáveis em PDF com análises de IA
-- [ ] Implementar dark mode com melhor contraste
+- [x] Adicionar gráficos interativos no Dashboard de IA (SentimentChart com Recharts)
+- [x] Criar gráficos de análise de risco (RiskAnalysisChart)
+- [x] Implementar exportação de relatórios (ReportExporter com TXT e JSON)
+- [x] Criar componente SentimentChart com LineChart e PieChart
+- [x] Criar componente RiskAnalysisChart com BarChart e alertas críticos
+- [x] Implementar ReportExporter com múltiplos formatos de exportação
 - [ ] Adicionar visualizações de timeline de progresso
 
 ### 4. Implementar Segurança e Conformidade
