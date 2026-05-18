@@ -357,20 +357,20 @@ function identifyRiskFactors(
   if (recentSessions.length < 2) {
     riskFactors.push({
       factor: "Sono Inadequado",
-      risk: Math.min(100, 50 + Math.random() * 30),
+      risk: Math.round((Math.min(100, 50 + Math.random() * 30)) * 100) / 100,
       trend: "down" as const,
     });
   }
 
   riskFactors.push({
     factor: "Estresse Ocupacional",
-    risk: Math.min(100, 60 + Math.random() * 20),
+    risk: Math.round((Math.min(100, 60 + Math.random() * 20)) * 100) / 100,
     trend: "stable" as const,
   });
 
   riskFactors.push({
     factor: "Conflitos Familiares",
-    risk: Math.min(100, 30 + Math.random() * 25),
+    risk: Math.round((Math.min(100, 30 + Math.random() * 25)) * 100) / 100,
     trend: "down" as const,
   });
 
