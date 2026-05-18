@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, router } from "../\_core/trpc";
 import { eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { settings as settingsTable, InsertSettings } from "../../drizzle/schema";
@@ -23,8 +23,8 @@ export const settingsRouter = router({
       .limit(1);
 
     if (!result.length) {
-      return {
-        id: 0,
+      // Se não existem configurações, criar com valores padrão
+      const defaultSettings: InsertSettings = {
         userId: ctx.user.id,
         clinicName: "Consultório Israel Mendes",
         clinicEmail: ctx.user.email || "israelneuropsicologo@gmail.com",
@@ -51,9 +51,19 @@ export const settingsRouter = router({
         currency: "BRL",
         timezone: "America/Sao_Paulo",
         language: "pt-BR",
-        createdAt: new Date(),
-        updatedAt: new Date(),
       };
+      
+      // Inserir configurações padrão no banco
+      await db.insert(settingsTable).values(defaultSettings);
+      
+      // Retornar as configurações criadas
+      const created = await db
+        .select()
+        .from(settingsTable)
+        .where(eq(settingsTable.userId, ctx.user.id))
+        .limit(1);
+      
+      return created[0] || { ...defaultSettings, id: 0, createdAt: new Date(), updatedAt: new Date() };
     }
 
     return result[0];
@@ -115,6 +125,7 @@ export const settingsRouter = router({
       }
 
       if (existing.length) {
+        // Atualizar configurações existentes
         await db
           .update(settingsTable)
           .set(updateData)
