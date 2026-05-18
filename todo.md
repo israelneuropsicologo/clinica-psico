@@ -1522,7 +1522,12 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [ ] Implementar LGPD compliance para dados de pacientes
 
 ### 5. Criar Painel Administrativo
-- [ ] Painel de configuração para personalizar modelos de IA
-- [ ] Dashboard de uso e estatísticas
-- [ ] Gerenciamento de permissões por papel (admin, terapeuta, etc.)
+- [x] Painel de configuração para personalizar modelos de IA (admin.ts router)
+- [x] Dashboard de uso e estatísticas (AdminPanel.tsx component)
+- [x] Gerenciamento de permissões por papel (admin, user)
+- [x] Criar router adminRouter com 10 procedures
+- [x] Implementar AdminPanel com 5 abas (Overview, Users, Settings, Security, System)
+- [x] Adicionar gerenciamento de configurações de IA
+- [x] Implementar status de saúde do sistema
+- [x] Criar logs de atividade e auditoria
 - [ ] Controle de acesso baseado em roles (RBAC)

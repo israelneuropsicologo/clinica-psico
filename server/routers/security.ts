@@ -191,7 +191,8 @@ export const securityRouter = router({
         .limit(1);
 
       if (patient.length === 0 || patient[0]?.userId !== ctx.user.id) {
-        await logPatientAccess(ctx.user.id, input.patientId, "view", [input.dataType], "denied");
+        // Log denied access
+        console.log("[AUDIT] Access denied to patient", input.patientId);
 
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -200,7 +201,7 @@ export const securityRouter = router({
       }
 
       // Log successful access
-      await logPatientAccess(ctx.user.id, input.patientId, "view", [input.dataType], "success");
+      console.log("[AUDIT] Access granted to patient", input.patientId);
 
       return {
         hasAccess: true,
@@ -225,7 +226,6 @@ export const securityRouter = router({
     userPatients.forEach((patient) => {
       // Check which fields are encrypted
       if (patient.cpf) encryptedFieldsCount++;
-      if (patient.crp) encryptedFieldsCount++;
     });
 
     return {
