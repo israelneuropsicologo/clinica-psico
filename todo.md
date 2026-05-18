@@ -1577,3 +1577,11 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - Procedures tRPC: 40+ procedures implementadas
 - Sem erros de TypeScript
 - Sistema pronto para publicação
+
+
+## Bug Fix: Dados de Configurações não Aparecem nos Documentos
+- [ ] Integrar dados de configurações (endereço, telefone, etc.) nos documentos gerados
+- [ ] Adicionar endereço da clínica no rodapé de todos os documentos
+- [ ] Adicionar telefone e email da clínica nos documentos
+- [ ] Adicionar informações do profissional (CRP, especialidade) nos documentos
+- [ ] Testar geração de documentos com dados de configurações

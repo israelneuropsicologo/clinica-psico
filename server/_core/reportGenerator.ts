@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { getDb } from "../db";
-import { patients, sessions, transactions } from "../../drizzle/schema";
+import { patients, sessions, transactions, settingsTable } from "../../drizzle/schema";
 import { eq, and, gte, lte } from "drizzle-orm";
 
 export interface ReportFilters {
@@ -23,9 +23,55 @@ const VERY_LIGHT_GRAY = rgb(0.85, 0.85, 0.85);
 const PRIMARY_BLUE = rgb(0.1, 0.35, 0.7);
 const LIGHT_BLUE_BG = rgb(0.93, 0.96, 1.0);
 
+async function getClinicSettings(userId: number) {
+  const db = await getDb();
+  if (!db) return {};
+  
+  try {
+    const settings = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.userId, userId))
+      .limit(1);
+    
+    return settings[0] || {};
+  } catch (error) {
+    console.error("Error fetching clinic settings:", error);
+    return {};
+  }
+}
+
+function formatClinicFooter(settings: any): string {
+  const parts = [];
+  
+  if (settings.clinicAddress) {
+    const address = [settings.clinicAddress, settings.clinicCity, settings.clinicState, settings.clinicZipCode]
+      .filter(Boolean)
+      .join(", ");
+    if (address) parts.push(`Endereço: ${address}`);
+  }
+  
+  if (settings.clinicPhone || settings.clinicEmail) {
+    const contact = [settings.clinicPhone, settings.clinicEmail].filter(Boolean).join(" | ");
+    if (contact) parts.push(`Contato: ${contact}`);
+  }
+  
+  if (settings.ownerName || settings.ownerCRPNumber) {
+    const prof = [settings.ownerName, settings.ownerCRPNumber ? `CRP: ${settings.ownerCRPNumber}` : null]
+      .filter(Boolean)
+      .join(" - ");
+    if (prof) parts.push(prof);
+  }
+  
+  return parts.join(" | ");
+}
+
 export async function generatePatientReport(filters: ReportFilters): Promise<Buffer> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+
+  // Buscar dados de configurações da clínica
+  const clinicSettings = await getClinicSettings(filters.userId);
 
   // Construir query com filtros
   const conditions: ReturnType<typeof eq>[] = [eq(patients.userId, filters.userId)];
@@ -68,7 +114,7 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
   // Fundo azul no cabeçalho
   page.drawRectangle({ x: 0, y: PAGE_H - 80, width: PAGE_W, height: 80, color: PRIMARY_BLUE });
 
-  page.drawText("Relatório de Pacientes", {
+  page.drawText(clinicSettings.clinicName || "Relatório de Pacientes", {
     x: MARGIN,
     y: PAGE_H - 45,
     size: 20,
@@ -178,14 +224,24 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
 
   // ─── Rodapé ───────────────────────────────────────────────────────────────────
   const totalPages = pdfDoc.getPageCount();
+  const footerInfo = formatClinicFooter(clinicSettings);
+  
   for (let i = 0; i < totalPages; i++) {
     const pg = pdfDoc.getPage(i);
     pg.drawLine({ start: { x: MARGIN, y: 45 }, end: { x: PAGE_W - MARGIN, y: 45 }, thickness: 0.5, color: VERY_LIGHT_GRAY });
+    
     pg.drawText("Documento confidencial — uso exclusivo do profissional de saúde. Protegido pelo sigilo profissional e LGPD.", {
       x: MARGIN, y: 32, size: 7, font: fontRegular, color: LIGHT_GRAY,
     });
+    
+    if (footerInfo) {
+      pg.drawText(footerInfo, {
+        x: MARGIN, y: 24, size: 6, font: fontRegular, color: LIGHT_GRAY,
+      });
+    }
+    
     pg.drawText(`Gerado em: ${new Date().toLocaleString("pt-BR")} | Página ${i + 1} de ${totalPages}`, {
-      x: MARGIN, y: 20, size: 7, font: fontRegular, color: LIGHT_GRAY,
+      x: MARGIN, y: 16, size: 7, font: fontRegular, color: LIGHT_GRAY,
     });
   }
 
@@ -196,6 +252,9 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
 export async function generateFinancialReport(filters: ReportFilters): Promise<Buffer> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+
+  // Buscar dados de configurações da clínica
+  const clinicSettings = await getClinicSettings(filters.userId);
 
   // Construir query de transações
   const conditions: ReturnType<typeof eq>[] = [eq(transactions.userId, filters.userId)];
@@ -235,7 +294,7 @@ export async function generateFinancialReport(filters: ReportFilters): Promise<B
   // ─── Cabeçalho ───────────────────────────────────────────────────────────────
   page.drawRectangle({ x: 0, y: PAGE_H - 80, width: PAGE_W, height: 80, color: PRIMARY_BLUE });
 
-  page.drawText("Relatório Financeiro", {
+  page.drawText(clinicSettings.clinicName || "Relatório Financeiro", {
     x: MARGIN,
     y: PAGE_H - 45,
     size: 20,
@@ -309,11 +368,20 @@ export async function generateFinancialReport(filters: ReportFilters): Promise<B
 
   // ─── Rodapé ───────────────────────────────────────────────────────────────────
   page.drawLine({ start: { x: MARGIN, y: 45 }, end: { x: PAGE_W - MARGIN, y: 45 }, thickness: 0.5, color: VERY_LIGHT_GRAY });
+  
   page.drawText("Documento confidencial — uso exclusivo do profissional de saúde. Protegido pelo sigilo profissional e LGPD.", {
     x: MARGIN, y: 32, size: 7, font: fontRegular, color: LIGHT_GRAY,
   });
+  
+  const footerInfo = formatClinicFooter(clinicSettings);
+  if (footerInfo) {
+    page.drawText(footerInfo, {
+      x: MARGIN, y: 24, size: 6, font: fontRegular, color: LIGHT_GRAY,
+    });
+  }
+  
   page.drawText(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, {
-    x: MARGIN, y: 20, size: 7, font: fontRegular, color: LIGHT_GRAY,
+    x: MARGIN, y: 16, size: 7, font: fontRegular, color: LIGHT_GRAY,
   });
 
   const pdfBytes = await pdfDoc.save();
