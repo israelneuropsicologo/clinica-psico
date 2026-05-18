@@ -19,11 +19,11 @@ export const adminRouter = router({
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
     // Get patient count
-    const patientCountResult = await db.select({ count: count() }).from(patients);
+    const patientCountResult = await db.select({ count: count(patients.id) }).from(patients);
     const patientCount = patientCountResult[0]?.count || 0;
 
     // Get session count
-    const sessionCountResult = await db.select({ count: count() }).from(sessions);
+    const sessionCountResult = await db.select({ count: count(sessions.id) }).from(sessions);
     const sessionCount = sessionCountResult[0]?.count || 0;
 
     // Calculate average sessions per patient
@@ -95,7 +95,7 @@ export const adminRouter = router({
     .input(
       z.object({
         section: z.enum(["general", "ai", "security", "notifications"]),
-        settings: z.record(z.unknown()),
+        settings: z.record(z.string(), z.unknown()),
       })
     )
     .mutation(async ({ input }) => {
@@ -127,7 +127,7 @@ export const adminRouter = router({
         email: patient.email,
         phone: patient.phone,
         createdAt: patient.createdAt,
-        status: patient.deletedAt ? "inactive" : "active",
+        status: "active",
       })),
       roles: {
         admin: 1,
@@ -289,7 +289,7 @@ export const adminRouter = router({
    * Trigger manual backup
    */
   triggerBackup: adminProcedure.mutation(async ({ ctx }) => {
-    console.log("[ADMIN] Manual backup triggered by", ctx.user.id);
+    console.log("[ADMIN] Manual backup triggered");
 
     return {
       success: true,

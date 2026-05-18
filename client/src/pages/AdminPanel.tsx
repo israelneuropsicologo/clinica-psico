@@ -9,10 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, BarChart3, Settings, Users, Database, Activity, Shield, Zap } from "lucide-react";
-import { useAuth } from "@/lib/trpc";
+import { trpc } from "@/lib/trpc";
 
 export function AdminPanel() {
-  const { user } = useAuth();
+  const { data: user } = trpc.auth.me.useQuery();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Check if user is admin
