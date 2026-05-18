@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, BarChart3, Settings, Users, Database, Activity, Shield, Zap } from "lucide-react";
+import { AlertCircle, BarChart3, Settings, Users, Database, Activity, Shield, Zap, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 export function AdminPanel() {
@@ -305,6 +305,25 @@ export function AdminPanel() {
                 <p className="text-sm font-medium">Último Backup</p>
                 <p className="text-xs text-muted-foreground">17 de maio de 2026 às 03:00 UTC</p>
               </div>
+              
+              <div className="space-y-2 rounded-lg bg-blue-50 p-3 border border-blue-200">
+                <p className="text-sm font-medium text-blue-900">📁 Backups no Google Drive</p>
+                <p className="text-xs text-blue-700">Caminho: <code className="bg-white px-2 py-1 rounded">Clínica App/Backups</code></p>
+                <a 
+                  href="https://drive.google.com/drive/folders/1" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  Acessar Google Drive →
+                </a>
+              </div>
+              
+              <div className="space-y-2 rounded-lg bg-green-50 p-3 border border-green-200">
+                <p className="text-sm font-medium text-green-900">✅ Últimos 30 Backups</p>
+                <p className="text-xs text-green-700">Armazenados automaticamente todos os dias às 2:00 AM</p>
+              </div>
+              
               <div className="flex gap-2">
                 <Button className="flex-1">Fazer Backup Agora</Button>
                 <Button variant="outline" className="flex-1">
