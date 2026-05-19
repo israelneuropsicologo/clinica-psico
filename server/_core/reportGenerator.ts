@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { getDb } from "../db";
-import { patients, sessions, transactions, settingsTable } from "../../drizzle/schema";
+import { patients, sessions, transactions, settings } from "../../drizzle/schema";
 import { eq, and, gte, lte } from "drizzle-orm";
 
 export interface ReportFilters {
@@ -28,13 +28,13 @@ async function getClinicSettings(userId: number) {
   if (!db) return {};
   
   try {
-    const settings = await db
+    const result = await db
       .select()
-      .from(settingsTable)
-      .where(eq(settingsTable.userId, userId))
+      .from(settings)
+      .where(eq(settings.userId, userId))
       .limit(1);
     
-    return settings[0] || {};
+    return result[0] || {};
   } catch (error) {
     console.error("Error fetching clinic settings:", error);
     return {};
