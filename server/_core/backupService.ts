@@ -124,11 +124,36 @@ export async function executeFullBackup() {
   }
 }
 
-// List backups from storage (simplified - returns empty for now)
+// List backups from local directory
 export async function listBackupsFromGoogleDrive() {
-  // For now, return empty list
-  // In future, could list from storage metadata
-  return [];
+  try {
+    const backupDir = path.join(process.cwd(), ".backups");
+    if (!fs.existsSync(backupDir)) {
+      return [];
+    }
+
+    const files = fs.readdirSync(backupDir);
+    const backups = files
+      .filter((f) => f.endsWith(".zip"))
+      .map((f) => {
+        const filePath = path.join(backupDir, f);
+        const stats = fs.statSync(filePath);
+        return {
+          id: f,
+          name: f,
+          size: stats.size,
+          createdAt: stats.mtime.toISOString(),
+          path: filePath,
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 30); // Return last 30 backups
+
+    return backups;
+  } catch (error) {
+    console.error("[Backup] Error listing backups:", error);
+    return [];
+  }
 }
 
 // Download and restore backup from storage
