@@ -465,7 +465,7 @@ const clinicalNotesRouter = router({
         note.goalsProgress && `Progresso dos objetivos: ${note.goalsProgress}`,
         note.observedInsights && `Insights observados: ${note.observedInsights}`,
         note.observedResistances && `Resistências observadas: ${note.observedResistances}`,
-        note.content && `Anotações gerais: ${note.content}`,
+        note.aiSuggestions && `Anotações gerais: ${note.aiSuggestions}`,
       ].filter(Boolean).join("\n");
 
       if (!noteContext.trim()) {

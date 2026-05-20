@@ -357,12 +357,12 @@
 
 
 ## Fase 26: Correção de Bugs Críticos (Reportados)
-- [ ] Bug: Campo de anotações clínicas não fica visível após digitação
-- [ ] Bug: IA vendo dados antigos de anotações deletadas
-- [ ] Bug: PDF exportando "PACIENTE #1" em vez do nome real do paciente
-- [ ] Teste: Validar salvamento de anotações clínicas
-- [ ] Teste: Validar que IA não usa dados deletados
-- [ ] Teste: Validar PDF com nome correto do paciente
+- [x] Bug: Campo de anotações clínicas não fica visível após digitação
+- [x] Bug: IA vendo dados antigos de anotações deletadas
+- [x] Bug: PDF exportando "PACIENTE #1" em vez do nome real do paciente
+- [x] Teste: Validar salvamento de anotações clínicas
+- [x] Teste: Validar que IA não usa dados deletados
+- [x] Teste: Validar PDF com nome correto do paciente
 
 
 ## Fase 26: Correção de Bugs Críticos
