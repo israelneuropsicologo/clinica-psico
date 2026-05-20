@@ -138,14 +138,28 @@ export async function listBackupsFromGoogleDrive() {
       .map((f) => {
         const filePath = path.join(backupDir, f);
         const stats = fs.statSync(filePath);
+        // Format date in Portuguese
+        const date = new Date(stats.mtime);
+        const formattedDate = date.toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        // Format size in MB
+        const sizeInMB = (stats.size / (1024 * 1024)).toFixed(2);
         return {
           id: f,
-          name: f,
+          name: f.replace(/backup_|.zip/g, ""),
           size: stats.size,
+          sizeFormatted: `${sizeInMB} MB`,
           createdAt: stats.mtime.toISOString(),
+          createdAtFormatted: formattedDate,
           path: filePath,
         };
       })
+      .filter((b) => b.size > 0) // Filter out empty files
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 30); // Return last 30 backups
 

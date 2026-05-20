@@ -192,12 +192,12 @@ export default function Backups() {
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
                 >
                   <div className="flex-1">
-                    <p className="font-medium">{backup.name}</p>
+                    <p className="font-medium">{backup.name || backup.id}</p>
                     <p className="text-sm text-gray-600">
-                      {new Date(backup.createdTime).toLocaleString("pt-BR")}
+                      {backup.createdAtFormatted || new Date(backup.createdAt).toLocaleString("pt-BR")}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Tamanho: {(parseInt(backup.size || "0") / 1024 / 1024).toFixed(2)} MB
+                      Tamanho: {backup.sizeFormatted || ((backup.size || 0) / 1024 / 1024).toFixed(2) + " MB"}
                     </p>
                   </div>
                   <div className="flex gap-2">
