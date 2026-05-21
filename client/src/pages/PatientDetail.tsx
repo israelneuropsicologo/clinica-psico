@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
@@ -17,6 +18,8 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  Copy,
+  Download,
   Edit,
   FileDown,
   FileText,
@@ -26,6 +29,7 @@ import {
   Mail,
   MapPin,
   Mic,
+  MoreVertical,
   Phone,
   Play,
   RefreshCw,
@@ -468,10 +472,42 @@ export default function PatientDetail() {
                               Transcrever
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"
-                            onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ recordingId: rec.id }); }}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {/* Menu de ações */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              {rec.transcription && (
+                                <>
+                                  <DropdownMenuItem onClick={() => {
+                                    navigator.clipboard.writeText(rec.transcription);
+                                    toast.success('Transcrição copiada!');
+                                  }} className="gap-2">
+                                    <Copy className="h-4 w-4" />
+                                    Copiar Transcrição
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </>
+                              )}
+                              <DropdownMenuItem onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = rec.fileUrl;
+                                link.download = rec.fileName;
+                                link.click();
+                              }} className="gap-2">
+                                <Download className="h-4 w-4" />
+                                Baixar Áudio
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ recordingId: rec.id }); }} className="gap-2 text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
 
