@@ -141,6 +141,43 @@ export const recordingsRouter = router({
       });
 
       const insertId = (result[0] as { insertId: number }).insertId;
+      
+      // Iniciar transcricao automatica em background
+      (async () => {
+        try {
+          await db
+            .update(sessionRecordings)
+            .set({ transcriptionStatus: 'processing' })
+            .where(eq(sessionRecordings.id, insertId));
+
+          const signedUrl = await storageGetSignedUrl(fileKey);
+          const transcriptionResult = await transcribeAudio({
+            audioUrl: signedUrl,
+            language: 'pt',
+            prompt: 'Transcricao de sessao de psicoterapia',
+          });
+
+          if ('error' in transcriptionResult) {
+            await db
+              .update(sessionRecordings)
+              .set({ transcriptionStatus: 'error' })
+              .where(eq(sessionRecordings.id, insertId));
+          } else {
+            await db
+              .update(sessionRecordings)
+              .set({ transcription: transcriptionResult.text, transcriptionStatus: 'done' })
+              .where(eq(sessionRecordings.id, insertId));
+          }
+        } catch (error) {
+          console.error('Erro na transcricao automatica:', error);
+          await db
+            .update(sessionRecordings)
+            .set({ transcriptionStatus: 'error' })
+            .where(eq(sessionRecordings.id, insertId))
+            .catch(() => {});
+        }
+      })();
+
       return { id: insertId, fileUrl: url };
     }),
 

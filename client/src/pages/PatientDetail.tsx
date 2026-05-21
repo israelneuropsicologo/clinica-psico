@@ -32,6 +32,7 @@ import {
   Search,
   Shield,
   Sparkles,
+  Square,
   Trash2,
   TrendingUp,
   Upload,
@@ -2170,14 +2171,76 @@ function UploadDocumentDialog({ patientId, open, onClose, onSuccess }: { patient
 // ── Upload Recording Dialog ───────────────────────────────────────────────────
 function UploadRecordingDialog({ patientId, open, onClose, onSuccess }: { patientId: number; open: boolean; onClose: () => void; onSuccess: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  
   const [fileName, setFileName] = useState("");
   const [fileData, setFileData] = useState<{ base64: string; mimeType: string; size: number } | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const uploadMutation = trpc.recordings.upload.useMutation({
-    onSuccess: () => { toast.success("Gravação enviada!"); onSuccess(); },
+    onSuccess: () => { toast.success("Gravação enviada e transcrição iniciada!"); onSuccess(); },
     onError: (e) => toast.error(e.message),
   });
 
+  // Iniciar gravação
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      setRecordingTime(0);
+      setRecordedAudioUrl(null);
+      setIsRecording(true);
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const url = URL.createObjectURL(audioBlob);
+        setRecordedAudioUrl(url);
+        
+        // Converter para base64
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const base64 = (ev.target?.result as string).split(",")[1];
+          setFileData({ base64, mimeType: 'audio/webm', size: audioBlob.size });
+          setFileName(`Gravação_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.webm`);
+        };
+        reader.readAsDataURL(audioBlob);
+        
+        // Parar stream
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+
+      // Timer
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(t => t + 1);
+      }, 1000);
+    } catch (error) {
+      toast.error("Erro ao acessar microfone. Verifique as permissões.");
+      console.error(error);
+    }
+  };
+
+  // Parar gravação
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+    }
+  };
+
+  // Upload de arquivo
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2191,23 +2254,69 @@ function UploadRecordingDialog({ patientId, open, onClose, onSuccess }: { patien
     reader.readAsDataURL(file);
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fileData || !fileName) { toast.error("Nenhuma gravação selecionada"); return; }
+    uploadMutation.mutate({ patientId, fileName, fileBase64: fileData.base64, mimeType: fileData.mimeType, fileSize: fileData.size });
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
+    <Dialog open={open} onOpenChange={(next) => { if (!next) { stopRecording(); onClose(); } }}>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>Adicionar Gravação</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); if (!fileData || !fileName) { toast.error("Selecione um arquivo de áudio"); return; } uploadMutation.mutate({ patientId, fileName, fileBase64: fileData.base64, mimeType: fileData.mimeType, fileSize: fileData.size }); }} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          {/* Gravador de áudio */}
+          <div className="border-2 border-primary/30 rounded-xl p-6 bg-primary/5 space-y-4">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-3">
+                <Mic className={`h-8 w-8 ${isRecording ? 'text-red-500 animate-pulse' : 'text-primary'}`} />
+              </div>
+              <p className="text-sm font-semibold">Gravador de Áudio</p>
+              {isRecording && <p className="text-xs text-muted-foreground mt-1">Tempo: {formatTime(recordingTime)}</p>}
+            </div>
+            
+            <div className="flex gap-2">
+              {!isRecording ? (
+                <Button type="button" onClick={startRecording} className="flex-1 gap-2" size="sm">
+                  <Mic className="h-4 w-4" /> Iniciar Gravação
+                </Button>
+              ) : (
+                <Button type="button" onClick={stopRecording} variant="destructive" className="flex-1 gap-2" size="sm">
+                  <Square className="h-4 w-4" /> Parar Gravação
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Preview de áudio gravado */}
+          {recordedAudioUrl && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">Gravação Realizada</p>
+              <audio controls className="w-full h-10" src={recordedAudioUrl} />
+            </div>
+          )}
+
+          {/* Upload de arquivo */}
           <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors" onClick={() => fileRef.current?.click()}>
-            <Mic className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            {fileName ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Clique para selecionar</p><p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A, OGG — máx. 16MB</p></>}
+            <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+            {fileName && !recordedAudioUrl ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Ou selecione um arquivo</p><p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A, OGG — máx. 16MB</p></>}
             <input ref={fileRef} type="file" className="hidden" onChange={handleFile} accept=".mp3,.wav,.m4a,.ogg,.webm" />
           </div>
+
           <div className="p-3 bg-muted/50 rounded-lg">
-            <p className="text-xs text-muted-foreground">Após o upload, você poderá solicitar a transcrição automática por IA diretamente na lista de gravações.</p>
+            <p className="text-xs text-muted-foreground">Após o upload, a transcrição será iniciada automaticamente.</p>
           </div>
+          
           <div className="flex gap-3">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => { stopRecording(); onClose(); }} className="flex-1">Cancelar</Button>
             <Button type="submit" className="flex-1" disabled={uploadMutation.isPending || !fileData}>
-              {uploadMutation.isPending ? "Enviando..." : "Enviar"}
+              {uploadMutation.isPending ? "Enviando..." : "Enviar e Transcrever"}
             </Button>
           </div>
         </form>

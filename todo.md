@@ -1600,3 +1600,21 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Testar listagem de backups do Google Drive
 - [x] Testar deleção de backups do Google Drive
 - [x] Salvar checkpoint
+
+
+## Fase 28: Sistema de Gravação e Transcrição de Áudio (Maio 2026)
+- [x] Implementar gravador de áudio em tempo real (MediaRecorder API)
+- [x] Implementar upload de áudio para S3
+- [x] Integrar Whisper API para transcrição
+- [x] Implementar transcrição automática após upload
+- [x] Exibir status de transcrição na interface (Aguardando, Transcrevendo, Transcrito, Erro)
+- [x] Exibir transcrição completa após processamento
+- [x] Implementar botão para transcrever manualmente
+- [x] Teste: Validar gravação e transcrição
+  - **Resolvido**: Sistema 100% funcional
+  - Dialog de gravação com botão "Iniciar Gravação"
+  - Preview de áudio antes de enviar
+  - Upload automático para S3
+  - Transcrição automática em background após upload
+  - Status em tempo real: "Transcrevendo..." → "Transcrito"
+  - Exibição de transcrição completa na aba "Gravações"
