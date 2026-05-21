@@ -1618,3 +1618,14 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
   - Transcrição automática em background após upload
   - Status em tempo real: "Transcrevendo..." → "Transcrito"
   - Exibição de transcrição completa na aba "Gravações"
+
+
+## Bug Fix: Storage Presign Failed - Invalid Argument (Maio 2026)
+- [x] Corrigir erro "Storage presign failed (400): invalid argument, file path must be ASCII"
+  - **Problema**: Nomes de arquivo com caracteres especiais/acentos causavam erro no S3 presigner
+  - **Solução**: Sanitização de nomes de arquivo para conter apenas ASCII
+  - **Implementação**: 
+    - Caracteres especiais convertidos para underscore
+    - Nomes convertidos para minúsculas
+    - Múltiplos underscores reduzidos para um único
+  - **Arquivo modificado**: server/routers/patientProfile.ts (linhas 128-133)

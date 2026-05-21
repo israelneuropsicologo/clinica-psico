@@ -125,14 +125,19 @@ export const recordingsRouter = router({
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
       const buffer = Buffer.from(input.fileBase64, "base64");
-      const fileKey = `recordings/${ctx.user.id}/${input.patientId}/${Date.now()}-${input.fileName}`;
+      // Sanitizar nome do arquivo para conter apenas ASCII (S3 presigner requer ASCII)
+      const sanitizedFileName = input.fileName
+        .replace(/[^a-zA-Z0-9._-]/g, '_')
+        .replace(/_{2,}/g, '_')
+        .toLowerCase();
+      const fileKey = `recordings/${ctx.user.id}/${input.patientId}/${Date.now()}-${sanitizedFileName}`;
       const { url } = await storagePut(fileKey, buffer, input.mimeType);
 
       const result = await db.insert(sessionRecordings).values({
         userId: ctx.user.id,
         patientId: input.patientId,
         sessionId: input.sessionId,
-        fileName: input.fileName,
+        fileName: sanitizedFileName,
         fileKey,
         fileUrl: url,
         mimeType: input.mimeType,
