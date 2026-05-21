@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { settings as settingsTable, InsertSettings } from "../../drizzle/schema";
 import { TRPCError } from "@trpc/server";
-import { executeFullBackup, listBackupsFromGoogleDrive } from "../_core/backupService";
+import { executeFullBackup, listBackupsFromGoogleDrive, deleteBackupFromGoogleDrive } from "../_core/backupService";
 
 /**
  * Settings Router - Gerenciamento de configurações do sistema
@@ -187,4 +187,25 @@ export const settingsRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
     }
   }),
+
+  deleteBackup: protectedProcedure
+    .input(z.object({ fileId: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const result = await deleteBackupFromGoogleDrive(input.fileId);
+        return result;
+      } catch (error: any) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+      }
+    }),
+
+  restoreBackup: protectedProcedure
+    .input(z.object({ fileId: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        throw new TRPCError({ code: "NOT_IMPLEMENTED", message: "Restore not yet implemented" });
+      } catch (error: any) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+      }
+    }),
 });

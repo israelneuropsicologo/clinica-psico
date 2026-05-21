@@ -1585,3 +1585,18 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [ ] Adicionar telefone e email da clínica nos documentos
 - [ ] Adicionar informações do profissional (CRP, especialidade) nos documentos
 - [ ] Testar geração de documentos com dados de configurações
+
+
+## Fase 27: Integração com Google Drive para Backups
+- [x] Configurar credenciais do Google Drive (GOOGLE_DRIVE_CREDENTIALS)
+- [x] Implementar helper para upload de backups ao Google Drive
+- [x] Implementar helper para listar backups do Google Drive
+- [x] Implementar helper para deletar backups do Google Drive
+- [x] Criar router tRPC: backups.uploadToGoogleDrive
+- [x] Criar router tRPC: backups.listFromGoogleDrive
+- [x] Criar router tRPC: backups.deleteFromGoogleDrive
+- [x] Adicionar botão "Apagar" na lista de backups
+- [x] Testar upload de backup para Google Drive
+- [x] Testar listagem de backups do Google Drive
+- [x] Testar deleção de backups do Google Drive
+- [x] Salvar checkpoint

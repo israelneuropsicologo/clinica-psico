@@ -176,6 +176,33 @@ export async function restoreBackupFromGoogleDrive(fileId: string) {
   throw new Error("Restore from storage not yet implemented");
 }
 
+// Delete backup from local directory
+export async function deleteBackupFromGoogleDrive(fileId: string) {
+  try {
+    const backupDir = path.join(process.cwd(), ".backups");
+    const filePath = path.join(backupDir, fileId);
+
+    // Security check: ensure the file is in the backups directory
+    if (!filePath.startsWith(backupDir)) {
+      throw new Error("Invalid file path");
+    }
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      throw new Error("Backup file not found");
+    }
+
+    // Delete the file
+    fs.unlinkSync(filePath);
+    console.log(`[Backup] Deleted backup: ${fileId}`);
+
+    return { success: true, message: "Backup deleted successfully" };
+  } catch (error) {
+    console.error("[Backup] Error deleting backup:", error);
+    throw error;
+  }
+}
+
 // Extract and import backup data
 export async function extractAndImportBackup(zipPath: string) {
   const dbInstance = await getDb();

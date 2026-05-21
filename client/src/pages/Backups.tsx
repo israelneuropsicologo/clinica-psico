@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { trpc } from "@/lib/trpc";
-import { Download, RotateCcw, AlertTriangle, Loader2, RefreshCw, Upload, HelpCircle } from "lucide-react";
+import { Download, RotateCcw, AlertTriangle, Loader2, RefreshCw, Upload, HelpCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -21,10 +21,14 @@ export default function Backups() {
   const [restoring, setRestoring] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [backupToDelete, setBackupToDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const listBackupsQuery = trpc.system.listBackups.useQuery({ enabled: user?.role === "admin" });
   const triggerBackupMutation = trpc.system.triggerBackup.useMutation();
   const restoreBackupMutation = trpc.system.restoreBackup.useMutation();
+  const deleteBackupMutation = trpc.system.deleteBackup.useMutation();
 
   useEffect(() => {
     if (listBackupsQuery.data) {
@@ -80,6 +84,23 @@ export default function Backups() {
     } finally {
       setRestoring(false);
       setShowRestoreConfirm(false);
+    }
+  };
+
+  const handleDeleteBackup = async () => {
+    if (!backupToDelete) return;
+
+    setDeleting(true);
+    try {
+      await deleteBackupMutation.mutateAsync({ fileId: backupToDelete.id });
+      toast.success("Backup deletado com sucesso!");
+      setBackups(backups.filter(b => b.id !== backupToDelete.id));
+      setShowDeleteConfirm(false);
+      setBackupToDelete(null);
+    } catch (error) {
+      toast.error("Falha ao deletar backup");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -220,6 +241,18 @@ export default function Backups() {
                     >
                       <RotateCcw className="h-4 w-4" />
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setBackupToDelete(backup);
+                        setShowDeleteConfirm(true);
+                      }}
+                      title="Apagar"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -261,6 +294,45 @@ export default function Backups() {
               >
                 {restoring && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Restaurar Backup
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Deleção</DialogTitle>
+            <DialogDescription>
+              ⚠️ Esta ação irá deletar permanentemente o backup selecionado do Google Drive.
+              Esta ação não pode ser desfeita. Tem certeza que deseja continuar?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {backupToDelete && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="font-medium">{backupToDelete.name}</p>
+                <p className="text-sm text-gray-600">
+                  {new Date(backupToDelete.createdTime).toLocaleString("pt-BR")}
+                </p>
+              </div>
+            )}
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteBackup}
+                disabled={deleting}
+              >
+                {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Deletar Backup
               </Button>
             </div>
           </div>
