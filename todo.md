@@ -503,11 +503,11 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Integração com estado React (useState para selectedSessions)
 
 ## Fase 30: Melhorias na Exibição de Sessões
-- [ ] Mostrar nome real do paciente em vez de "Paciente #ID"
-- [ ] Adicionar emojis diferenciadores (🎥 Online vs 🏥 Presencial)
-- [ ] Adicionar emojis para pagamento (💰 Pago vs ⏳ Pendente)
-- [ ] Adicionar emojis para origem (🌐 Site vs ✋ Manual)
-- [ ] Sincronizar automaticamente clientes do ChatBot do site
+- [x] Mostrar nome real do paciente em vez de "Paciente #ID"
+- [x] Adicionar emojis diferenciadores (🎥 Online vs 🏥 Presencial)
+- [x] Adicionar emojis para pagamento (💰 Pago vs ⏳ Pendente)
+- [x] Adicionar emojis para origem (🌐 Site vs ✋ Manual)
+- [x] Sincronizar automaticamente clientes do ChatBot do site
 
 ## Fase 31: Integração Google Calendar
 - [ ] Configurar autenticação Google OAuth para Google Calendar API
@@ -1580,11 +1580,11 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 
 
 ## Bug Fix: Dados de Configurações não Aparecem nos Documentos
-- [ ] Integrar dados de configurações (endereço, telefone, etc.) nos documentos gerados
-- [ ] Adicionar endereço da clínica no rodapé de todos os documentos
-- [ ] Adicionar telefone e email da clínica nos documentos
-- [ ] Adicionar informações do profissional (CRP, especialidade) nos documentos
-- [ ] Testar geração de documentos com dados de configurações
+- [x] Integrar dados de configurações (endereço, telefone, etc.) nos documentos gerados
+- [x] Adicionar endereço da clínica no rodápé de todos os documentos
+- [x] Adicionar telefone e email da clínica nos documentos
+- [x] Adicionar informações do profissional (CRP, especialidade) nos documentos
+- [x] Testar geração de documentos com dados de configurações
 
 
 ## Fase 27: Integração com Google Drive para Backups
