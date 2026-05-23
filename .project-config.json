@@ -1,0 +1,46 @@
+{
+  "build_command": "pnpm run build",
+  "capabilities": [
+    "db",
+    "server",
+    "user"
+  ],
+  "dev_command": "pnpm run dev",
+  "env_vars": {
+    "DATABASE_URL": "mysql://3RpD4X9wDf1hcRV.root:YvzE946C24r6uycRkbXB@gateway06.us-east-1.prod.aws.tidbcloud.com:4000/P4nfWouMd7MUucxFWnyo87?ssl={\"rejectUnauthorized\":true}"
+  },
+  "experiments": [
+    "no_db_push"
+  ],
+  "git_remote": {
+    "repo_url": "s3://vida-prod-gitrepo/webdev-git/310519663616814358/P4nfWouMd7MUucxFWnyo87",
+    "access_key_id": "ASIAZV3A2ECZH3WISJJS",
+    "secret_access_key": "TZhPY+CFgrYe/Rt0BuPl7b9fZZ89+/55lg6xfRv4",
+    "session_token": "IQoJb3JpZ2luX2VjEOb//////////wEaCXVzLWVhc3QtMSJGMEQCIDNJ53n8IFI96gai9cWJQm/nopR5iRGuU4IlqLjRjSebAiB1sekxTch4NTjCqUDM4wegn+T0DsaN9Va8G3HO6Ap4hir/Awiv//////////8BEAQaDDY2NTM4NjA5ODg2NiIMTWdFMSfhioKc3SWRKtMDGOgri+rk52qzHpNe6hF6cskZADbPshlHoRMwl5NDqVHyTq/S91/toRXjGV+6WEpEXCLKGk8AXgWcPHEtCWnP+q2Zo2/Fp1N7ndGvQIxIEEQshiF3TBYsAuALBpoAK9S/UTZ3316WaXGiKMjJMaxl2yXUEQoNUnzMR3a3JPseonAl2WsLgOCEFLT3zxrWbt+UPaRbw9CLqOBmOb/1qkiySkjd9d3/uPVtzahhOkeIZKiriwmfL2hoT/comMxKB9Dlf1b9mVY6nkNM4HwI8MSXvbMGUIhbIII8tTciTcgqpLxBjvJ7rrruuHUtEvQUkqyDSMiuCDmKDVfFmLIiMaITbFYDZxtnvPRYF7hxtaHobeYwV1eERlRVeqC2z6stFp8BtVKx3YUbhb22cxLZQ8TrO+oGLPB0UOoP609bkaeJFakG8y569WYF1C42Bsm8za8lc2Aosr4KoZnRbNX3sbgMb5Dpl7d01Xy7BY8kILqGZr0jABzKjgLQ8WAia4rD7EIPKA+Pdo+qWV9AGaTTPDVQG9ob8/9hefHkYQcvZfZHNgwJ/i92gpkJ9xqngxprx0b1Ch3js2+CpYC8y+c3CbsA0ZPyjoqOdtnfrYtVDRs8Ywg0ZAkwiOWo0AY6ngHu/+jnPQYG43zd61byUeFZ2dIWpf6CCPq6fm1cMJZz/9Ry2FTSknS44GQCCQolI6yZCP/3c5cjOtAWpOptg4v2zu2PQ0Xkd/W8oGxNAdxeGTy6D06ZnDcMac5b6i8By1to6fKsc4OoQPr17OHIBRH931CReYRqj7jYKonqjslmalCzuvwXYkrmVrTiIErniWcT/XOYh8cdq6Tq2J2p/w==",
+    "expiration": "2026-05-18T09:26:32.000Z"
+  },
+  "name": "clinica-psico",
+  "path": "/home/ubuntu/clinica-psico",
+  "port": 3000,
+  "secrets": {
+    "BUILT_IN_FORGE_API_KEY": "M9g8yRPc6P2GrEvoWF7sB5",
+    "BUILT_IN_FORGE_API_URL": "https://forge.manus.ai",
+    "GOOGLE_CLIENT_ID": "562309966850-7knlkinekp4an10k593rnddt8vh3ae5q.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_SECRET": "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",
+    "GOOGLE_DRIVE_CREDENTIALS": "{\"type\":\"service_account\",\"project_id\":\"backup-sistema-app-psicologia\",\"private_key_id\":\"241e2154f69a29734602fc2cff002353e4bbcb8f\",\"private_key\":\"-----BEGIN PRIVATE KEY-----\\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDNwID536tmiJe7\\nCnygFux0sfuqscOp7bl4WxFCkKp/D0fsGsg5Wsp/Go50jUWKvazVtJjfMmoK0743\\nqzIQqUl4hvXiptYELJ4jJJxIjd6O+uCY5shfe4jhbmH3UOE/xTx5pPUwqoSwuXZe\\nvq2aRtT8cxjqOwYiBMqPTJGiu7+oXv8qht7g+/9ImuTWpb9qwD29GqWKNp1IaKF3\\nFdQaGW8cl+RcACUCHrSqVhzkkHLitLJswxQbu9gQtQifCXxmOZG+/hd+KlBU/+nW\\nz1sXyjuYVwTFrDBOoIEMcSZ1NKDzDkS5cfjycbRtsSfDvWQzm6jjjkybC/ed1QlH\\ng9xxMpv/AgMBAAECggEAAX1b0bNTX94sTw/f4B7aXmvteQppcsEEX0E1ikhW262m\\nJSj6eyPTpIDyOBjPwJXn+vIgSzlnuCVZUrjcF2/KVuOPQzFXCleyW2nH8eSJEHrz\\nhlfhaoOP9aXhcrN0tgv9CJpvpgcOB+OH3l6+DghmQV+p9gQwYq2rM8dnpIh8dkEa\\nf7TfdpmMVVj91UJQ8XuwfH7z+P2yiI1XJn19HQ5iZjveZBVdWKibxIe6LYlGc9ng\\nwVvlCt5cZ7qHCRP454jruLlINYXKLvHq2aa5FPKl22DT7CK30GEOOr6JapifRDs4\\nQNEYTzXufxbHaCfbgweq/dEtokyVT83RDyhzUhmD/QKBgQDsTYMnTQoFVdGM92Zw\\n9Nb6vAMe6YK+thwrFJA2VFK2XtGPWFk/ztH4AzUHP9gEgp1sxSdHsCmd9ITaaejD\\nEXRTFtQSDFB8PLXI6nc+TBQbYk8Qw3khvgSSTcGPV/f484zcWPf/g/neZzXJ09KG\\nB5EHr7S6fYjjLNE8c3skpBOzSwKBgQDe5xCS59VrCHYpEZyIkRXJyHm8Eei6jyEx\\nJgVs7BU+vz+n2wzmzm9OP0Z39nt40+iL7wNwSnFwSHb7+cbndLI5Lwp+8OhIxfWJ\\nAzvukzVJeEqw29Fui9LnkcMyJzJ6wgIXKP0CKysc9eDMTaaHXu3BCsFRp8fO56OS\\nCOa9cGmVnQKBgHkDMPk9cLZOvqOsRt/t4vJAunBoMTatWDuPqlLIWBtg73yzR/Fv\\nXwPd0JhHz75vjWMYjAcgZg+oGyknN7Y+CA5NEIm1mLom9QlRWYOjvmBPtiHlmPD4\\nuKqb+1YHPMxXHXnybf6CfcGxpVAYlCVjVphTGQCwLRv55aVJlnSrOhOFAoGAagqv\\nHdRg+Zx66irQtz+eh/Jxx4EVoLs65TDbX+goa0N8uxRA3QTUevsrQSLntqHJfdjl\\nX+RqdypiQJmhgLdJml7AtYdSWlyi5N2/A07RCPTLQ7wvtFGcskHsBM4U+8WUTQRY\\n6VE0H4DxwwAl+zy0CyRct8YEDnCwpmbJrtHtyRkCgYA7CNr5WxYS+piRfcNK6mE+\\nQG3U8ZRcKcpWo+GwGPUOo7F6gwgTlwHaaLxOhlG9MDc4kSvyFN+1uiQUmf+DSZRA\\nMQ+yOuVKL1FTeKlzZXmbfrxEt40jfs//JQggL4laR3Rlkh1TLrhz94K6KHnpYrts\\nL9oEvkk2tFSDmUvxBRmBQQ==\\n-----END PRIVATE KEY-----\\n\",\"client_email\":\"backup-sistema-app-psicologia@backup-sistema-app-psicologia.iam.gserviceaccount.com\",\"client_id\":\"117231322426191269605\",\"auth_uri\":\"https://accounts.google.com/o/oauth2/auth\",\"token_uri\":\"https://oauth2.googleapis.com/token\",\"auth_provider_x509_cert_url\":\"https://www.googleapis.com/oauth2/v1/certs\",\"client_x509_cert_url\":\"https://www.googleapis.com/robot/v1/metadata/x509/backup-sistema-app-psicologia%40backup-sistema-app-psicologia.iam.gserviceaccount.com\",\"universe_domain\":\"googleapis.com\"}",
+    "JWT_SECRET": "kodFQy3Tkub2ciCaaH4dj8",
+    "OAUTH_SERVER_URL": "https://api.manus.im",
+    "OWNER_NAME": "Israel Mendes",
+    "OWNER_OPEN_ID": "ihdKW5hqZRpmTngLwmsuTJ",
+    "VITE_ANALYTICS_ENDPOINT": "https://manus-analytics.com",
+    "VITE_ANALYTICS_WEBSITE_ID": "52c700c3-21b1-4f8f-b807-ae21f99f16f9",
+    "VITE_APP_ID": "P4nfWouMd7MUucxFWnyo87",
+    "VITE_APP_LOGO": "https://files.manuscdn.com/user_upload_by_module/web_dev_logo/310519663616814358/UUOqhSDCTzjFNifG.png",
+    "VITE_APP_TITLE": "E-Saúde | Gestão Clínica",
+    "VITE_FRONTEND_FORGE_API_KEY": "NA5246Bt2XTV6wDJ53AjNV",
+    "VITE_FRONTEND_FORGE_API_URL": "https://forge.manus.ai",
+    "VITE_OAUTH_PORTAL_URL": "https://manus.im"
+  },
+  "template_id": "web-db-user",
+  "test_command": "pnpm test"
+}
