@@ -236,29 +236,6 @@ export const recordingsRouter = router({
       }
     }),
 
-  getDownloadUrl: protectedProcedure
-    .input(z.object({ recordingId: z.number() }))
-    .query(async ({ ctx, input }) => {
-      const db = await getDb();
-      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-
-      const [recording] = await db
-        .select()
-        .from(sessionRecordings)
-        .where(
-          and(
-            eq(sessionRecordings.id, input.recordingId),
-            eq(sessionRecordings.userId, ctx.user.id)
-          )
-        )
-        .limit(1);
-
-      if (!recording) throw new TRPCError({ code: "NOT_FOUND" });
-      
-      const signedUrl = await storageGetSignedUrl(recording.fileKey, 3600); // 1 hora de validade
-      return { url: signedUrl, fileName: recording.fileName };
-    }),
-
   delete: protectedProcedure
     .input(z.object({ recordingId: z.number() }))
     .mutation(async ({ ctx, input }) => {

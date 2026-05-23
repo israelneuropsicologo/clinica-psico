@@ -109,10 +109,7 @@ export default function PatientDetail() {
   const { data: documents, refetch: refetchDocs } = trpc.documents.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: clinicalNotes, refetch: refetchNotes } = trpc.clinicalNotes.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: anamneseData, refetch: refetchAnamnese } = trpc.anamnese.get.useQuery({ patientId }, { enabled: patientId > 0 });
-  const { data: recordings, refetch: refetchRecordings } = trpc.recordings.list.useQuery({ patientId }, { 
-    enabled: patientId > 0,
-    refetchInterval: recordings?.some(r => r.transcriptionStatus === 'processing') ? 2000 : false 
-  });
+  const { data: recordings, refetch: refetchRecordings } = trpc.recordings.list.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: timelineList, refetch: refetchTimeline } = trpc.timeline.list.useQuery({ patientId }, { enabled: patientId > 0 });
 
   const deleteMutation = trpc.patients.delete.useMutation({
@@ -495,16 +492,11 @@ export default function PatientDetail() {
                                   <DropdownMenuSeparator />
                                 </>
                               )}
-                              <DropdownMenuItem onClick={async () => {
-                                try {
-                                  const downloadData = await trpc.recordings.getDownloadUrl.query({ recordingId: rec.id });
-                                  const link = document.createElement('a');
-                                  link.href = downloadData.url;
-                                  link.download = downloadData.fileName;
-                                  link.click();
-                                } catch (error) {
-                                  toast.error('Erro ao baixar áudio');
-                                }
+                              <DropdownMenuItem onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = rec.fileUrl;
+                                link.download = rec.fileName;
+                                link.click();
                               }} className="gap-2">
                                 <Download className="h-4 w-4" />
                                 Baixar Áudio
