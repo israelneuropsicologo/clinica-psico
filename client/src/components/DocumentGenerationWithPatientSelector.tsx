@@ -33,14 +33,23 @@ interface DocumentGenerationWithPatientSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   documentType: string;
+  preSelectedPatientId?: number;
 }
 
 export function DocumentGenerationWithPatientSelector({
   isOpen,
   onClose,
   documentType,
+  preSelectedPatientId,
 }: DocumentGenerationWithPatientSelectorProps) {
-  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(preSelectedPatientId ?? null);
+
+  // Auto-select patient if preSelectedPatientId is provided
+  React.useEffect(() => {
+    if (preSelectedPatientId && isOpen) {
+      setSelectedPatientId(preSelectedPatientId);
+    }
+  }, [preSelectedPatientId, isOpen]);
   const [openCombobox, setOpenCombobox] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +57,11 @@ export function DocumentGenerationWithPatientSelector({
   // Fetch all patients
   const { data: patientsData } = trpc.patients.list.useQuery({});
   const patients = Array.isArray(patientsData) ? patientsData : [];
+
+  // Filter patients: if preSelectedPatientId is provided, only show that patient
+  const availablePatients = preSelectedPatientId
+    ? patients.filter((p: any) => p.id === preSelectedPatientId)
+    : patients;
 
   // Fetch selected patient details
   const { data: patientDetails } = trpc.patients.getById.useQuery(
@@ -259,7 +273,7 @@ export function DocumentGenerationWithPatientSelector({
                   <CommandInput placeholder="Buscar paciente..." />
                   <CommandEmpty>Nenhum paciente encontrado.</CommandEmpty>
                   <CommandGroup className="max-h-64 overflow-y-auto">
-                    {patients.map((patient) => (
+                    {availablePatients.map((patient) => (
                       <CommandItem
                         key={patient.id}
                         value={patient.name}

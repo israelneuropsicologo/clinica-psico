@@ -6,7 +6,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq, count } from "drizzle-orm";
-import { patients, sessions } from "../../drizzle/schema";
+import { patients, sessions, users } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { adminProcedure, router } from "../_core/trpc";
 
@@ -297,5 +297,23 @@ export const adminRouter = router({
       backupId: `backup_${Date.now()}`,
       estimatedTime: "5 minutes",
     };
+  }),
+
+  /**
+   * Get all users (clinicians)
+   */
+  getAllUsers: adminProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+    const allUsers = await db.select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+    }).from(users);
+
+    return allUsers;
   }),
 });

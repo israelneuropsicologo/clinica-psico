@@ -1,4 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -74,6 +76,7 @@ const externalLinks = [
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 260;
+const SELECTED_USER_KEY = "selected-clinician-user-id";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -134,6 +137,16 @@ function DashboardLayoutContent({
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { theme, toggleTheme } = useTheme();
+  const [selectedUserId, setSelectedUserId] = useState<string>(() => {
+    const saved = localStorage.getItem(SELECTED_USER_KEY);
+    return saved || (user?.id?.toString() ?? "");
+  });
+  const { data: allUsers } = trpc.admin.getAllUsers.useQuery();
+
+  const handleUserChange = (userId: string) => {
+    setSelectedUserId(userId);
+    localStorage.setItem(SELECTED_USER_KEY, userId);
+  };
 
   return (
     <>
@@ -204,6 +217,24 @@ function DashboardLayoutContent({
 
         {/* Footer */}
         <SidebarFooter className="p-3 border-t">
+          {/* User Selector */}
+          {allUsers && allUsers.length > 0 && (
+            <div className="mb-3 pb-3 border-b">
+              <label className="text-xs text-muted-foreground block mb-2">Clínico</label>
+              <Select value={selectedUserId} onValueChange={handleUserChange}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {allUsers.map((u: any) => (
+                    <SelectItem key={u.id} value={u.id.toString()}>
+                      {u.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="flex items-center gap-2 mb-2">
             {!isCollapsed && (
               <button

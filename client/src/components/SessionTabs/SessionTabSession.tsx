@@ -8,14 +8,22 @@ interface SessionTabSessionProps {
   data: any;
   onUpdate: (field: string, value: any) => void;
   patients: any[];
+  preSelectedPatientId?: number;
 }
 
-export function SessionTabSession({ data, onUpdate, patients }: SessionTabSessionProps) {
+export function SessionTabSession({ data, onUpdate, patients, preSelectedPatientId }: SessionTabSessionProps) {
   const [localData, setLocalData] = useState(data);
 
   useEffect(() => {
     setLocalData(data);
   }, [data]);
+
+  // Auto-select patient if preSelectedPatientId is provided
+  useEffect(() => {
+    if (preSelectedPatientId && !data?.patientId) {
+      handleChange("patientId", preSelectedPatientId.toString());
+    }
+  }, [preSelectedPatientId]);
 
   const handleChange = (field: string, value: any) => {
     const updated = { ...localData, [field]: value };
