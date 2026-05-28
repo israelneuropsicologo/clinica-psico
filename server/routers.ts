@@ -114,32 +114,52 @@ const patientsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const id = await createPatient({
-        userId: ctx.user.id,
-        name: input.name,
-        email: input.email || null,
-        phone: input.phone || null,
-        birthDate: input.birthDate || null,
-        cpf: input.cpf || null,
-        address: input.address || null,
-        emergencyContact: input.emergencyContact || null,
-        emergencyPhone: input.emergencyPhone || null,
-        occupation: input.occupation || null,
-        referredBy: input.referredBy || null,
-        mainComplaint: input.mainComplaint || null,
-        medicalHistory: input.medicalHistory || null,
-        medications: input.medications || null,
-        notes: input.notes || null,
-        status: "active",
-        leadSource: "manual",
-        leadStatus: "customer",
-        interactionCount: 1,
-        lastInteractionAt: new Date(),
-        sessionValue: input.sessionValue || null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      return { id };
+      try {
+        // Converter sessionValue de string para número
+        const sessionValueNum = input.sessionValue ? parseFloat(input.sessionValue) : null;
+        
+        const id = await createPatient({
+          userId: ctx.user.id,
+          name: input.name,
+          email: input.email || null,
+          phone: input.phone || null,
+          birthDate: input.birthDate || null,
+          cpf: input.cpf || null,
+          address: input.address || null,
+          emergencyContact: input.emergencyContact || null,
+          emergencyPhone: input.emergencyPhone || null,
+          occupation: input.occupation || null,
+          referredBy: input.referredBy || null,
+          mainComplaint: input.mainComplaint || null,
+          medicalHistory: input.medicalHistory || null,
+          medications: input.medications || null,
+          notes: input.notes || null,
+          status: "active",
+          leadSource: "manual",
+          leadStatus: "customer",
+          interactionCount: 1,
+          lastInteractionAt: new Date(),
+          sessionValue: sessionValueNum,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        return { id };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Erro ao cadastrar paciente";
+        
+        // Mensagens de erro customizadas
+        if (message.includes("Duplicate entry") && message.includes("cpf")) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "CPF já cadastrado no sistema" });
+        }
+        if (message.includes("Duplicate entry") && message.includes("email")) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Email já cadastrado no sistema" });
+        }
+        if (message.includes("Column") && message.includes("cannot be null")) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Preencha todos os campos obrigatórios" });
+        }
+        
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao cadastrar paciente. Verifique os dados e tente novamente." });
+      }
     }),
 
   update: protectedProcedure
