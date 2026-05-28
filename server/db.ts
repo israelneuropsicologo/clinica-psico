@@ -123,7 +123,35 @@ export async function createPatient(data: InsertPatient): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
   const result = await db.insert(patients).values(data);
-  return (result[0] as { insertId: number }).insertId;
+  const patientId = (result[0] as { insertId: number }).insertId;
+  
+  // Criar uma sessão padrão automaticamente
+  try {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1); // Próximo dia
+    tomorrow.setHours(9, 0, 0, 0); // 09:00 AM
+    const scheduledAtMs = tomorrow.getTime(); // Converter para ms
+    
+    const sessionResult = await db.insert(sessions).values({
+      patientId,
+      userId: data.userId,
+      scheduledAt: scheduledAtMs,
+      durationMinutes: 50,
+      sessionType: "individual",
+      modality: "in_person",
+      status: "scheduled",
+      isPaid: "pending",
+      notes: "Sessão criada automaticamente",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    console.log(`[Success] Sessão automática criada para paciente ${patientId}`);
+  } catch (error) {
+    console.error("[Error] Falha ao criar sessão padrão para paciente", patientId, ":", error);
+    // Não interromper o fluxo se a sessão não for criada
+  }
+  
+  return patientId;
 }
 
 export async function updatePatient(id: number, userId: number, data: Partial<InsertPatient>): Promise<void> {
