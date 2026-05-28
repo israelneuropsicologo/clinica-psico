@@ -22,6 +22,7 @@ interface SessionDetailTabsProps {
   isSaving?: boolean;
   isAnalyzing?: boolean;
   preSelectedPatientId?: number;
+  preSelectedPatientName?: string;
 }
 
 const TABS = [
@@ -44,6 +45,7 @@ export function SessionDetailTabs({
   isSaving = false,
   isAnalyzing = false,
   preSelectedPatientId,
+  preSelectedPatientName,
 }: SessionDetailTabsProps) {
   const [currentTabId, setCurrentTabId] = useState(0);
   const [localData, setLocalData] = useState(data || {});
@@ -176,6 +178,7 @@ export function SessionDetailTabs({
               onUpdate={handleFieldUpdate}
               patients={patients}
               preSelectedPatientId={preSelectedPatientId}
+              preSelectedPatientName={preSelectedPatientName}
             />
           )}
           {currentTabId === 1 && (

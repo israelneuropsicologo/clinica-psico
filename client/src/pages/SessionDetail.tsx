@@ -357,6 +357,7 @@ export default function SessionDetail() {
               data={tabsData}
               patients={[]}
               preSelectedPatientId={session?.patientId}
+              preSelectedPatientName={patient?.name}
               onSave={(updatedData) => {
                 setTabsData({ ...tabsData, ...updatedData });
                 if (isMountedRef.current) {

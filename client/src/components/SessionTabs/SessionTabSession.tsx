@@ -9,9 +9,10 @@ interface SessionTabSessionProps {
   onUpdate: (field: string, value: any) => void;
   patients: any[];
   preSelectedPatientId?: number;
+  preSelectedPatientName?: string;
 }
 
-export function SessionTabSession({ data, onUpdate, patients, preSelectedPatientId }: SessionTabSessionProps) {
+export function SessionTabSession({ data, onUpdate, patients, preSelectedPatientId, preSelectedPatientName }: SessionTabSessionProps) {
   const [localData, setLocalData] = useState(data);
 
   useEffect(() => {
@@ -39,27 +40,33 @@ export function SessionTabSession({ data, onUpdate, patients, preSelectedPatient
           <Label htmlFor="patientId">
             Paciente <span className="text-red-600">*</span>
           </Label>
-          <Select
-            value={localData?.patientId || ""}
-            onValueChange={(val) => handleChange("patientId", val)}
-          >
-            <SelectTrigger id="patientId">
-              <SelectValue placeholder="Selecione um paciente" />
-            </SelectTrigger>
-            <SelectContent>
-              {patients && patients.length > 0 ? (
-                patients.map((p) => (
-                  <SelectItem key={p.id} value={p.id.toString()}>
-                    {p.name}
+          {preSelectedPatientId && preSelectedPatientName ? (
+            <div className="flex items-center h-10 px-3 border border-input rounded-md bg-muted">
+              <span className="text-sm">{preSelectedPatientName}</span>
+            </div>
+          ) : (
+            <Select
+              value={localData?.patientId || ""}
+              onValueChange={(val) => handleChange("patientId", val)}
+            >
+              <SelectTrigger id="patientId">
+                <SelectValue placeholder="Selecione um paciente" />
+              </SelectTrigger>
+              <SelectContent>
+                {patients && patients.length > 0 ? (
+                  patients.map((p) => (
+                    <SelectItem key={p.id} value={p.id.toString()}>
+                      {p.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="none" disabled>
+                    Nenhum paciente disponível
                   </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="none" disabled>
-                  Nenhum paciente disponível
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
+                )}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Data da Sessão * */}
