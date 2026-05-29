@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Save, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 import { SessionTabSession } from "./SessionTabSession";
 import { SessionTabAvaliacao } from "./SessionTabAvaliacao";
 import { SessionTabInterventions } from "./SessionTabInterventions";
@@ -23,6 +25,7 @@ interface SessionDetailTabsProps {
   isAnalyzing?: boolean;
   preSelectedPatientId?: number;
   preSelectedPatientName?: string;
+  noteId?: number;
 }
 
 const TABS = [
@@ -46,13 +49,17 @@ export function SessionDetailTabs({
   isAnalyzing = false,
   preSelectedPatientId,
   preSelectedPatientName,
+  noteId,
 }: SessionDetailTabsProps) {
+
   const [currentTabId, setCurrentTabId] = useState(0);
   const [localData, setLocalData] = useState(data || {});
   const [hasChanges, setHasChanges] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
+
+
 
   // Cleanup ao desmontar
   useEffect(() => {
@@ -123,8 +130,7 @@ export function SessionDetailTabs({
   const currentTab = TABS[currentTabId];
 
   return (
-    <div className="space-y-4 w-full">
-      {/* Header */}
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Editar Prontuário</h3>
@@ -139,6 +145,7 @@ export function SessionDetailTabs({
               Não salvo
             </span>
           )}
+
           <Button
             onClick={handleManualSave}
             disabled={!hasChanges || isSaving}
@@ -159,82 +166,75 @@ export function SessionDetailTabs({
             onClick={() => setCurrentTabId(tab.id)}
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
               currentTabId === tab.id
-                ? "border-b-2 border-blue-600 text-blue-600"
+                ? "border-b-2 border-primary text-primary"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <span className="mr-1">{tab.icon}</span>
-            {tab.label}
+            {tab.icon} {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Content Area */}
-      <Card className="border">
-        <CardContent className="pt-6">
-          {currentTabId === 0 && (
-            <SessionTabSession
-              data={localData}
-              onUpdate={handleFieldUpdate}
-              patients={patients}
-              preSelectedPatientId={preSelectedPatientId}
-              preSelectedPatientName={preSelectedPatientName}
-            />
-          )}
-          {currentTabId === 1 && (
-            <SessionTabAvaliacao data={localData} onUpdate={handleFieldUpdate} />
-          )}
-          {currentTabId === 2 && (
-            <SessionTabInterventions data={localData} onUpdate={handleFieldUpdate} />
-          )}
-          {currentTabId === 3 && (
-            <SessionTabEvolution data={localData} onUpdate={handleFieldUpdate} />
-          )}
-          {currentTabId === 4 && (
-            <SessionTabNext data={localData} onUpdate={handleFieldUpdate} />
-          )}
-          {currentTabId === 5 && (
-            <SessionTabRisks data={localData} onUpdate={handleFieldUpdate} />
-          )}
-          {currentTabId === 6 && (
-            <SessionTabPrivate data={localData} onUpdate={handleFieldUpdate} />
-          )}
-          {currentTabId === 7 && (
-            <SessionTabAI
-              data={localData}
-              onAnalyze={onAnalyze}
-              isLoading={isAnalyzing}
-            />
-          )}
-        </CardContent>
-      </Card>
+      {/* Validation Errors */}
+      {validationErrors.length > 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <ul className="list-disc list-inside">
+              {validationErrors.map((error, i) => (
+                <li key={i}>{error}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Tab Content */}
+      <div className="border rounded-lg p-4 bg-card">
+        {currentTabId === 0 && (
+          <SessionTabSession
+            data={localData}
+            onUpdate={handleFieldUpdate}
+            patients={patients}
+            preSelectedPatientId={preSelectedPatientId}
+            preSelectedPatientName={preSelectedPatientName}
+          />
+        )}
+        {currentTabId === 1 && (
+          <SessionTabAvaliacao data={localData} onUpdate={handleFieldUpdate} />
+        )}
+        {currentTabId === 2 && (
+          <SessionTabInterventions data={localData} onUpdate={handleFieldUpdate} />
+        )}
+        {currentTabId === 3 && (
+          <SessionTabEvolution data={localData} onUpdate={handleFieldUpdate} />
+        )}
+        {currentTabId === 4 && (
+          <SessionTabNext data={localData} onUpdate={handleFieldUpdate} />
+        )}
+        {currentTabId === 5 && (
+          <SessionTabRisks data={localData} onUpdate={handleFieldUpdate} />
+        )}
+        {currentTabId === 6 && (
+          <SessionTabPrivate data={localData} onUpdate={handleFieldUpdate} />
+        )}
+        {currentTabId === 7 && (
+          <SessionTabAI data={localData} onAnalyze={onAnalyze} isLoading={isAnalyzing} />
+        )}
+      </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center justify-between pt-4 border-t">
-        <Button
-          onClick={handlePreviousTab}
-          disabled={currentTabId === 0}
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
-          <ChevronLeft className="h-4 w-4" />
+      <div className="flex items-center justify-between">
+        <Button variant="outline" onClick={handlePreviousTab} disabled={currentTabId === 0}>
+          <ChevronLeft className="h-4 w-4 mr-2" />
           Anterior
         </Button>
-
-        <div className="text-sm text-muted-foreground">
+        <span className="text-sm text-muted-foreground">
           {currentTab.label} ({currentTabId + 1}/{TABS.length})
-        </div>
-
-        <Button
-          onClick={handleNextTab}
-          disabled={currentTabId === TABS.length - 1}
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
+        </span>
+        <Button variant="outline" onClick={handleNextTab} disabled={currentTabId === TABS.length - 1}>
           Próxima
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
     </div>
