@@ -616,7 +616,12 @@ REGRAS OBRIGATÓRIAS:
 2. TODOS os campos abaixo devem ser preenchidos com conteúdo específico e contextualizado
 3. NÃO coloque todo o conteúdo em um único campo - cada campo tem seu propósito específico
 4. Use linguagem técnica de psicologia clínica em português
-5. Baseie-se no histórico do paciente fornecido
+5. Baseie-se SEMPRE no histórico do paciente fornecido para criar narrativas coerentes
+6. Se for a primeira sessão, crie uma narrativa de apresentação e avaliação inicial
+7. Se houver sessões anteriores, crie uma narrativa que demonstre continuidade e evolução
+8. Cada campo deve ter conteúdo ÚNICO - não repita informações entre campos
+9. NUNCA deixe campos vazios - preencha com conteúdo relevante ou guia de formatação
+10. Guie o psicólogo com sugestões de formatação quando apropriado
 
 CAMPOS DO JSON (todos obrigatórios):
 - "content": texto narrativo geral da sessão (2-3 parágrafos resumindo o encontro)
@@ -652,7 +657,7 @@ CAMPOS DO JSON (todos obrigatórios):
           },
           {
             role: "user",
-            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}. Gere o preenchimento do prontuário.`,
+            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}.\n\nCRIE UMA NARRATIVA COERENTE E CONTEXTUALIZADA:\n- Use o histórico do paciente como base para criar continuidade\n- Demonstre evolução ou mudanças em relação às sessões anteriores\n- Crie sugestões específicas e personalizadas para este paciente\n- Se não houver dados anteriores, forneça um guia de formatação para ajudar o psicólogo\n- Cada campo deve complementar os outros, não repetir\n\nGere o preenchimento do prontuário.`,
           },
         ],
         response_format: { type: "json_object" },

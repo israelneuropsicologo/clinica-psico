@@ -1629,3 +1629,14 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
     - Nomes convertidos para minúsculas
     - Múltiplos underscores reduzidos para um único
   - **Arquivo modificado**: server/routers/patientProfile.ts (linhas 128-133)
+
+
+## Fase 29: Melhorias de IA - Uso Ilimitado e Preenchimento Contextualizado (Maio 2026)
+- [x] Remover limites de uso de tokens/IA em todas as funcionalidades - JÁ NÃO HÁ LIMITES
+- [x] Verificar se há throttling ou rate limiting na API de IA - NÃO HÁ THROTTLING
+- [x] Melhorar lógica de autoFill para analisar dados anteriores do paciente - IMPLEMENTADO
+- [x] Implementar contexto clínico: usar sessões anteriores como base para novas narrativas - IMPLEMENTADO
+- [x] Criar guias de formatação quando não houver dados anteriores - IMPLEMENTADO NO PROMPT
+- [x] Garantir que preenchimentos automáticos sejam coerentes com a narrativa do paciente - IMPLEMENTADO
+- [ ] Testar preenchimento automático com múltiplos pacientes
+- [ ] Documentar as melhorias de IA no README
