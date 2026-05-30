@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Save, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save, AlertCircle, Sparkles, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -58,6 +58,8 @@ export function SessionDetailTabs({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
+  const autoFillMutation = trpc.clinicalNotes.autoFill.useMutation();
+  const utils = trpc.useUtils();
 
 
 
@@ -145,6 +147,34 @@ export function SessionDetailTabs({
               Não salvo
             </span>
           )}
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              if (noteId && preSelectedPatientId) {
+                autoFillMutation.mutate(
+                  { patientId: preSelectedPatientId, sessionId: parseInt(sessionId), noteId },
+                  {
+                    onSuccess: () => {
+                      toast.success("Prontuário preenchido com IA!");
+                      utils.clinicalNotes.bySession.invalidate();
+                    },
+                    onError: (error) => {
+                      toast.error("Erro ao preencher com IA: " + error.message);
+                    },
+                  }
+                );
+              } else {
+                toast.error("Salve o prontuário primeiro para usar o preenchimento com IA");
+              }
+            }}
+            disabled={autoFillMutation.isPending || !noteId}
+            className="gap-1.5 border-violet-400 text-violet-600 hover:bg-violet-50 dark:border-violet-500 dark:text-violet-400 dark:hover:bg-violet-900/20"
+          >
+            {autoFillMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            {autoFillMutation.isPending ? "Gerando..." : "Preencher com IA"}
+          </Button>
 
           <Button
             onClick={handleManualSave}

@@ -126,6 +126,7 @@ export async function createPatient(data: InsertPatient): Promise<number> {
   const patientId = (result[0] as { insertId: number }).insertId;
   
   // Criar uma sessão padrão automaticamente
+  let sessionId: number | null = null;
   try {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1); // Próximo dia
@@ -145,10 +146,35 @@ export async function createPatient(data: InsertPatient): Promise<number> {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    sessionId = (sessionResult[0] as { insertId: number }).insertId;
     console.log(`[Success] Sessão automática criada para paciente ${patientId}`);
   } catch (error) {
     console.error("[Error] Falha ao criar sessão padrão para paciente", patientId, ":", error);
     // Não interromper o fluxo se a sessão não for criada
+  }
+  
+  // Criar uma nota clínica padrão automaticamente
+  if (sessionId) {
+    try {
+      await db.insert(clinicalNotes).values({
+        sessionId,
+        patientId,
+        userId: data.userId,
+        content: "Nota clínica criada automaticamente ao registrar o paciente.",
+        sessionNumber: 0,
+        sessionType2: "individual",
+        modality2: "in_person",
+        selfHarmRisk: "absent" as const,
+        thirdPartyRisk: "absent" as const,
+        suicideRisk: "absent" as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      console.log(`[Success] Nota clínica automática criada para paciente ${patientId}`);
+    } catch (error) {
+      console.error("[Error] Falha ao criar nota clínica padrão para paciente", patientId, ":", error);
+      // Não interromper o fluxo se a nota não for criada
+    }
   }
   
   return patientId;
