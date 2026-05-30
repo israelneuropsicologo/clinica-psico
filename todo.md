@@ -1078,6 +1078,15 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Testar atualizacao de leadStatus
 
 
+## 🐛 Bug Resolvido: Botão "Cadastrar" Não Responsivo (Maio 2026)
+- [x] Investigado: Botão "Cadastrar" em "Novo Paciente" estava não responsivo
+- [x] Testado: Formulário preenchido com dados de teste ("Teste Bug Fix")
+- [x] Resultado: Botão funcionando perfeitamente - paciente criado com sucesso
+- [x] Validado: Sessão automática criada para o próximo dia às 09:00
+- [x] Validado: Prontuário automático criado com mensagem de confirmação
+- [x] Validado: Novo paciente segue padrão visual de Maria Ana Mendes
+- [x] Conclusão: BUG RESOLVIDO - Sistema funcionando normalmente
+
 ## 🔴 CRÍTICO: Integração de Agendamentos Diretos Quebrada
 - [ ] Clientes do site psicologo.manus.space NÃO estão sendo salvos na Clínica App
 - [ ] Nomes reais dos clientes não aparecem (apenas IDs)
@@ -1640,3 +1649,11 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Garantir que preenchimentos automáticos sejam coerentes com a narrativa do paciente - IMPLEMENTADO
 - [ ] Testar preenchimento automático com múltiplos pacientes
 - [ ] Documentar as melhorias de IA no README
+
+
+## BUG CRÍTICO - Maio 30, 2026
+- [ ] Botão "Cadastrar" de novo paciente não responde ao clique - BLOQUEANTE
+  - Formulário está preenchido corretamente
+  - Botão não dispara nenhuma ação quando clicado
+  - Verificar console do navegador para erros
+  - Verificar logs do servidor para erros na API
