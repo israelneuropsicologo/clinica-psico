@@ -1673,3 +1673,13 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Testado: 251 testes passando
 - [x] Documentado: DATA_PERSISTENCE_GUARANTEE.md criado
 - [x] Conclusão: GARANTIA IMPLEMENTADA - Todos os dados persistem permanentemente
+
+
+## 🔐 Consolidação de Contas (Maio 2026)
+- [x] Investigado: Dois e-mails diferentes acessando bases de dados diferentes
+- [x] Problema: israelmengo@gmail.com (dados antigos) vs israelneuropsicolo@gmail.com (dados oficiais)
+- [x] Solução: Adicionadas funções getOfficialOpenId() e consolidateToOfficialAccount() em server/db.ts
+- [x] Solução: OAuth callback modificado para consolidar automaticamente para conta oficial
+- [x] Testado: 5 testes de consolidação de conta passando
+- [x] Testado: 254 testes passando (validando consolidação)
+- [x] Conclusão: CONSOLIDAÇÃO IMPLEMENTADA - Qualquer e-mail acessa a base oficial

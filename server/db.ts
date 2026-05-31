@@ -745,3 +745,61 @@ export async function updateSettingsField(
     .set(updateData)
     .where(eq(settings.userId, userId));
 }
+
+
+// ─── Email Mapping (Consolidação de Contas) ────────────────────────────────
+
+/**
+ * Mapeia e-mails alternativos para o openId oficial
+ * Garante que qualquer e-mail que você use sempre acessa a mesma conta
+ */
+const OFFICIAL_EMAIL = "israelneuropsicolo@gmail.com";
+
+/**
+ * Obter o openId oficial do usuário
+ * Se o e-mail for diferente do oficial, retorna o openId do e-mail oficial
+ */
+export async function getOfficialOpenId(email: string | null | undefined, currentOpenId: string): Promise<string> {
+  if (!email) return currentOpenId;
+  
+  // Se for o e-mail oficial, retorna o openId atual
+  if (email === OFFICIAL_EMAIL) return currentOpenId;
+  
+  // Se for outro e-mail, busca o openId do e-mail oficial
+  const db = await getDb();
+  if (!db) return currentOpenId;
+  
+  try {
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, OFFICIAL_EMAIL))
+      .limit(1);
+    
+    if (result[0]) {
+      console.log(`[Email Mapping] Redirecting ${email} to official account ${OFFICIAL_EMAIL} (openId: ${result[0].openId})`);
+      return result[0].openId;
+    }
+  } catch (error) {
+    console.error("[Email Mapping] Error fetching official openId:", error);
+  }
+  
+  return currentOpenId;
+}
+
+/**
+ * Consolidar usuário para usar a conta oficial
+ * Se o usuário fizer login com um e-mail alternativo, redireciona para a conta oficial
+ */
+export async function consolidateToOfficialAccount(email: string | null | undefined, currentOpenId: string): Promise<string> {
+  if (!email || email === OFFICIAL_EMAIL) return currentOpenId;
+  
+  const officialOpenId = await getOfficialOpenId(email, currentOpenId);
+  
+  if (officialOpenId !== currentOpenId) {
+    console.log(`[Account Consolidation] User logged in with ${email}, using official account`);
+    return officialOpenId;
+  }
+  
+  return currentOpenId;
+}
