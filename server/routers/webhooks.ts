@@ -9,7 +9,7 @@ import {
   validateApiToken,
   getPatientByExternalId,
 } from "../db-webhooks";
-import { createPatient, updatePatient, createSession, createTransaction, getDb } from "../db";
+import { createPatient, updatePatient, createSession, createTransaction, getDb, checkDuplicateSession } from "../db";
 import { sessions, patients } from "../../drizzle/schema";
 import { notifyOwner } from "../_core/notification";
 import { checkRateLimit, getRateLimitStatus } from "../_core/rateLimiter";
@@ -977,7 +977,22 @@ export const webhooksRouter = router({
         // Mapear session_type para modality
         const modality = input.session_type === "online" ? "online" : "in_person";
 
-        // ✅ FIX 3: Usar status="scheduled" (não "pending")
+        // ✅ FIX 3: Verificar se já existe sessão duplicada
+        // Evitar múltiplas chamadas do webhook criando sessões duplicadas
+        const isDuplicate = await checkDuplicateSession(
+          userId,
+          patientId,
+          appointmentDateTime.getTime()
+        );
+
+        if (isDuplicate) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Já existe um agendamento para este paciente nesta data/hora",
+          });
+        }
+
+        // ✅ FIX 4: Usar status="scheduled" (não "pending")
         // O schema não permite status="pending" em sessions
         // getDirectBookings filtra por status="scheduled"
         const sessionData: InsertSession = {

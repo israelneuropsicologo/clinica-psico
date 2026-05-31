@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, like, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, like, lte, ne, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   ClinicalNote,
@@ -232,6 +232,44 @@ export async function getSessions(
     ...row.sessions,
     patient: row.patients || undefined,
   }));
+}
+
+/**
+ * Verificar se já existe uma sessão agendada para o mesmo paciente na mesma data/hora
+ * Retorna true se há duplicação (sessão já existe)
+ */
+export async function checkDuplicateSession(
+  userId: number,
+  patientId: number,
+  scheduledAt: number,
+  excludeSessionId?: number
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  // Verificar se há sessão dentro de 1 hora da data/hora fornecida
+  const oneHourMs = 60 * 60 * 1000;
+  const startTime = scheduledAt - oneHourMs;
+  const endTime = scheduledAt + oneHourMs;
+
+  const conditions: any[] = [
+    eq(sessions.userId, userId),
+    eq(sessions.patientId, patientId),
+    gte(sessions.scheduledAt, startTime),
+    lte(sessions.scheduledAt, endTime),
+  ];
+  
+  if (excludeSessionId) {
+    conditions.push(ne(sessions.id, excludeSessionId));
+  }
+
+  const result = await db
+    .select({ id: sessions.id })
+    .from(sessions)
+    .where(and(...conditions))
+    .limit(1);
+
+  return result.length > 0;
 }
 
 export async function getSessionById(id: number, userId: number): Promise<Session | undefined> {

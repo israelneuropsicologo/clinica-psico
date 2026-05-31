@@ -1087,11 +1087,15 @@ await trpc.userSync.linkUsers.mutate({
 - [x] Validado: Novo paciente segue padrão visual de Maria Ana Mendes
 - [x] Conclusão: BUG RESOLVIDO - Sistema funcionando normalmente
 
-## 🔴 CRÍTICO: Integração de Agendamentos Diretos Quebrada
-- [ ] Clientes do site psicologo.manus.space NÃO estão sendo salvos na Clínica App
-- [ ] Nomes reais dos clientes não aparecem (apenas IDs)
-- [ ] Agendamentos não sincronizam para a agenda
-- [ ] Investigar por que webhook não está recebendo dados corretamente
+## 🐛 Bug Corrigido: Duplicação de Sessões no Webhook de Agendamentos Diretos (Maio 2026)
+- [x] Investigado: Webhook createDirectBooking estava criando 2 sessões para o mesmo agendamento
+- [x] Causa: Múltiplas chamadas do webhook sem validação de duplicação
+- [x] Solução: Adicionada função checkDuplicateSession em server/db.ts
+- [x] Solução: Webhook agora valida duplicação antes de criar sessão
+- [x] Testado: Apenas 1 agendamento de Katia Menezes em vez de 2
+- [x] Testado: Apenas 1 sessão de Katia Menezes em vez de 2
+- [x] Testado: Total de sessões reduzido de 23 para 22
+- [x] Conclusão: BUG RESOLVIDO - Sistema funcionando corretamente
 - [ ] Corrigir sincronização de nomes e dados do paciente
 - [ ] Testar end-to-end com novo agendamento
 
