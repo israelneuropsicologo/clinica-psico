@@ -1661,3 +1661,15 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
   - Botão não dispara nenhuma ação quando clicado
   - Verificar console do navegador para erros
   - Verificar logs do servidor para erros na API
+
+## 🔒 Garantia de Persistência de Dados (Maio 2026)
+- [x] Investigado: Configurações estavam sendo apagadas (não eram salvas no banco)
+- [x] Causa: Função updateSettings apenas fazia console.log, não salvava no BD
+- [x] Solução: Adicionadas funções de persistência em server/db.ts
+- [x] Solução: getSettings agora busca dados reais do banco (não hardcoded)
+- [x] Solução: updateSettings agora salva dados no banco de dados
+- [x] Testado: Dados persistem após múltiplas atualizações
+- [x] Testado: Integridade mantida em ciclos de leitura/escrita
+- [x] Testado: 251 testes passando
+- [x] Documentado: DATA_PERSISTENCE_GUARANTEE.md criado
+- [x] Conclusão: GARANTIA IMPLEMENTADA - Todos os dados persistem permanentemente

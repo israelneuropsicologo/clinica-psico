@@ -6,6 +6,7 @@ import {
   InsertPatient,
   InsertPatientDocument,
   InsertSession,
+  InsertSettings,
   InsertTransaction,
   InsertUser,
   InsertUserLink,
@@ -13,6 +14,7 @@ import {
   PatientDocument,
   Session,
   SessionWithPatient,
+  Settings,
   Transaction,
   User,
   UserLink,
@@ -20,6 +22,7 @@ import {
   patientDocuments,
   patients,
   sessions,
+  settings,
   transactions,
   userLinks,
   users,
@@ -671,4 +674,74 @@ export async function getUpcomingSessionsShared(userId: number, limit: number = 
     )
     .orderBy(sessions.scheduledAt)
     .limit(limit);
+}
+
+// ─── Settings (Configurações do Sistema) ────────────────────────────────────
+
+/**
+ * Obter configurações do usuário
+ */
+export async function getSettings(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db
+    .select()
+    .from(settings)
+    .where(eq(settings.userId, userId))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+/**
+ * Criar ou atualizar configurações do usuário
+ */
+export async function upsertSettings(userId: number, data: Partial<InsertSettings>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const existing = await getSettings(userId);
+
+  if (existing) {
+    // Atualizar configurações existentes
+    await db
+      .update(settings)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(settings.userId, userId));
+  } else {
+    // Criar novas configurações
+    await db.insert(settings).values({
+      userId,
+      clinicName: data.clinicName || "Minha Clínica",
+      ...data,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+}
+
+/**
+ * Atualizar campo específico de configurações
+ */
+export async function updateSettingsField(
+  userId: number,
+  field: keyof InsertSettings,
+  value: any
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const updateData: any = {
+    [field]: value,
+    updatedAt: new Date(),
+  };
+
+  await db
+    .update(settings)
+    .set(updateData)
+    .where(eq(settings.userId, userId));
 }
