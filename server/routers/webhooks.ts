@@ -977,19 +977,26 @@ export const webhooksRouter = router({
         // Mapear session_type para modality
         const modality = input.session_type === "online" ? "online" : "in_person";
 
-        // ✅ FIX 3: Verificar se já existe sessão duplicada
-        // Evitar múltiplas chamadas do webhook criando sessões duplicadas
-        const isDuplicate = await checkDuplicateSession(
-          userId,
-          patientId,
-          appointmentDateTime.getTime()
-        );
+        // ✅ FIX 3: Gerar externalBookingId único para evitar duplicatas
+        const externalBookingId = `${input.customer_id}_${input.appointment_date}_${input.appointment_time}`;
+        
+        // Verificar se já existe sessão com este externalBookingId
+        const db = getDb();
+        const existingSession = await db.query.sessions.findFirst({
+          where: and(
+            eq(sessions.userId, userId),
+            eq(sessions.externalBookingId, externalBookingId)
+          ),
+        });
 
-        if (isDuplicate) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Já existe um agendamento para este paciente nesta data/hora",
-          });
+        if (existingSession) {
+          // Sessão já existe - retornar sucesso
+          return {
+            success: true,
+            sessionId: existingSession.id,
+            patientId,
+            message: "Agendamento já existe",
+          };
         }
 
         // ✅ FIX 4: Usar status="scheduled" (não "pending")
@@ -998,6 +1005,7 @@ export const webhooksRouter = router({
         const sessionData: InsertSession = {
           userId,
           patientId,
+          externalBookingId,
           scheduledAt: appointmentDateTime.getTime(),
           status: "scheduled", // ✅ Correto: "scheduled" em vez de "pending"
           sessionType: "individual",

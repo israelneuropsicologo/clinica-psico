@@ -82,6 +82,7 @@ export const sessions = mysqlTable("sessions", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(), // FK → users.id
   patientId: int("patientId").notNull(), // FK → patients.id
+  externalBookingId: varchar("externalBookingId", { length: 255 }), // ID único do agendamento do site
   scheduledAt: bigint("scheduledAt", { mode: "number" }).notNull(), // UTC ms
   durationMinutes: int("durationMinutes").default(50).notNull(),
   status: mysqlEnum("status", ["scheduled", "confirmed", "completed", "cancelled", "no_show"])
