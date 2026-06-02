@@ -70,6 +70,7 @@ import { aiAnalyticsRouter } from "./routers/aiAnalytics";
 import { aiIntegrationRouter } from "./routers/aiIntegration";
 import { adminRouter } from "./routers/admin";
 import { invitationsRouter } from "./routers/invitations";
+import { internalAuthRouter } from "./routers/internalAuth";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -988,6 +989,7 @@ export const appRouter = router({
   aiIntegration: aiIntegrationRouter,
   admin: adminRouter,
   invitations: invitationsRouter,
+  internalAuth: internalAuthRouter,
   calendar: router({
     getEvents: protectedProcedure
       .input(z.object({

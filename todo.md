@@ -1749,3 +1749,22 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Testar que ambos emails acessam a mesma conta
 - [ ] Criar API tRPC para gerenciar aliases (admin only)
 - [ ] Criar testes Vitest para email aliases
+
+
+## Fase 72: Sistema de Usuários Internos com Login/Senha e Permissões
+- [ ] Criar tabela `internalUsers` (email, passwordHash, name, clinicId, roleId, isActive, createdAt)
+- [ ] Criar tabela `roles` (name, description, clinicId, createdAt)
+- [ ] Criar tabela `permissions` (name, description, category)
+- [ ] Criar tabela `rolePermissions` (roleId, permissionId)
+- [ ] Criar tabela `deletionRequests` (userId, entityType, entityId, reason, status, approvedBy, createdAt)
+- [ ] Implementar hash de senha com bcrypt
+- [ ] Criar endpoint de login com email/senha
+- [ ] Criar middleware de autenticação para usuários internos
+- [ ] Criar sistema de verificação de permissões (hasPermission)
+- [ ] Implementar proteção de deletions (requer aprovação do admin)
+- [ ] Criar roles pré-definidas (Secretária, Financeiro, Marketing, etc)
+- [ ] Criar UI para gerenciar usuários internos
+- [ ] Criar UI para gerenciar roles e permissões
+- [ ] Criar UI para aprovar/rejeitar deletion requests
+- [ ] Adicionar audit log para rastrear ações
+- [ ] Testes Vitest para autenticação e permissões

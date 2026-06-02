@@ -197,6 +197,13 @@
       "when": 1780425427782,
       "tag": "0027_rapid_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1780426211662,
+      "tag": "0028_rich_microchip",
+      "breakpoints": true
     }
   ]
 }

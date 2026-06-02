@@ -483,5 +483,75 @@ export const emailAliases = mysqlTable("email_aliases", {
 export type EmailAlias = typeof emailAliases.$inferSelect;
 export type InsertEmailAlias = typeof emailAliases.$inferInsert;
 
+// ─── Internal Users (Usuários Internos com Login/Senha) ────────────────────────────
+export const internalUsers = mysqlTable("internal_users", {
+  id: int("id").autoincrement().primaryKey(),
+  clinicId: int("clinicId").notNull(), // FK → clinics.id
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  roleId: int("roleId").notNull(), // FK → roles.id
+  isActive: boolean("isActive").default(true).notNull(),
+  lastLogin: timestamp("lastLogin"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type InternalUser = typeof internalUsers.$inferSelect;
+export type InsertInternalUser = typeof internalUsers.$inferInsert;
+
+// ─── Roles (Papéis/Funções) ────────────────────────────────────────────────────
+export const roles = mysqlTable("roles", {
+  id: int("id").autoincrement().primaryKey(),
+  clinicId: int("clinicId").notNull(), // FK → clinics.id
+  name: varchar("name", { length: 100 }).notNull(), // Secretária, Financeiro, etc
+  description: text("description"),
+  isSystem: boolean("isSystem").default(false).notNull(), // Se é pré-definida pelo sistema
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = typeof roles.$inferInsert;
+
+// ─── Permissions (Permissões) ────────────────────────────────────────────────────
+export const permissions = mysqlTable("permissions", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(), // patients.view, patients.edit, etc
+  description: text("description"),
+  category: varchar("category", { length: 50 }).notNull(), // patients, sessions, financial, etc
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Permission = typeof permissions.$inferSelect;
+export type InsertPermission = typeof permissions.$inferInsert;
+
+// ─── Role Permissions (Vinculação entre Roles e Permissions) ────────────────────────────────
+export const rolePermissions = mysqlTable("role_permissions", {
+  id: int("id").autoincrement().primaryKey(),
+  roleId: int("roleId").notNull(), // FK → roles.id
+  permissionId: int("permissionId").notNull(), // FK → permissions.id
+});
+
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type InsertRolePermission = typeof rolePermissions.$inferInsert;
+
+// ─── Deletion Requests (Requisições de Exclusão com Aprovação) ────────────────────────────────
+export const deletionRequests = mysqlTable("deletion_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  clinicId: int("clinicId").notNull(), // FK → clinics.id
+  requestedBy: int("requestedBy").notNull(), // FK → internalUsers.id
+  entityType: varchar("entityType", { length: 50 }).notNull(), // patients, sessions, transactions, etc
+  entityId: int("entityId").notNull(),
+  entityName: varchar("entityName", { length: 255 }), // Nome/descrição do item a ser deletado
+  reason: text("reason"),
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  approvedBy: int("approvedBy"), // FK → users.id (admin que aprovou)
+  approvedAt: timestamp("approvedAt"),
+  rejectionReason: text("rejectionReason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DeletionRequest = typeof deletionRequests.$inferSelect;
+export type InsertDeletionRequest = typeof deletionRequests.$inferInsert;
+
 // ─── Session with Patient (for API responses) ──────────────────────────────
 export type SessionWithPatient = Session & { patient?: Patient };
