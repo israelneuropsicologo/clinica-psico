@@ -9,7 +9,9 @@ import {
   countActiveInternalUsers,
 } from "../db/internal-users-management.js";
 import { TRPCError } from "@trpc/server";
-import { getClinicIdForUser } from "../db.js";
+import { getClinicIdForUser, getDb } from "../db.js";
+import { eq } from "drizzle-orm";
+import { internalUsers } from "../../drizzle/schema";
 
 /**
  * Router para gerenciar usuários internos (admin only)
@@ -195,4 +197,43 @@ export const internalUsersRouter = router({
       });
     }
   }),
+
+  /**
+   * Resetar senha de um usuário
+   */
+  resetPassword: protectedProcedure
+    .input(z.object({ userId: z.number().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Verificar se é admin
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Apenas administradores podem resetar senhas",
+          });
+        }
+
+        // Gerar nova senha aleatória
+        const newPassword = Math.random().toString(36).slice(-12);
+        
+        // Atualizar senha no banco
+        const { hashPassword } = await import("../db/internal-auth.js");
+        const hashedPassword = await hashPassword(newPassword);
+        
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        
+        await db.update(internalUsers)
+          .set({ passwordHash: hashedPassword })
+          .where(eq(internalUsers.id, input.userId));
+        
+        return { success: true, newPassword };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erro ao resetar senha",
+        });
+      }
+    }),
 });

@@ -32,6 +32,8 @@ export default function AdminUsers() {
   const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserName, setNewUserName] = useState("");
   const [newUserRoleId, setNewUserRoleId] = useState("1");
+  const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
+  const [resetPasswordData, setResetPasswordData] = useState<{ email: string; password: string } | null>(null);
 
   const { data: users, isLoading, refetch } = trpc.internalUsers.list.useQuery();
   const { data: activeCount } = trpc.internalUsers.countActive.useQuery();
@@ -57,6 +59,16 @@ export default function AdminUsers() {
 
   const deleteMutation = trpc.internalUsers.delete.useMutation({
     onSuccess: () => refetch(),
+  });
+
+  const resetPasswordMutation = trpc.internalUsers.resetPassword.useMutation({
+    onSuccess: (data, variables) => {
+      const user = users?.find(u => u.id === variables.userId);
+      if (user) {
+        setResetPasswordData({ email: user.email, password: data.newPassword });
+        setShowResetPasswordDialog(true);
+      }
+    },
   });
 
   const handleCreateUser = async () => {
@@ -242,6 +254,54 @@ export default function AdminUsers() {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog para mostrar nova senha após reset */}
+      <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+              Senha Resetada com Sucesso!
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                A senha foi resetada e está pronta para usar.
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Nova Senha:</p>
+              <div className="bg-gray-100 p-4 rounded-lg space-y-3 border border-gray-200">
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Email:</p>
+                  <p className="font-mono text-sm font-semibold text-gray-900">{resetPasswordData?.email}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Senha:</p>
+                  <p className="font-mono text-sm font-semibold text-gray-900">{resetPasswordData?.password}</p>
+                </div>
+              </div>
+            </div>
+
+            <Alert className="border-blue-200 bg-blue-50">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800 text-sm">
+                ⚠️ Guarde esta senha com segurança. Ela não será mostrada novamente.
+              </AlertDescription>
+            </Alert>
+
+            <Button 
+              onClick={() => setShowResetPasswordDialog(false)}
+              className="w-full"
+            >
+              Entendi, Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <CardHeader>
           <CardTitle>Lista de Usuários</CardTitle>
@@ -307,6 +367,16 @@ export default function AdminUsers() {
                           Ativar
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          resetPasswordMutation.mutate({ userId: user.id })
+                        }
+                        disabled={resetPasswordMutation.isPending}
+                      >
+                        Resetar Senha
+                      </Button>
                       <Button
                         size="sm"
                         variant="destructive"
