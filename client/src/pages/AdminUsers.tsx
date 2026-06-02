@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -34,6 +41,35 @@ export default function AdminUsers() {
   const [newUserRoleId, setNewUserRoleId] = useState("1");
   const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
   const [resetPasswordData, setResetPasswordData] = useState<{ email: string; password: string } | null>(null);
+  const [selectedUserForPermissions, setSelectedUserForPermissions] = useState<any>(null);
+  const [showPermissionsDialog, setShowPermissionsDialog] = useState(false);
+  const [selectedModules, setSelectedModules] = useState<string[]>([]);
+
+  // Módulos do menu (mesmo que no sidebar)
+  const modules = [
+    { id: "dashboard", label: "Dashboard", path: "/dashboard" },
+    { id: "pacientes", label: "Pacientes", path: "/patients" },
+    { id: "leads", label: "Leads", path: "/leads" },
+    { id: "agendamentos", label: "Agendamentos Diretos", path: "/direct-bookings" },
+    { id: "sessoes", label: "Sessões", path: "/sessions" },
+    { id: "agenda", label: "Agenda", path: "/calendar" },
+    { id: "pistas", label: "Pistas de IA", path: "/pistas" },
+    { id: "ia", label: "Dashboard de IA", path: "/ai-analytics" },
+    { id: "financeiro", label: "Financeiro", path: "/financial" },
+    { id: "documentos", label: "Documentos", path: "/documents" },
+    { id: "configuracoes", label: "Configurações", path: "/settings" },
+    { id: "integracao", label: "Integração", path: "/webhooks" },
+    { id: "backups", label: "Backups", path: "/backups" },
+    { id: "relatorios", label: "Relatórios Gerenciais", path: "/admin/reports" },
+  ];
+
+  // Presets de roles
+  const rolePresets: Record<number, string[]> = {
+    1: ["dashboard", "pacientes", "sessoes", "agenda", "documentos"], // Secretária
+    2: ["dashboard", "financeiro", "relatorios"], // Financeiro
+    3: ["dashboard", "leads", "agendamentos"], // Marketing
+    4: ["dashboard", "pacientes", "sessoes"], // Assistente
+  };
 
   const { data: users, isLoading, refetch } = trpc.internalUsers.list.useQuery();
   const { data: activeCount } = trpc.internalUsers.countActive.useQuery();
@@ -70,6 +106,21 @@ export default function AdminUsers() {
       }
     },
   });
+
+  const handleOpenPermissionsDialog = (user: any) => {
+    setSelectedUserForPermissions(user);
+    // Usar preset da role ou lista vazia
+    setSelectedModules(rolePresets[user.roleId] || []);
+    setShowPermissionsDialog(true);
+  };
+
+  const handleToggleModule = (moduleId: string) => {
+    setSelectedModules((prev) =>
+      prev.includes(moduleId)
+        ? prev.filter((m) => m !== moduleId)
+        : [...prev, moduleId]
+    );
+  };
 
   const handleCreateUser = async () => {
     if (!newUserEmail || !newUserPassword || !newUserName) {
@@ -343,56 +394,63 @@ export default function AdminUsers() {
                         ? formatDateSaoPaulo(typeof user.lastLogin === 'string' ? new Date(user.lastLogin).getTime() : (user.lastLogin instanceof Date ? user.lastLogin.getTime() : user.lastLogin))
                         : "Nunca"}
                     </TableCell>
-                    <TableCell className="space-x-2">
-                      {user.isActive ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            deactivateMutation.mutate({ userId: user.id })
-                          }
-                          disabled={deactivateMutation.isPending}
-                        >
-                          Desativar
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            activateMutation.mutate({ userId: user.id })
-                          }
-                          disabled={activateMutation.isPending}
-                        >
-                          Ativar
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          resetPasswordMutation.mutate({ userId: user.id })
-                        }
-                        disabled={resetPasswordMutation.isPending}
-                      >
-                        Resetar Senha
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Tem certeza que deseja deletar este usuário?"
-                            )
-                          ) {
-                            deleteMutation.mutate({ userId: user.id });
-                          }
-                        }}
-                        disabled={deleteMutation.isPending}
-                      >
-                        Deletar
-                      </Button>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {user.isActive ? (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                deactivateMutation.mutate({ userId: user.id })
+                              }
+                              disabled={deactivateMutation.isPending}
+                            >
+                              Desativar
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                activateMutation.mutate({ userId: user.id })
+                              }
+                              disabled={activateMutation.isPending}
+                            >
+                              Ativar
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() =>
+                              resetPasswordMutation.mutate({ userId: user.id })
+                            }
+                            disabled={resetPasswordMutation.isPending}
+                          >
+                            Resetar Senha
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenPermissionsDialog(user)}
+                          >
+                            Editar Permissões
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  "Tem certeza que deseja deletar este usuário?"
+                                )
+                              ) {
+                                deleteMutation.mutate({ userId: user.id });
+                              }
+                            }}
+                            disabled={deleteMutation.isPending}
+                            className="text-destructive"
+                          >
+                            Deletar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -405,6 +463,58 @@ export default function AdminUsers() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog para editar permissões */}
+      <Dialog open={showPermissionsDialog} onOpenChange={setShowPermissionsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Editar Permissões - {selectedUserForPermissions?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Selecione quais módulos este usuário pode acessar
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+              {modules.map((module) => (
+                <div
+                  key={module.id}
+                  className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors"
+                >
+                  <Checkbox
+                    id={`module-${module.id}`}
+                    checked={selectedModules.includes(module.id)}
+                    onCheckedChange={() => handleToggleModule(module.id)}
+                  />
+                  <label
+                    htmlFor={`module-${module.id}`}
+                    className="text-sm font-medium cursor-pointer flex-1"
+                  >
+                    {module.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowPermissionsDialog(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  // TODO: Salvar permissões no backend
+                  setShowPermissionsDialog(false);
+                }}
+              >
+                Salvar Permissões
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
