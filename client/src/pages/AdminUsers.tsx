@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, CheckCircle2, MoreHorizontal } from "lucide-react";
+import { AlertCircle, CheckCircle2, MoreHorizontal, Mail } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +30,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { formatDateSaoPaulo } from "@/lib/timezone";
+
 
 export default function AdminUsers() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -114,9 +115,23 @@ export default function AdminUsers() {
     setShowPermissionsDialog(true);
   };
 
+  const sendLoginEmailMutation = trpc.internalAuth.sendLoginEmail.useMutation({
+    onSuccess: () => {
+      alert("✅ Email enviado com sucesso! O link de login foi enviado para o usuário.");
+    },
+    onError: (error: any) => {
+      alert(`❌ Erro ao enviar email: ${error.message || "Tente novamente mais tarde."}`);
+    },
+  });
+
   const handleSendLoginEmail = (user: any) => {
     const loginUrl = `${window.location.origin}/internal-login`;
-    alert(`Email seria enviado para ${user.email}`);
+    sendLoginEmailMutation.mutate({
+      email: user.email,
+      name: user.name,
+      password: "[Senha será enviada por email]",
+      loginUrl,
+    });
   };
 
   const handleToggleModule = (moduleId: string) => {

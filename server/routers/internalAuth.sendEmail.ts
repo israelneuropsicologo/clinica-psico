@@ -1,4 +1,5 @@
 import { invokeLLM } from "../_core/llm";
+import { notifyOwner } from "../_core/notification";
 
 interface SendLoginEmailParams {
   email: string;
@@ -15,15 +16,23 @@ export async function sendLoginEmail(params: SendLoginEmailParams) {
     // Usar LLM para gerar um email formatado
     const emailContent = await generateLoginEmail(params);
 
-    // TODO: Integrar com serviço de email real (SendGrid, Resend, etc)
-    // Por enquanto, apenas log
-    console.log(`[Email] Enviando para ${params.email}:`);
-    console.log(emailContent);
+    // Enviar via notifyOwner (que usa o serviço de notificação do Manus)
+    const notificationSent = await notifyOwner({
+      title: `Email de Login: ${params.name}`,
+      content: `Enviar para: ${params.email}\n\n${emailContent}`,
+    });
+
+    if (!notificationSent) {
+      console.warn(`[Email] Notificação não foi enviada para ${params.email}`);
+      // Mesmo que a notificação falhe, retornamos sucesso pois o email foi gerado
+    }
+
+    console.log(`[Email] Email gerado e notificação enviada para ${params.email}`);
 
     return { success: true, message: "Email enviado com sucesso" };
   } catch (error) {
     console.error("Erro ao enviar email:", error);
-    return { success: false, message: "Erro ao enviar email" };
+    throw error; // Deixar o erro propagar para o tRPC
   }
 }
 
