@@ -164,4 +164,18 @@ export const internalAuthRouter = router({
         });
       }
     }),
+
+  sendLoginEmail: publicProcedure
+    .input(
+      z.object({
+        email: z.string().email(),
+        name: z.string(),
+        password: z.string(),
+        loginUrl: z.string().url(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendLoginEmail } = await import("./internalAuth.sendEmail.js");
+      return sendLoginEmail(input);
+    }),
 });

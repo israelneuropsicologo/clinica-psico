@@ -24,6 +24,7 @@ import { AIAnalytics } from "./pages/AIAnalytics";
 import { PatientInvite } from "./pages/PatientInvite";
 import InternalLogin from "./pages/InternalLogin";
 import AdminUsers from "./pages/AdminUsers";
+import AdminAudit from "./pages/AdminAudit";
 
 // App Router - v1.0.4 (Production Ready - isPaid Webhook Fix)
 function Router() {
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/direct-bookings" component={DirectBookings} />
       <Route path="/webhooks" component={Webhooks} />
       <Route path="/admin/reports" component={AdminReports} />
+      <Route path="/admin/audit" component={AdminAudit} />
       <Route path="/pistas" component={Pistas} />
       <Route path="/ai-analytics" component={AIAnalytics} />
       <Route path="/invite/:token" component={PatientInvite} />

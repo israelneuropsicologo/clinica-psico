@@ -67,6 +67,7 @@ import { anamneseRouter, recordingsRouter, timelineRouter } from "./routers/pati
 import { managementReportsRouter } from "./routers/managementReports";
 import { pistasRouter } from "./routers/pistas";
 import { aiAnalyticsRouter } from "./routers/aiAnalytics";
+import { auditRouter } from "./routers/audit";
 import { aiIntegrationRouter } from "./routers/aiIntegration";
 import { adminRouter } from "./routers/admin";
 import { invitationsRouter } from "./routers/invitations";
@@ -994,6 +995,7 @@ export const appRouter = router({
   internalAuth: internalAuthRouter,
   internalUsers: internalUsersRouter,
   roles: rolesRouter,
+  audit: auditRouter,
   calendar: router({
     getEvents: protectedProcedure
       .input(z.object({

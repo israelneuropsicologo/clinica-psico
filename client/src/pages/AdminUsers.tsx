@@ -114,6 +114,11 @@ export default function AdminUsers() {
     setShowPermissionsDialog(true);
   };
 
+  const handleSendLoginEmail = (user: any) => {
+    const loginUrl = `${window.location.origin}/internal-login`;
+    alert(`Email seria enviado para ${user.email}`);
+  };
+
   const handleToggleModule = (moduleId: string) => {
     setSelectedModules((prev) =>
       prev.includes(moduleId)
@@ -433,6 +438,11 @@ export default function AdminUsers() {
                             onClick={() => handleOpenPermissionsDialog(user)}
                           >
                             Editar Permissões
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleSendLoginEmail(user)}
+                          >
+                            Enviar Link de Login
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {

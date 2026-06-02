@@ -204,6 +204,13 @@
       "when": 1780426211662,
       "tag": "0028_rich_microchip",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1780443266428,
+      "tag": "0029_late_kingpin",
+      "breakpoints": true
     }
   ]
 }

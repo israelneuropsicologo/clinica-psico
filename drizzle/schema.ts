@@ -555,3 +555,22 @@ export type InsertDeletionRequest = typeof deletionRequests.$inferInsert;
 
 // ─── Session with Patient (for API responses) ──────────────────────────────
 export type SessionWithPatient = Session & { patient?: Patient };
+
+// ─── Audit Logs (Auditoria de Atividades) ──────────────────────────────────
+export const auditLogs = mysqlTable("audit_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → internalUsers.id (usuário que fez a ação)
+  action: varchar("action", { length: 50 }).notNull(), // login, logout, create, update, delete, etc
+  entityType: varchar("entityType", { length: 50 }), // patients, sessions, users, etc
+  entityId: int("entityId"), // ID do objeto afetado
+  entityName: varchar("entityName", { length: 255 }), // Nome do objeto (ex: nome do paciente)
+  description: text("description"), // Descrição detalhada da ação
+  ipAddress: varchar("ipAddress", { length: 45 }), // IPv4 ou IPv6
+  userAgent: text("userAgent"), // Browser/device info
+  status: mysqlEnum("status", ["success", "failure"]).default("success").notNull(),
+  errorMessage: text("errorMessage"), // Se falhou, qual foi o erro
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
