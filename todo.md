@@ -1683,3 +1683,21 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Testado: 5 testes de consolidação de conta passando
 - [x] Testado: 254 testes passando (validando consolidação)
 - [x] Conclusão: CONSOLIDAÇÃO IMPLEMENTADA - Qualquer e-mail acessa a base oficial
+
+
+## Fase 67: Sistema de Cadastro Compartilhado com Links de Convite
+- [x] Criar tabela `patientInvitations` no schema (token, patientId, expiresAt, completedAt, createdBy)
+- [x] Executar migração SQL para criar tabela
+- [x] Implementar helpers de DB para gerenciar convites
+- [x] Criar router tRPC: invitations (generateLink, validateToken, updatePatientFromInvite)
+- [x] Implementar geração de token seguro (crypto.randomBytes)
+- [x] Criar página pública `/invite/:token` (sem autenticação)
+- [x] Implementar validação de token (expiração, já completado)
+- [x] Separar campos por papel (psicólogo vs paciente)
+- [x] Criar componente de formulário com campos bloqueados/editáveis
+- [x] Adicionar indicador visual no dashboard (badge "Preenchido" ou cor)
+- [x] Implementar notificação ao psicólogo quando paciente completa
+- [x] Adicionar botão "Gerar Link de Convite" na página de pacientes
+- [x] Criar modal para exibir e copiar link
+- [x] Testar fluxo completo (gerar link → paciente acessa → preenche → psicólogo vê)
+- [x] Testes Vitest para invitations router (12 testes passando)

@@ -426,5 +426,21 @@ export const timelineAnalyses = mysqlTable("timeline_analyses", {
 export type TimelineAnalysis = typeof timelineAnalyses.$inferSelect;
 export type InsertTimelineAnalysis = typeof timelineAnalyses.$inferInsert;
 
+// ─── Patient Invitations (Convites para Preenchimento de Cadastro) ─────────────
+export const patientInvitations = mysqlTable("patient_invitations", {
+  id: int("id").autoincrement().primaryKey(),
+  patientId: int("patientId").notNull(), // FK → patients.id
+  userId: int("userId").notNull(), // FK → users.id (psicólogo que criou)
+  token: varchar("token", { length: 255 }).notNull().unique(), // Token seguro único
+  expiresAt: timestamp("expiresAt").notNull(), // Quando o link expira
+  completedAt: timestamp("completedAt"), // Quando o paciente completou
+  status: mysqlEnum("status", ["pending", "completed", "expired"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PatientInvitation = typeof patientInvitations.$inferSelect;
+export type InsertPatientInvitation = typeof patientInvitations.$inferInsert;
+
 // ─── Session with Patient (for API responses) ──────────────────────────────
 export type SessionWithPatient = Session & { patient?: Patient };

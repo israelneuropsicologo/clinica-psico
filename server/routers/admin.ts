@@ -243,6 +243,31 @@ export const adminRouter = router({
   }),
 
   /**
+   * Get all users for admin management
+   */
+  getAllUsers: adminProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+    try {
+      const allUsers = await db.select().from(users);
+      return allUsers.map((user) => ({
+        id: user.id,
+        email: user.email,
+        name: user.name || "Unknown",
+        role: user.role,
+        createdAt: user.createdAt,
+      }));
+    } catch (error) {
+      console.error("[ADMIN] Error fetching users:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erro ao buscar usuários",
+      });
+    }
+  }),
+
+  /**
    * Get system health and diagnostics
    */
   getSystemHealth: adminProcedure.query(async ({ ctx }) => {

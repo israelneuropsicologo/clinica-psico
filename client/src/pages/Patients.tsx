@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Plus, Search, User, Phone, Mail, Calendar, Trash2 } from "lucide-react";
+import { Plus, Search, User, Phone, Mail, Calendar, Trash2, Link as LinkIcon, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -30,6 +30,10 @@ export default function Patients() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedPatients, setSelectedPatients] = useState<Set<number>>(new Set());
   const [, navigate] = useLocation();
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [selectedPatientForInvite, setSelectedPatientForInvite] = useState<number | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   const { data: patients, isLoading, refetch } = trpc.patients.list.useQuery({
     search: search || undefined,
@@ -39,6 +43,8 @@ export default function Patients() {
   const generatePDFMutation = trpc.reports.generatePatientPDF.useMutation();
   const deleteTestDataMutation = trpc.patients.deleteTestData.useMutation();
   const deleteMultipleMutation = trpc.patients.deleteMultiple.useMutation();
+  const generateInviteLinkMutation = trpc.invitations.generateLink.useMutation();
+  const listInvitationsMutation = trpc.invitations.listByUser.useQuery();
 
   const togglePatientSelection = (patientId: number) => {
     const newSelected = new Set(selectedPatients);
@@ -85,6 +91,35 @@ export default function Patients() {
       patientIds: selectedPatients.size > 0 ? Array.from(selectedPatients) : undefined,
     });
     return result;
+  };
+
+  const handleGenerateInviteLink = (patientId: number) => {
+    setSelectedPatientForInvite(patientId);
+    generateInviteLinkMutation.mutate(
+      { patientId, expiresInDays: 30 },
+      {
+        onSuccess: (data: any) => {
+          setInviteLink(data.inviteUrl);
+          setShowInviteModal(true);
+          toast.success("Link de convite gerado com sucesso!");
+        },
+        onError: (error: any) => {
+          toast.error("Erro ao gerar link: " + error.message);
+        },
+      }
+    );
+  };
+
+  const handleCopyLink = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedToken(text);
+    toast.success("Link copiado para a área de transferência!");
+    setTimeout(() => setCopiedToken(null), 2000);
+  };
+
+  const getInvitationStatus = (patientId: number) => {
+    const invitation = listInvitationsMutation.data?.find((inv: any) => inv.patientId === patientId);
+    return invitation;
   };
 
   return (
@@ -230,7 +265,7 @@ export default function Patients() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0" onClick={() => navigate(`/patients/${patient.id}`)}>
+                    <div className="flex items-center gap-3 shrink-0">
                       {patient.sessionValue && (
                         <span className="text-xs text-muted-foreground hidden sm:block">
                           {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -238,7 +273,24 @@ export default function Patients() {
                           )}/sessão
                         </span>
                       )}
-                      <StatusBadge status={patient.status} />
+                      {getInvitationStatus(patient.id)?.status === "completed" && (
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                          ✓ Preenchido
+                        </span>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleGenerateInviteLink(patient.id);
+                        }}
+                      >
+                        <LinkIcon className="h-4 w-4" />
+                      </Button>
+                      <div onClick={() => navigate(`/patients/${patient.id}`)}>
+                        <StatusBadge status={patient.status} />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -253,6 +305,63 @@ export default function Patients() {
         onClose={() => setShowCreate(false)}
         onSuccess={() => { setShowCreate(false); refetch(); }}
       />
+
+      <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Link de Convite para Paciente</DialogTitle>
+          </DialogHeader>
+          {inviteLink && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-gray-600 mb-3">Compartilhe este link com o paciente para que ele preencha seus dados:</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={inviteLink}
+                    readOnly
+                    className="flex-1 px-3 py-2 border rounded-md text-sm bg-white"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => handleCopyLink(inviteLink)}
+                    variant={copiedToken === inviteLink ? "default" : "outline"}
+                  >
+                    {copiedToken === inviteLink ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">
+                <p className="font-medium mb-2">O paciente poderá:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Acessar o link sem fazer login</li>
+                  <li>Preencher seus dados pessoais e de contato</li>
+                  <li>Salvar as informações de forma segura</li>
+                  <li>Você será notificado quando terminar</li>
+                </ul>
+              </div>
+            </div>
+          )}
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowInviteModal(false)}
+              className="flex-1"
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

@@ -111,8 +111,9 @@ export default function AdminReports() {
 
       toast.success("PDF gerado e baixado com sucesso!");
     } catch (err) {
-      console.error(err);
-      toast.error("Erro ao gerar PDF");
+      console.error("[PDF Error]", err);
+      const errorMsg = err instanceof Error ? err.message : (err as any)?.message || "Erro desconhecido";
+      toast.error(`Erro ao gerar PDF: ${errorMsg}`);
     } finally {
       setIsGeneratingPDF(false);
     }
