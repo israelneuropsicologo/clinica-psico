@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 
 import { trpc } from "@/lib/trpc";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
-import { SafeSelect, SafeSelectItem } from "@/components/SafeSelect";
+import { SafeSelectRadix, SafeSelectItemRadix } from "@/components/SafeSelectRadix";
 
 export function PatientInvite() {
   const { token } = useParams<{ token: string }>();
@@ -196,32 +196,32 @@ export function PatientInvite() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="gender">Gênero</Label>
-                    <SafeSelect
+                    <SafeSelectRadix
                       value={formData.gender || ""}
                       onValueChange={(value) => handleInputChange("gender", value)}
                       id="gender"
                       placeholder="Selecione"
                     >
-                      <SafeSelectItem value="male">Masculino</SafeSelectItem>
-                      <SafeSelectItem value="female">Feminino</SafeSelectItem>
-                      <SafeSelectItem value="other">Outro</SafeSelectItem>
-                      <SafeSelectItem value="prefer_not_to_say">Prefiro não dizer</SafeSelectItem>
-                    </SafeSelect>
+                      <SafeSelectItemRadix value="male">Masculino</SafeSelectItemRadix>
+                      <SafeSelectItemRadix value="female">Feminino</SafeSelectItemRadix>
+                      <SafeSelectItemRadix value="other">Outro</SafeSelectItemRadix>
+                      <SafeSelectItemRadix value="prefer_not_to_say">Prefiro não dizer</SafeSelectItemRadix>
+                    </SafeSelectRadix>
                   </div>
                   <div>
                     <Label htmlFor="maritalStatus">Estado Civil</Label>
-                    <SafeSelect
+                    <SafeSelectRadix
                       value={formData.maritalStatus || ""}
                       onValueChange={(value) => handleInputChange("maritalStatus", value)}
                       id="maritalStatus"
                       placeholder="Selecione"
                     >
-                      <SafeSelectItem value="single">Solteiro(a)</SafeSelectItem>
-                      <SafeSelectItem value="married">Casado(a)</SafeSelectItem>
-                      <SafeSelectItem value="divorced">Divorciado(a)</SafeSelectItem>
-                      <SafeSelectItem value="widowed">Viúvo(a)</SafeSelectItem>
-                      <SafeSelectItem value="stable_union">União Estável</SafeSelectItem>
-                    </SafeSelect>
+                      <SafeSelectItemRadix value="single">Solteiro(a)</SafeSelectItemRadix>
+                      <SafeSelectItemRadix value="married">Casado(a)</SafeSelectItemRadix>
+                      <SafeSelectItemRadix value="divorced">Divorciado(a)</SafeSelectItemRadix>
+                      <SafeSelectItemRadix value="widowed">Viúvo(a)</SafeSelectItemRadix>
+                      <SafeSelectItemRadix value="stable_union">União Estável</SafeSelectItemRadix>
+                    </SafeSelectRadix>
                   </div>
                 </div>
               </div>
@@ -346,19 +346,19 @@ export function PatientInvite() {
 
                 <div>
                   <Label htmlFor="schooling">Escolaridade</Label>
-                  <SafeSelect
+                  <SafeSelectRadix
                     value={formData.schooling || ""}
                     onValueChange={(value) => handleInputChange("schooling", value)}
                     id="schooling"
                     placeholder="Selecione"
                   >
-                    <SafeSelectItem value="no_schooling">Sem escolaridade</SafeSelectItem>
-                    <SafeSelectItem value="elementary">Ensino Fundamental</SafeSelectItem>
-                    <SafeSelectItem value="middle">Ensino Médio</SafeSelectItem>
-                    <SafeSelectItem value="high_school">Ensino Médio Completo</SafeSelectItem>
-                    <SafeSelectItem value="college">Ensino Superior</SafeSelectItem>
-                    <SafeSelectItem value="postgrad">Pós-Graduação</SafeSelectItem>
-                  </SafeSelect>
+                    <SafeSelectItemRadix value="no_schooling">Sem escolaridade</SafeSelectItemRadix>
+                    <SafeSelectItemRadix value="elementary">Ensino Fundamental</SafeSelectItemRadix>
+                    <SafeSelectItemRadix value="middle">Ensino Médio</SafeSelectItemRadix>
+                    <SafeSelectItemRadix value="high_school">Ensino Médio Completo</SafeSelectItemRadix>
+                    <SafeSelectItemRadix value="college">Ensino Superior</SafeSelectItemRadix>
+                    <SafeSelectItemRadix value="postgrad">Pós-Graduação</SafeSelectItemRadix>
+                  </SafeSelectRadix>
                 </div>
 
                 <div>

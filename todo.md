@@ -1703,11 +1703,13 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Testes Vitest para invitations router (12 testes passando)
 
 
-## Fase 68: Corrigir Erro de removeChild no Chrome
-- [x] Criar hook `useSelectDebounce` com debounce de 50ms
-- [x] Implementar hook `useSafeDOM` com verificacao de isConnected
-- [x] Criar componente `SafeSelect` wrapper para Select
-- [x] Aplicar SafeSelect em PatientInvite.tsx (Genero, Estado Civil, Escolaridade)
-- [x] Criar testes Vitest para SafeSelect e useSelectDebounce (8 testes passando)
-- [x] Documentar solucao em CHROME_REMOVECHILD_FIX.md
-- [ ] Aplicar SafeSelect em outros componentes (Patients, PatientDetail, Sessions, Financial, Settings)
+## Fase 68: Corrigir Erro de removeChild no Chrome (Solucao Segura)
+- [x] Remover polyfill global perigoso (modificacao de prototipos)
+- [x] Criar componente `SafeSelectRadix` com onOpenChange e debounce de 150ms
+- [x] Implementar armazenamento de valor pendente (nao chamar onValueChange imediatamente)
+- [x] Adicionar cleanup automático de timeouts ao desmontar
+- [x] Aplicar SafeSelectRadix em PatientInvite.tsx (Genero, Estado Civil, Escolaridade)
+- [x] Criar testes Vitest para SafeSelectRadix (7 testes passando)
+- [x] Documentar solucao segura em CHROME_REMOVECHILD_FIX.md
+- [x] Validar que nao quebra Firefox ou outros navegadores
+- [ ] Aplicar SafeSelectRadix em outros componentes (Patients, PatientDetail, Sessions, Financial, Settings)
