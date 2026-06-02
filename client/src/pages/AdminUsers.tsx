@@ -10,6 +10,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -24,6 +26,8 @@ import { formatDateSaoPaulo } from "@/lib/timezone";
 
 export default function AdminUsers() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [showPasswordAlert, setShowPasswordAlert] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserName, setNewUserName] = useState("");
@@ -69,9 +73,24 @@ export default function AdminUsers() {
         clinicId: 2, // TODO: Obter clinicId do contexto
         roleId: parseInt(newUserRoleId),
       });
+      
+      // Mostrar senha em um Dialog bonito
+      setGeneratedPassword(newUserPassword);
+      setShowPasswordAlert(true);
     } catch (error: any) {
       alert(error.message || "Erro ao criar usuário");
     }
+  };
+
+  const handleClosePasswordAlert = () => {
+    setShowPasswordAlert(false);
+    setGeneratedPassword("");
+    setNewUserEmail("");
+    setNewUserPassword("");
+    setNewUserName("");
+    setNewUserRoleId("1");
+    setIsCreateDialogOpen(false);
+    refetch();
   };
 
   return (
@@ -174,6 +193,54 @@ export default function AdminUsers() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialog para mostrar senha com formatação bonita */}
+      <Dialog open={showPasswordAlert} onOpenChange={setShowPasswordAlert}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+              Usuário Criado com Sucesso!
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                O usuário foi criado e está pronto para usar.
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Dados de Acesso:</p>
+              <div className="bg-gray-100 p-4 rounded-lg space-y-3 border border-gray-200">
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Email:</p>
+                  <p className="font-mono text-sm font-semibold text-gray-900">{newUserEmail}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Senha:</p>
+                  <p className="font-mono text-sm font-semibold text-gray-900">{generatedPassword}</p>
+                </div>
+              </div>
+            </div>
+
+            <Alert className="border-blue-200 bg-blue-50">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800 text-sm">
+                ⚠️ Guarde esta senha com segurança. Ela não será mostrada novamente.
+              </AlertDescription>
+            </Alert>
+
+            <Button 
+              onClick={handleClosePasswordAlert}
+              className="w-full"
+            >
+              Entendi, Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>

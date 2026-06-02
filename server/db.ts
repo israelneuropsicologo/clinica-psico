@@ -107,10 +107,14 @@ export async function getPatients(userId: number, search?: string, status?: stri
   if (!db) return [];
 
   // Obter clinicId do usuário
-  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!user || user.length === 0 || !user[0].clinicId) return [];
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return [];
   
-  const conditions = [eq(patients.userId, user[0].clinicId)];
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return [];
+
+  // Buscar pacientes da clínica (patients.userId armazena clinicId)
+  const conditions = [eq(patients.userId, clinicId)];
   if (status && status !== "all") {
     conditions.push(eq(patients.status, status as Patient["status"]));
   }
@@ -131,10 +135,18 @@ export async function getPatients(userId: number, search?: string, status?: stri
 export async function getPatientById(id: number, userId: number): Promise<Patient | undefined> {
   const db = await getDb();
   if (!db) return undefined;
+  
+  // Obter clinicId do usuário
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return undefined;
+  
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return undefined;
+  
   const result = await db
     .select()
     .from(patients)
-    .where(and(eq(patients.id, id), eq(patients.userId, userId)))
+    .where(and(eq(patients.id, id), eq(patients.userId, clinicId)))
     .limit(1);
   return result[0];
 }
@@ -203,22 +215,46 @@ export async function createPatient(data: InsertPatient): Promise<number> {
 export async function updatePatient(id: number, userId: number, data: Partial<InsertPatient>): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  await db.update(patients).set(data).where(and(eq(patients.id, id), eq(patients.userId, userId)));
+  
+  // Obter clinicId do usuário
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return;
+  
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return;
+  
+  await db.update(patients).set(data).where(and(eq(patients.id, id), eq(patients.userId, clinicId)));
 }
 
 export async function deletePatient(id: number, userId: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  await db.delete(patients).where(and(eq(patients.id, id), eq(patients.userId, userId)));
+  
+  // Obter clinicId do usuário
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return;
+  
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return;
+  
+  await db.delete(patients).where(and(eq(patients.id, id), eq(patients.userId, clinicId)));
 }
 
 export async function getPatientCount(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
+  
+  // Obter clinicId do usuário
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return 0;
+  
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return 0;
+  
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(patients)
-    .where(and(eq(patients.userId, userId), eq(patients.status, "active")));
+    .where(and(eq(patients.userId, clinicId), eq(patients.status, "active")));
   return Number(result[0]?.count ?? 0);
 }
 
@@ -230,7 +266,15 @@ export async function getSessions(
 ): Promise<SessionWithPatient[]> {
   const db = await getDb();
   if (!db) return [];
-  const conditions = [eq(sessions.userId, userId)];
+  // Obter clinicId do usuário
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return [];
+  
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return [];
+  
+  // Buscar sessões dos pacientes da clínica
+  const conditions = [eq(patients.userId, clinicId)];
   if (opts?.patientId) conditions.push(eq(sessions.patientId, opts.patientId));
   if (opts?.status && opts.status !== "all") {
     conditions.push(eq(sessions.status, opts.status as Session["status"]));
@@ -325,19 +369,36 @@ export async function deleteSession(id: number, userId: number): Promise<void> {
 export async function getSessionsThisMonth(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
+  
+  // Obter clinicId do usuário
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return 0;
+  
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return 0;
+  
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).getTime();
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(sessions)
-    .where(and(eq(sessions.userId, userId), gte(sessions.scheduledAt, start), lte(sessions.scheduledAt, end)));
+    .innerJoin(patients, eq(sessions.patientId, patients.id))
+    .where(and(eq(patients.userId, clinicId), gte(sessions.scheduledAt, start), lte(sessions.scheduledAt, end)));
   return Number(result[0]?.count ?? 0);
 }
 
 export async function getUpcomingSessions(userId: number, limit = 5): Promise<SessionWithPatient[]> {
   const db = await getDb();
   if (!db) return [];
+  
+  // Obter clinicId do usuário
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return [];
+  
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return [];
+  
   const now = Date.now();
   const result = await db
     .select()
@@ -345,7 +406,7 @@ export async function getUpcomingSessions(userId: number, limit = 5): Promise<Se
     .leftJoin(patients, eq(sessions.patientId, patients.id))
     .where(
       and(
-        eq(sessions.userId, userId),
+        eq(patients.userId, clinicId),
         gte(sessions.scheduledAt, now),
         or(eq(sessions.status, "scheduled"), eq(sessions.status, "confirmed"))!
       )
@@ -438,15 +499,24 @@ export async function updateTransaction(
 export async function getMonthlyRevenue(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
+  
+  // Obter clinicId do usuário
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return 0;
+  
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return 0;
+  
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
   const result = await db
     .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
     .from(transactions)
+    .innerJoin(patients, eq(transactions.patientId, patients.id))
     .where(
       and(
-        eq(transactions.userId, userId),
+        eq(patients.userId, clinicId),
         eq(transactions.type, "income"),
         eq(transactions.status, "paid"),
         gte(transactions.createdAt, start),
@@ -459,12 +529,21 @@ export async function getMonthlyRevenue(userId: number): Promise<number> {
 export async function getOverdueSessions(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
+  
+  // Obter clinicId do usuário
+  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRecord || userRecord.length === 0) return 0;
+  
+  const clinicId = userRecord[0].clinicId;
+  if (!clinicId) return 0;
+  
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(sessions)
+    .innerJoin(patients, eq(sessions.patientId, patients.id))
     .where(
       and(
-        eq(sessions.userId, userId),
+        eq(patients.userId, clinicId),
         eq(sessions.status, "completed"),
         eq(sessions.isPaid, "pending")
       )
