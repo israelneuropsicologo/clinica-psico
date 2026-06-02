@@ -23,6 +23,7 @@ import Pistas from "./pages/Pistas";
 import { AIAnalytics } from "./pages/AIAnalytics";
 import { PatientInvite } from "./pages/PatientInvite";
 import InternalLogin from "./pages/InternalLogin";
+import AdminUsers from "./pages/AdminUsers";
 
 // App Router - v1.0.4 (Production Ready - isPaid Webhook Fix)
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/ai-analytics" component={AIAnalytics} />
       <Route path="/invite/:token" component={PatientInvite} />
       <Route path="/internal-login" component={InternalLogin} />
+      <Route path="/admin/users" component={AdminUsers} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
