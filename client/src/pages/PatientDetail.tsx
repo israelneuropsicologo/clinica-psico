@@ -48,11 +48,13 @@ import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { StatusBadge } from "@/components/StatusBadge";
+import { formatDateSaoPaulo } from "@/lib/timezone";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(ts: number | Date) {
-  return new Date(ts).toLocaleDateString("pt-BR", {
+  const timestamp = typeof ts === "number" ? ts : ts.getTime();
+  return formatDateSaoPaulo(timestamp, {
     day: "2-digit", month: "short", year: "numeric",
   });
 }

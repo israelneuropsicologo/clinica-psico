@@ -26,9 +26,10 @@ import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { SessionDetailTabs } from "@/components/SessionTabs/SessionDetailTabs";
+import { formatDateSaoPaulo } from "@/lib/timezone";
 
 function formatDate(ts: number) {
-  return new Date(ts).toLocaleDateString("pt-BR", {
+  return formatDateSaoPaulo(ts, {
     weekday: "long",
     day: "2-digit",
     month: "long",

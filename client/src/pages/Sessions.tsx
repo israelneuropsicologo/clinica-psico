@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
+import { formatDateSaoPaulo, convertSaoPauloToUTC } from "@/lib/timezone";
 import { CalendarDays, Clock, Plus, User, Video, MapPin } from "lucide-react";
 import ExportButton from "@/components/ExportButton";
 import PDFExportButton from "@/components/PDFExportButton";
@@ -16,14 +17,7 @@ import { useLocation } from "wouter";
 import { toast } from "sonner";
 
 function formatDate(ts: number) {
-  return new Date(ts).toLocaleDateString("pt-BR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatDateSaoPaulo(ts);
 }
 
 export default function Sessions() {
@@ -278,10 +272,12 @@ function CreateSessionDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.patientId || !form.scheduledDate) return;
-    const dateTime = new Date(`${form.scheduledDate}T${form.scheduledTime}:00`);
+    // Criar data local e converter para UTC
+    const localDate = new Date(`${form.scheduledDate}T${form.scheduledTime}:00`);
+    const utcTimestamp = convertSaoPauloToUTC(localDate);
     createMutation.mutate({
       patientId: parseInt(form.patientId),
-      scheduledAt: dateTime.getTime(),
+      scheduledAt: utcTimestamp,
       durationMinutes: parseInt(form.durationMinutes),
       sessionType: form.sessionType,
       modality: form.modality,

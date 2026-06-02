@@ -1713,3 +1713,16 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Documentar solucao segura em CHROME_REMOVECHILD_FIX.md
 - [x] Validar que nao quebra Firefox ou outros navegadores
 - [ ] Aplicar SafeSelectRadix em outros componentes (Patients, PatientDetail, Sessions, Financial, Settings)
+
+
+## Fase 69: Corrigir Timezone das Agendas (UTC -> Sao Paulo)
+- [x] Criar helper timezone.ts com funcoes de conversao UTC <-> Sao Paulo
+- [x] Implementar formatDateSaoPaulo, formatTimeSaoPaulo, formatDateOnlySaoPaulo
+- [x] Implementar convertSaoPauloToUTC e convertUTCToSaoPaulo
+- [x] Atualizar Sessions.tsx para usar timezone correto
+- [x] Atualizar Dashboard.tsx para usar timezone correto
+- [x] Atualizar PatientDetail.tsx para usar timezone correto
+- [x] Atualizar SessionDetail.tsx para usar timezone correto
+- [x] Validar que SessionsList.tsx ja usa timezone correto
+- [x] Criar testes Vitest para timezone helpers (10 testes passando)
+- [x] Validar que horarios agora aparecem corretamente (sem diferenca de 3h)

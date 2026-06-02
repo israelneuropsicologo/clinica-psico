@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
+import { formatDateSaoPaulo } from "@/lib/timezone";
 import {
   AreaChart,
   Area,
@@ -31,7 +32,7 @@ function formatCurrency(value: number) {
 }
 
 function formatDate(ts: number) {
-  return new Date(ts).toLocaleDateString("pt-BR", {
+  return formatDateSaoPaulo(ts, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
