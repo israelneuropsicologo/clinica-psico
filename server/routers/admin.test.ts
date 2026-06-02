@@ -37,6 +37,26 @@ function createAdminContext(): TrpcContext {
 }
 
 describe("Admin Router", () => {
+  describe.skip("getActivityLogs", () => {
+    // TODO: Implementar getActivityLogs no admin router
+  });
+
+  describe.skip("getAIModelConfig", () => {
+    // TODO: Implementar getAIModelConfig no admin router
+  });
+
+  describe.skip("updateAIModelConfig", () => {
+    // TODO: Implementar updateAIModelConfig no admin router
+  });
+
+  describe.skip("getBackupStatus", () => {
+    // TODO: Implementar getBackupStatus no admin router
+  });
+
+  describe.skip("triggerBackup", () => {
+    // TODO: Implementar triggerBackup no admin router
+  });
+
   describe("getSystemStats", () => {
     it("should return system statistics", async () => {
       const ctx = createAdminContext();
