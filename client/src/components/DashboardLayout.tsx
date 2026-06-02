@@ -276,7 +276,7 @@ function DashboardLayoutContent({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => navigate("/users")}
+                onClick={() => setLocation("/admin/users")}
                 className="cursor-pointer"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />

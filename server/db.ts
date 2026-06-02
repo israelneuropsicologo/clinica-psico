@@ -119,11 +119,8 @@ export async function getPatients(userId: number, search?: string, status?: stri
   const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   if (!userRecord || userRecord.length === 0) return [];
   
-  const clinicId = userRecord[0].clinicId;
-  if (!clinicId) return [];
-
-  // Buscar pacientes da clínica (patients.userId armazena clinicId)
-  const conditions = [eq(patients.userId, clinicId)];
+  // Buscar pacientes do usuário
+  const conditions = [eq(patients.userId, userId)];
   if (status && status !== "all") {
     conditions.push(eq(patients.status, status as Patient["status"]));
   }
@@ -145,17 +142,10 @@ export async function getPatientById(id: number, userId: number): Promise<Patien
   const db = await getDb();
   if (!db) return undefined;
   
-  // Obter clinicId do usuário
-  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!userRecord || userRecord.length === 0) return undefined;
-  
-  const clinicId = userRecord[0].clinicId;
-  if (!clinicId) return undefined;
-  
   const result = await db
     .select()
     .from(patients)
-    .where(and(eq(patients.id, id), eq(patients.userId, clinicId)))
+    .where(and(eq(patients.id, id), eq(patients.userId, userId)))
     .limit(1);
   return result[0];
 }
