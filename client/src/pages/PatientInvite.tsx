@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { trpc } from "@/lib/trpc";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { SafeSelect, SafeSelectItem } from "@/components/SafeSelect";
 
 export function PatientInvite() {
   const { token } = useParams<{ token: string }>();
@@ -196,35 +196,32 @@ export function PatientInvite() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="gender">Gênero</Label>
-                    <Select value={formData.gender || ""} onValueChange={(value) => handleInputChange("gender", value)}>
-                      <SelectTrigger id="gender">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Masculino</SelectItem>
-                        <SelectItem value="female">Feminino</SelectItem>
-                        <SelectItem value="other">Outro</SelectItem>
-                        <SelectItem value="prefer_not_to_say">Prefiro não dizer</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <SafeSelect
+                      value={formData.gender || ""}
+                      onValueChange={(value) => handleInputChange("gender", value)}
+                      id="gender"
+                      placeholder="Selecione"
+                    >
+                      <SafeSelectItem value="male">Masculino</SafeSelectItem>
+                      <SafeSelectItem value="female">Feminino</SafeSelectItem>
+                      <SafeSelectItem value="other">Outro</SafeSelectItem>
+                      <SafeSelectItem value="prefer_not_to_say">Prefiro não dizer</SafeSelectItem>
+                    </SafeSelect>
                   </div>
                   <div>
                     <Label htmlFor="maritalStatus">Estado Civil</Label>
-                    <Select
+                    <SafeSelect
                       value={formData.maritalStatus || ""}
                       onValueChange={(value) => handleInputChange("maritalStatus", value)}
+                      id="maritalStatus"
+                      placeholder="Selecione"
                     >
-                      <SelectTrigger id="maritalStatus">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="single">Solteiro(a)</SelectItem>
-                        <SelectItem value="married">Casado(a)</SelectItem>
-                        <SelectItem value="divorced">Divorciado(a)</SelectItem>
-                        <SelectItem value="widowed">Viúvo(a)</SelectItem>
-                        <SelectItem value="stable_union">União Estável</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <SafeSelectItem value="single">Solteiro(a)</SafeSelectItem>
+                      <SafeSelectItem value="married">Casado(a)</SafeSelectItem>
+                      <SafeSelectItem value="divorced">Divorciado(a)</SafeSelectItem>
+                      <SafeSelectItem value="widowed">Viúvo(a)</SafeSelectItem>
+                      <SafeSelectItem value="stable_union">União Estável</SafeSelectItem>
+                    </SafeSelect>
                   </div>
                 </div>
               </div>
@@ -349,19 +346,19 @@ export function PatientInvite() {
 
                 <div>
                   <Label htmlFor="schooling">Escolaridade</Label>
-                  <Select value={formData.schooling || ""} onValueChange={(value) => handleInputChange("schooling", value)}>
-                    <SelectTrigger id="schooling">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="no_schooling">Sem escolaridade</SelectItem>
-                      <SelectItem value="elementary">Ensino Fundamental</SelectItem>
-                      <SelectItem value="middle">Ensino Médio</SelectItem>
-                      <SelectItem value="high_school">Ensino Médio Completo</SelectItem>
-                      <SelectItem value="college">Ensino Superior</SelectItem>
-                      <SelectItem value="postgrad">Pós-Graduação</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SafeSelect
+                    value={formData.schooling || ""}
+                    onValueChange={(value) => handleInputChange("schooling", value)}
+                    id="schooling"
+                    placeholder="Selecione"
+                  >
+                    <SafeSelectItem value="no_schooling">Sem escolaridade</SafeSelectItem>
+                    <SafeSelectItem value="elementary">Ensino Fundamental</SafeSelectItem>
+                    <SafeSelectItem value="middle">Ensino Médio</SafeSelectItem>
+                    <SafeSelectItem value="high_school">Ensino Médio Completo</SafeSelectItem>
+                    <SafeSelectItem value="college">Ensino Superior</SafeSelectItem>
+                    <SafeSelectItem value="postgrad">Pós-Graduação</SafeSelectItem>
+                  </SafeSelect>
                 </div>
 
                 <div>
