@@ -2,6 +2,7 @@ import { and, desc, eq, gte, inArray, like, lte, ne, or, sql } from "drizzle-orm
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   ClinicalNote,
+  EmailAlias,
   InsertClinicalNote,
   InsertPatient,
   InsertPatientDocument,
@@ -19,6 +20,7 @@ import {
   User,
   UserLink,
   clinicalNotes,
+  emailAliases,
   patientDocuments,
   patients,
   sessions,
@@ -41,6 +43,17 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+// Helper para obter clinicId do usuário (para compartilhamento de clínicas)
+export async function getClinicIdForUser(userId: number): Promise<number | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user || user.length === 0) return null;
+  
+  return user[0].clinicId || null;
 }
 
 // ─── Users ─────────────────────────────────────────────────────────────────
@@ -93,7 +106,11 @@ export async function getPatients(userId: number, search?: string, status?: stri
   const db = await getDb();
   if (!db) return [];
 
-  const conditions = [eq(patients.userId, userId)];
+  // Obter clinicId do usuário
+  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user || user.length === 0 || !user[0].clinicId) return [];
+  
+  const conditions = [eq(patients.userId, user[0].clinicId)];
   if (status && status !== "all") {
     conditions.push(eq(patients.status, status as Patient["status"]));
   }
@@ -757,25 +774,46 @@ const OFFICIAL_EMAIL = "israelneuropsicolo@gmail.com";
 
 /**
  * Obter o openId oficial do usuário
- * Se o e-mail for diferente do oficial, retorna o openId do e-mail oficial
+ * Se o e-mail for um alias, retorna o openId do usuário principal
  */
 export async function getOfficialOpenId(email: string | null | undefined, currentOpenId: string): Promise<string> {
   if (!email) return currentOpenId;
-  
-  // Se for o e-mail oficial, retorna o openId atual
-  if (email === OFFICIAL_EMAIL) return currentOpenId;
-  
-  // Se for outro e-mail, busca o openId do e-mail oficial
+
   const db = await getDb();
   if (!db) return currentOpenId;
-  
+
   try {
+    // 1. Verificar se o email é um alias
+    const aliasResult = await db
+      .select()
+      .from(emailAliases)
+      .where(eq(emailAliases.email, email))
+      .limit(1);
+
+    if (aliasResult[0]) {
+      // Email é um alias, obter o usuário principal
+      const mainUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, aliasResult[0].userId))
+        .limit(1);
+
+      if (mainUser[0]) {
+        console.log(`[Email Alias] Email ${email} is alias for user ID ${mainUser[0].id}, using openId: ${mainUser[0].openId}`);
+        return mainUser[0].openId;
+      }
+    }
+
+    // 2. Se não for alias, verificar se é o email oficial
+    if (email === OFFICIAL_EMAIL) return currentOpenId;
+
+    // 3. Se for outro e-mail, busca o openId do e-mail oficial (fallback)
     const result = await db
       .select()
       .from(users)
       .where(eq(users.email, OFFICIAL_EMAIL))
       .limit(1);
-    
+
     if (result[0]) {
       console.log(`[Email Mapping] Redirecting ${email} to official account ${OFFICIAL_EMAIL} (openId: ${result[0].openId})`);
       return result[0].openId;
@@ -783,7 +821,7 @@ export async function getOfficialOpenId(email: string | null | undefined, curren
   } catch (error) {
     console.error("[Email Mapping] Error fetching official openId:", error);
   }
-  
+
   return currentOpenId;
 }
 

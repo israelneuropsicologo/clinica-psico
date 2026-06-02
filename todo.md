@@ -1726,3 +1726,26 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [x] Validar que SessionsList.tsx ja usa timezone correto
 - [x] Criar testes Vitest para timezone helpers (10 testes passando)
 - [x] Validar que horarios agora aparecem corretamente (sem diferenca de 3h)
+
+
+## Fase 70: Compartilhamento de Pacientes Entre Usuarios
+- [ ] Criar tabela `userShares` no schema (fromUserId, toUserId, permission)
+- [ ] Executar migracao SQL para criar tabela
+- [ ] Modificar getPatients() para incluir pacientes compartilhados
+- [ ] Criar API para compartilhar pacientes (invitations.sharePatient)
+- [ ] Criar API para descompartilhar pacientes (invitations.unsharePatient)
+- [ ] Criar API para listar usuarios com quem compartilhei (invitations.getSharedWith)
+- [ ] Testar que ambos usuarios veem os mesmos pacientes
+- [ ] Criar testes Vitest para compartilhamento
+
+
+## Fase 71: Sistema de Email Aliases (Acesso Compartilhado Seguro)
+- [x] Criar tabela `emailAliases` no schema
+- [x] Executar migracao SQL
+- [x] Modificar getOfficialOpenId() para resolver aliases
+- [x] Criar helpers para gerenciar email aliases (addEmailAlias, removeEmailAlias, etc)
+- [x] Criar script link-emails.mjs para vincular emails
+- [x] Vincular israelmengo@gmail.com como alias de israelneuropsicologo@gmail.com
+- [x] Testar que ambos emails acessam a mesma conta
+- [ ] Criar API tRPC para gerenciar aliases (admin only)
+- [ ] Criar testes Vitest para email aliases

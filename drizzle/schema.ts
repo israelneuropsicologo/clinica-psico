@@ -1,5 +1,6 @@
 import {
   bigint,
+  boolean,
   date,
   decimal,
   int,
@@ -10,6 +11,19 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 
+// ─── Clinics (Clínicas) ────────────────────────────────────────────────────
+export const clinics = mysqlTable("clinics", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  ownerId: int("ownerId").notNull(), // FK → users.id (psicólogo proprietário)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Clinic = typeof clinics.$inferSelect;
+export type InsertClinic = typeof clinics.$inferInsert;
+
 // ─── Users (Psicólogos / Admins) ───────────────────────────────────────────
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -17,6 +31,7 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
+  clinicId: int("clinicId"), // FK → clinics.id (clínica do usuário)
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -441,6 +456,32 @@ export const patientInvitations = mysqlTable("patient_invitations", {
 
 export type PatientInvitation = typeof patientInvitations.$inferSelect;
 export type InsertPatientInvitation = typeof patientInvitations.$inferInsert;
+
+// ─── User Shares (Compartilhamento de Pacientes) ────────────────────────────
+export const userShares = mysqlTable("user_shares", {
+  id: int("id").autoincrement().primaryKey(),
+  fromUserId: int("fromUserId").notNull(), // FK → users.id (psicólogo que compartilha)
+  toUserId: int("toUserId").notNull(), // FK → users.id (psicólogo que recebe acesso)
+  patientId: int("patientId").notNull(), // FK → patients.id
+  permission: mysqlEnum("permission", ["view", "edit", "admin"]).default("view").notNull(), // Tipo de permissão
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserShare = typeof userShares.$inferSelect;
+export type InsertUserShare = typeof userShares.$inferInsert;
+
+// ─── Email Aliases (Vinculação de Múltiplos Emails) ────────────────────────────
+export const emailAliases = mysqlTable("email_aliases", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id (usuário principal)
+  email: varchar("email", { length: 320 }).notNull().unique(), // Email alias
+  isPrimary: boolean("isPrimary").default(false).notNull(), // Se é o email principal
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type EmailAlias = typeof emailAliases.$inferSelect;
+export type InsertEmailAlias = typeof emailAliases.$inferInsert;
 
 // ─── Session with Patient (for API responses) ──────────────────────────────
 export type SessionWithPatient = Session & { patient?: Patient };
