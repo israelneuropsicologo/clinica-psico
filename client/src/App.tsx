@@ -24,6 +24,7 @@ import { AIAnalytics } from "./pages/AIAnalytics";
 import { PatientInvite } from "./pages/PatientInvite";
 import InternalLogin from "./pages/InternalLogin";
 import AdminUsers from "./pages/AdminUsers";
+import { AdminRoles } from "./pages/AdminRoles";
 
 // App Router - v1.0.4 (Production Ready - isPaid Webhook Fix)
 function Router() {
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/invite/:token" component={PatientInvite} />
       <Route path="/internal-login" component={InternalLogin} />
       <Route path="/admin/users" component={AdminUsers} />
+      <Route path="/admin/roles" component={AdminRoles} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

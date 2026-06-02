@@ -66,6 +66,7 @@ const menuItems = [
   { icon: Zap, label: "Integração", path: "/webhooks" },
   { icon: HardDrive, label: "Backups", path: "/backups", adminOnly: true },
   { icon: BarChart3, label: "Relatórios Gerenciais", path: "/admin/reports", adminOnly: true },
+  { icon: Users, label: "Gerenciar Roles", path: "/admin/roles", adminOnly: true },
 ];
 
 const externalLinks = [
