@@ -63,6 +63,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   const db = await getDb();
   if (!db) return;
 
+  // Buscar usuário existente para preservar clinicId
+  const existingUser = await db.select().from(users).where(eq(users.openId, user.openId)).limit(1);
+  const existingClinicId = existingUser?.[0]?.clinicId;
+
   const values: InsertUser = { openId: user.openId };
   const updateSet: Record<string, unknown> = {};
   const textFields = ["name", "email", "loginMethod"] as const;
@@ -79,6 +83,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     values.lastSignedIn = user.lastSignedIn;
     updateSet.lastSignedIn = user.lastSignedIn;
   }
+  // Preservar clinicId existente
+  if (existingClinicId) {
+    values.clinicId = existingClinicId;
+  }
+
   if (user.role !== undefined) {
     values.role = user.role;
     updateSet.role = user.role;

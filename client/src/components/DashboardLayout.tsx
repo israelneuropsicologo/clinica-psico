@@ -276,7 +276,7 @@ function DashboardLayoutContent({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => window.open("https://psicologo.manus.space", "_blank")}
+                onClick={() => navigate("/users")}
                 className="cursor-pointer"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
