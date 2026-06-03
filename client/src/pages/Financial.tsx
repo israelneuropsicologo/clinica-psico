@@ -417,9 +417,9 @@ export default function Financial() {
 }
 
 function OverdueSessions() {
-  const { data: sessions } = trpc.sessions.list.useQuery({ status: "completed", isPaid: "pending" });
+  const { data: sessions, refetch } = trpc.sessions.list.useQuery({ status: "completed", isPaid: "pending" });
   const updateSession = trpc.sessions.update.useMutation({
-    onSuccess: () => toast.success("Pagamento registrado!"),
+    onSuccess: () => { toast.success("Pagamento registrado!"); refetch(); },
     onError: (e) => toast.error(e.message),
   });
 
