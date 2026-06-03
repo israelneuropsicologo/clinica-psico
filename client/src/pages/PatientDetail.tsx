@@ -1426,7 +1426,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
           <Button
             size="sm"
             variant="outline"
-            onClick={() => autoFillMutation.mutate({ patientId, sessionId: note.sessionId as number, noteId: note.id as number })}
+            onClick={() => autoFillMutation.mutate({ patientId: Number(patientId), sessionId: Number(note.sessionId), noteId: Number(note.id) })}
             disabled={autoFillMutation.isPending}
             className="gap-1.5 border-violet-400 text-violet-600 hover:bg-violet-50 dark:border-violet-500 dark:text-violet-400 dark:hover:bg-violet-900/20"
           >

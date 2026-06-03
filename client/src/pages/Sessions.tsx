@@ -24,13 +24,18 @@ export default function Sessions() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
   const [selectedSessions, setSelectedSessions] = useState<Set<number>>(new Set());
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
+
+  // Extrair patientId da URL se presente
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const patientIdFromUrl = urlParams.get('patientId') ? parseInt(urlParams.get('patientId')!) : undefined;
 
   // Map "pending" to "scheduled" for backend compatibility
   const backendStatus = statusFilter === "pending" ? "scheduled" : statusFilter;
   
   const { data: sessions, isLoading, refetch } = trpc.sessions.list.useQuery({
     status: backendStatus,
+    patientId: patientIdFromUrl,
   });
 
   const generatePatientPDFMutation = trpc.reports.generatePatientPDF.useMutation();
@@ -280,7 +285,7 @@ function CreateSessionDialog({
     const localDate = new Date(`${form.scheduledDate}T${form.scheduledTime}:00`);
     const utcTimestamp = convertSaoPauloToUTC(localDate);
     createMutation.mutate({
-      patientId: parseInt(form.patientId),
+      patientId: Number(form.patientId),
       scheduledAt: utcTimestamp,
       durationMinutes: parseInt(form.durationMinutes),
       sessionType: form.sessionType,

@@ -154,13 +154,15 @@ export function SessionDetailTabs({
             onClick={() => {
               if (noteId && preSelectedPatientId) {
                 autoFillMutation.mutate(
-                  { patientId: preSelectedPatientId, sessionId: parseInt(sessionId), noteId },
+                  { patientId: Number(preSelectedPatientId), sessionId: Number(sessionId), noteId: Number(noteId) },
                   {
-                    onSuccess: () => {
+                    onSuccess: (data) => {
+                      console.log("[autoFill] Sucesso:", data);
                       toast.success("Prontuário preenchido com IA!");
                       utils.clinicalNotes.bySession.invalidate();
                     },
                     onError: (error) => {
+                      console.error("[autoFill] Erro:", error);
                       toast.error("Erro ao preencher com IA: " + error.message);
                     },
                   }
