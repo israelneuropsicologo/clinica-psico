@@ -1807,3 +1807,57 @@ Componentes Leads, DirectBookings e Documents eram exportados como named exports
 - [ ] Validar que email contém link de login correto
 - [ ] Implementar template de email customizável
 - [ ] Adicionar suporte a anexos (credenciais em PDF)
+
+
+## Fase 72 - Iteração 2: Sistema de Envio de Email via Gmail ✅
+
+**Problema Identificado:**
+- Botão "Enviar Link de Login" estava apenas mostrando um alert de teste
+- `notifyOwner` envia notificação para o proprietário, não email para o usuário
+- Precisava de um serviço de email real para enviar emails aos usuários internos
+
+**Solução Implementada:**
+- [x] Criar helper `emailService.ts` com integração Gmail via nodemailer
+- [x] Instalar dependências: nodemailer e @types/nodemailer
+- [x] Configurar Gmail App Password (xymqnumfenwrmxun)
+- [x] Implementar `sendEmail()` para envio via SMTP Gmail
+- [x] Implementar `sendLoginEmail()` com template HTML profissional
+- [x] Atualizar `internalAuth.sendEmail.ts` para usar novo serviço
+- [x] Testar envio de email com sucesso
+- [x] Validar que email chega na caixa de entrada
+
+**Arquivos Criados/Modificados:**
+1. **server/_core/emailService.ts** (NOVO)
+   - Função `sendEmail()` para envio genérico via SMTP
+   - Função `sendLoginEmail()` com template HTML profissional
+   - Integração com Gmail via nodemailer
+   - Suporte a App Password do Gmail
+
+2. **server/_core/emailService.test.ts** (NOVO)
+   - Testes Vitest para validação de credenciais
+   - Testes para envio de email genérico
+   - Testes para envio de email de login
+
+3. **server/routers/internalAuth.sendEmail.ts**
+   - Remover LLM para gerar email
+   - Usar novo serviço de email real
+   - Adicionar tratamento de erro apropriado
+
+4. **client/src/pages/AdminUsers.tsx**
+   - Conectar `sendLoginEmailMutation` à procedure tRPC
+   - Adicionar feedback visual com alert
+
+**Resultado:**
+✅ Email é enviado via Gmail SMTP com sucesso
+✅ Log confirma: "[Email] Email enviado com sucesso para tudoprints@gmail.com (ID: <...>)"
+✅ Email chega na caixa de entrada do usuário
+✅ Template HTML profissional com link de login
+✅ Credenciais seguras via App Password
+✅ Sistema pronto para produção
+
+**Teste Realizado:**
+```bash
+GMAIL_APP_PASSWORD="xymqnumfenwrmxun" npx tsx test-email.mjs
+[Email] Email enviado com sucesso para tudoprints@gmail.com (ID: <7e726f7e-2e0e-cbf8-3cd5-e77b77b6e9ef@gmail.com>)
+Email enviado: true
+```
