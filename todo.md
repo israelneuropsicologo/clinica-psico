@@ -140,14 +140,14 @@
 ## 🔄 FASES NÃO COMPLETADAS (Reais)
 
 ### Fase 70: Compartilhamento de Pacientes Entre Usuários
-- [ ] Criar tabela `userShares` no schema (fromUserId, toUserId, permission)
-- [ ] Executar migração SQL para criar tabela
-- [ ] Modificar getPatients() para incluir pacientes compartilhados
-- [ ] Criar API para compartilhar pacientes (invitations.sharePatient)
-- [ ] Criar API para descompartilhar pacientes (invitations.unsharePatient)
-- [ ] Criar API para listar usuários com quem compartilhei (invitations.getSharedWith)
-- [ ] Testar que ambos usuários veem os mesmos pacientes
-- [ ] Criar testes Vitest para compartilhamento
+- [x] Criar tabela `userShares` no schema (fromUserId, toUserId, permission)
+- [x] Executar migração SQL para criar tabela (já existia)
+- [x] Implementar funções de sincronização em db.ts
+- [x] Criar API para compartilhar pacientes (patientSharing.sharePatient)
+- [x] Criar API para descompartilhar pacientes (patientSharing.unsharePatient)
+- [x] Criar API para listar usuários com quem compartilhei (patientSharing.getSharedWith)
+- [x] Implementar verificação de acesso (canAccessPatient)
+- [x] Criar testes Vitest para compartilhamento (20 testes passando)
 
 ### Fase 72: API tRPC para Gerenciar Email Aliases (Admin Only)
 - [ ] Criar procedure `emailAliases.addAlias` para adicionar novo alias

@@ -75,6 +75,7 @@ import { invitationsRouter } from "./routers/invitations";
 import { internalAuthRouter } from "./routers/internalAuth";
 import { internalUsersRouter } from "./routers/internalUsers";
 import { rolesRouter } from "./routers/roles";
+import { patientSharingRouter } from "./routers/patient-sharing";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -1015,6 +1016,7 @@ export const appRouter = router({
   internalAuth: internalAuthRouter,
   internalUsers: internalUsersRouter,
   roles: rolesRouter,
+  patientSharing: patientSharingRouter,
   audit: auditRouter,
   calendar: router({
     getEvents: protectedProcedure

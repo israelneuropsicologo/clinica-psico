@@ -11,6 +11,7 @@ import {
   InsertTransaction,
   InsertUser,
   InsertUserLink,
+  InsertUserShare,
   Patient,
   PatientDocument,
   Session,
@@ -19,6 +20,7 @@ import {
   Transaction,
   User,
   UserLink,
+  UserShare,
   clinicalNotes,
   emailAliases,
   patientDocuments,
@@ -27,6 +29,7 @@ import {
   settings,
   transactions,
   userLinks,
+  userShares,
   users,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -115,17 +118,36 @@ export async function getPatients(userId: number, search?: string, status?: stri
   const db = await getDb();
   if (!db) return [];
 
-  // Obter clinicId do usuário
+  // Obter clinicId do usuario
   const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   if (!userRecord || userRecord.length === 0) return [];
   
-  // Buscar pacientes do usuário
-  const conditions = [eq(patients.userId, userId)];
+  // Buscar pacientes compartilhados
+  const sharedPatients = await db
+    .select({ patientId: userShares.patientId })
+    .from(userShares)
+    .where(eq(userShares.toUserId, userId));
+  
+  const sharedPatientIds = sharedPatients.map((sp) => sp.patientId);
+  
+  // Construir condicoes: pacientes proprios OU compartilhados
+  const patientConditions: any[] = [];
+  if (sharedPatientIds.length > 0) {
+    patientConditions.push(
+      or(
+        eq(patients.userId, userId),
+        inArray(patients.id, sharedPatientIds)
+      )!
+    );
+  } else {
+    patientConditions.push(eq(patients.userId, userId));
+  }
+  
   if (status && status !== "all") {
-    conditions.push(eq(patients.status, status as Patient["status"]));
+    patientConditions.push(eq(patients.status, status as Patient["status"]));
   }
   if (search) {
-    conditions.push(
+    patientConditions.push(
       or(
         like(patients.name, `%${search}%`),
         like(patients.email, `%${search}%`),
@@ -135,19 +157,36 @@ export async function getPatients(userId: number, search?: string, status?: stri
     );
   }
 
-  return db.select().from(patients).where(and(...conditions)).orderBy(patients.name);
+  return db.select().from(patients).where(and(...patientConditions)).orderBy(patients.name);
 }
 
 export async function getPatientById(id: number, userId: number): Promise<Patient | undefined> {
   const db = await getDb();
   if (!db) return undefined;
   
-  const result = await db
+  // Verificar se eh o proprietario
+  const owned = await db
     .select()
     .from(patients)
     .where(and(eq(patients.id, id), eq(patients.userId, userId)))
     .limit(1);
-  return result[0];
+  
+  if (owned && owned.length > 0) return owned[0];
+  
+  // Verificar se foi compartilhado
+  const shared = await db
+    .select()
+    .from(patients)
+    .innerJoin(userShares, eq(patients.id, userShares.patientId))
+    .where(
+      and(
+        eq(patients.id, id),
+        eq(userShares.toUserId, userId)
+      )
+    )
+    .limit(1);
+  
+  return shared && shared.length > 0 ? shared[0].patients : undefined;
 }
 
 export async function createPatient(data: InsertPatient): Promise<number> {
@@ -888,4 +927,214 @@ export async function consolidateToOfficialAccount(email: string | null | undefi
   }
   
   return currentOpenId;
+}
+
+
+// ─── User Shares (Compartilhamento de Pacientes Entre Usuários) ─────────────
+/**
+ * Compartilhar um paciente com outro usuário
+ */
+export async function sharePatient(
+  fromUserId: number,
+  toUserId: number,
+  patientId: number,
+  permission: "view" | "edit" | "admin" = "view"
+): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+
+  // Não permitir compartilhar com a mesma pessoa
+  if (fromUserId === toUserId) {
+    throw new Error("You cannot share a patient with yourself");
+  }
+
+  // Verificar se o paciente pertence ao usuário que está compartilhando
+  const patient = await db
+    .select()
+    .from(patients)
+    .where(and(eq(patients.id, patientId), eq(patients.userId, fromUserId)))
+    .limit(1);
+
+  if (!patient || patient.length === 0) {
+    throw new Error("Patient not found or you don't have permission to share it");
+  }
+
+  // Verificar se o compartilhamento já existe
+  const existing = await db
+    .select()
+    .from(userShares)
+    .where(
+      and(
+        eq(userShares.fromUserId, fromUserId),
+        eq(userShares.toUserId, toUserId),
+        eq(userShares.patientId, patientId)
+      )
+    )
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    // Atualizar permissão se já existe
+    await db
+      .update(userShares)
+      .set({ permission, updatedAt: new Date() })
+      .where(eq(userShares.id, existing[0].id));
+    return existing[0].id;
+  }
+
+  // Criar novo compartilhamento
+  const result = await db.insert(userShares).values({
+    fromUserId,
+    toUserId,
+    patientId,
+    permission,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  return (result[0] as { insertId: number }).insertId;
+}
+
+/**
+ * Remover compartilhamento de um paciente
+ */
+export async function unsharePatient(
+  fromUserId: number,
+  toUserId: number,
+  patientId: number
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+
+  // Verificar se o paciente pertence ao usuario
+  const patient = await db
+    .select()
+    .from(patients)
+    .where(and(eq(patients.id, patientId), eq(patients.userId, fromUserId)))
+    .limit(1);
+
+  if (!patient || patient.length === 0) {
+    throw new Error("Patient not found or you don't have permission");
+  }
+
+  const result = await db
+    .delete(userShares)
+    .where(
+      and(
+        eq(userShares.fromUserId, fromUserId),
+        eq(userShares.toUserId, toUserId),
+        eq(userShares.patientId, patientId)
+      )
+    );
+
+  return (result[0] as { affectedRows: number }).affectedRows > 0;
+}
+
+/**
+ * Listar usuários com quem um paciente foi compartilhado
+ */
+export async function getSharedWith(patientId: number, fromUserId: number): Promise<UserShare[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Verificar se o paciente pertence ao usuário
+  const patient = await db
+    .select()
+    .from(patients)
+    .where(and(eq(patients.id, patientId), eq(patients.userId, fromUserId)))
+    .limit(1);
+
+  if (!patient || patient.length === 0) {
+    return [];
+  }
+
+  return db
+    .select()
+    .from(userShares)
+    .where(and(eq(userShares.fromUserId, fromUserId), eq(userShares.patientId, patientId)))
+    .orderBy(userShares.createdAt);
+}
+
+/**
+ * Listar pacientes compartilhados COM o usuário (que ele recebeu acesso)
+ */
+export async function getSharedPatients(userId: number, search?: string, status?: string): Promise<Patient[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [eq(userShares.toUserId, userId)];
+
+  const shares = await db
+    .select({ patientId: userShares.patientId })
+    .from(userShares)
+    .where(and(...conditions));
+
+  if (shares.length === 0) return [];
+
+  const patientIds = shares.map((s) => s.patientId);
+
+  const patientConditions = [inArray(patients.id, patientIds)];
+  if (status && status !== "all") {
+    patientConditions.push(eq(patients.status, status as Patient["status"]));
+  }
+  if (search) {
+    patientConditions.push(
+      or(
+        like(patients.name, `%${search}%`),
+        like(patients.email, `%${search}%`),
+        like(patients.phone, `%${search}%`),
+        like(patients.cpf, `%${search}%`)
+      )!
+    );
+  }
+
+  return db
+    .select()
+    .from(patients)
+    .where(and(...patientConditions))
+    .orderBy(patients.name);
+}
+
+/**
+ * Obter permissão de um usuário para um paciente compartilhado
+ */
+export async function getSharePermission(
+  userId: number,
+  patientId: number
+): Promise<"view" | "edit" | "admin" | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .select({ permission: userShares.permission })
+    .from(userShares)
+    .where(and(eq(userShares.toUserId, userId), eq(userShares.patientId, patientId)))
+    .limit(1);
+
+  return result[0]?.permission ?? null;
+}
+
+/**
+ * Verificar se um usuário tem acesso a um paciente (próprio ou compartilhado)
+ */
+export async function canAccessPatient(userId: number, patientId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  // Verificar se é o proprietário
+  const owned = await db
+    .select()
+    .from(patients)
+    .where(and(eq(patients.id, patientId), eq(patients.userId, userId)))
+    .limit(1);
+
+  if (owned && owned.length > 0) return true;
+
+  // Verificar se foi compartilhado
+  const shared = await db
+    .select()
+    .from(userShares)
+    .where(and(eq(userShares.toUserId, userId), eq(userShares.patientId, patientId)))
+    .limit(1);
+
+  return shared && shared.length > 0;
 }
