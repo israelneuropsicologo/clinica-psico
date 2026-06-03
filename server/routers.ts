@@ -20,6 +20,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { and, eq, like } from "drizzle-orm";
+import { listCalendarEvents, createCalendarEvent } from "./_core/google-calendar";
 import { patients } from "../drizzle/schema";
 import type { SessionWithPatient } from "../drizzle/schema";
 import {
@@ -1025,7 +1026,6 @@ export const appRouter = router({
         maxResults: z.number().optional(),
       }))
       .query(async ({ input }) => {
-        const { listCalendarEvents } = await import("./_core/google-calendar");
         return listCalendarEvents(
           input.accessToken,
           input.calendarId,
@@ -1053,7 +1053,6 @@ export const appRouter = router({
         calendarId: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { createCalendarEvent } = await import("./_core/google-calendar");
         const { accessToken, calendarId, ...eventData } = input;
         return createCalendarEvent(accessToken, eventData, calendarId);
       }),
