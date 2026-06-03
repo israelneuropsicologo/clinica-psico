@@ -102,21 +102,17 @@ async function startServer() {
     // Initialize ChatBot Amanda permanent token
     initChatbotToken().catch(err => console.error("[ChatBot] Erro ao inicializar token:", err));
     
-    // Fazer handshake com Amanda apos 2 segundos (com timeout para nao bloquear)
-    setTimeout(async () => {
-      try {
-        console.log("[E-SAUDE] Iniciando comunicacao com Amanda...");
-        // Timeout de 5 segundos para cada chamada
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Timeout")), 5000)
-        );
-        await Promise.race([checkAmandaHealth(), timeoutPromise]);
-        await Promise.race([sendHandshakeToAmanda(), timeoutPromise]);
-        console.log("[E-SAUDE] Conectado com Amanda com sucesso!");
-      } catch (error) {
-        console.warn("[E-SAUDE] Amanda offline ou timeout. Tentando novamente em 30s...");
-      }
-    }, 2000);
+    // Comunicacao com Amanda via endpoints tRPC
+    console.log("[E-SAUDE] Sistema pronto para comunicacao com Amanda");
+    console.log("[E-SAUDE] Amanda pode chamar: POST /api/trpc/agentCommunication.receiveFromAmanda");
+    
+    // Inicializar comunicacao com Amanda apos 10 segundos (nao bloqueia startup)
+    setTimeout(() => {
+      console.log("[E-SAUDE] Tentando conectar com Amanda...");
+      sendHandshakeToAmanda().catch(() => {
+        console.warn("[E-SAUDE] Amanda offline ou indisponível");
+      });
+    }, 10000);
   });
 }
 
