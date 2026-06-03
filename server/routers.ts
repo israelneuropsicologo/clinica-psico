@@ -348,6 +348,25 @@ const sessionsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
+      // Se marcando como pago, criar transação de income
+      if (data.isPaid === "paid") {
+        const session = await getSessionById(id, ctx.user.id);
+        if (session && session.sessionValue) {
+          const amount = parseFloat(session.sessionValue);
+          if (!isNaN(amount) && amount > 0) {
+            await createTransaction({
+              userId: ctx.user.id,
+              type: "income",
+              status: "paid",
+              description: `Sessão paga - ${new Date(session.scheduledAt).toLocaleDateString("pt-BR")}`,
+              amount,
+              category: "session",
+              paidAt: new Date(),
+              createdAt: new Date(),
+            });
+          }
+        }
+      }
       await updateSession(id, ctx.user.id, data);
       // Notificar se cancelada
       if (data.status === "cancelled") {
