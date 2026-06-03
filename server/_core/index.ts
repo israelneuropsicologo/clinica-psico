@@ -23,19 +23,19 @@ function isPortAvailable(port: number): Promise<boolean> {
   });
 }
 
-async function findAvailablePort(startPort: number = 3000): Promise<number> {
-  for (let port = startPort; port < startPort + 20; port++) {
+async function findAvailablePort(startPort: number): Promise<number> {
+  for (let port = startPort; port < startPort + 100; port++) {
     if (await isPortAvailable(port)) {
       return port;
     }
   }
-  throw new Error(`No available port found starting from ${startPort}`);
+  throw new Error("No available ports found");
 }
 
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
+
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
@@ -60,44 +60,23 @@ async function startServer() {
       createContext,
     })
   );
-  
-  // Autonomous Agents Communication Endpoints (ANTES de Vite)
-  app.get("/api/agents/health", async (req, res) => {
-    try {
-      const caller = appRouter.createCaller({ user: null, req, res });
-      const health = await caller.autonomousAgents.health();
-      res.json(health);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
+
+  // Health check endpoint
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok" });
   });
-  
-  app.post("/api/agents/message", async (req, res) => {
+
+  // Debug endpoint for chatbot appointments
+  app.post("/api/webhooks/debug-chatbot", async (req: any, res: any) => {
     try {
-      const caller = appRouter.createCaller({ user: null, req, res });
-      const result = await caller.autonomousAgents.message(req.body);
+      const { input } = req.body;
+      console.log("[DEBUG] Chatbot appointment data:", input);
+      
+      // Validate with zod schema
+      const result = await appRouter.createCaller({ user: null, req, res }).webhooks.debugChatbotAppointment(input);
       res.json(result);
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
-    }
-  });
-  
-  app.get("/api/agents/logs", async (req, res) => {
-    try {
-      const caller = appRouter.createCaller({ user: null, req, res });
-      const logs = await caller.autonomousAgents.logs();
-      res.json(logs);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-  
-  app.post("/api/agents/sync-status", async (req, res) => {
-    try {
-      const caller = appRouter.createCaller({ user: null, req, res });
-      const result = await caller.autonomousAgents.syncStatus(req.body);
-      res.json(result);
-    } catch (error: any) {
+      console.error("[DEBUG] Validation error:", error);
       res.status(400).json({ error: error.message });
     }
   });
@@ -123,15 +102,19 @@ async function startServer() {
     // Initialize ChatBot Amanda permanent token
     initChatbotToken().catch(err => console.error("[ChatBot] Erro ao inicializar token:", err));
     
-    // Fazer handshake com Amanda apos 2 segundos
+    // Fazer handshake com Amanda apos 2 segundos (com timeout para nao bloquear)
     setTimeout(async () => {
       try {
         console.log("[E-SAUDE] Iniciando comunicacao com Amanda...");
-        await checkAmandaHealth();
-        await sendHandshakeToAmanda();
+        // Timeout de 5 segundos para cada chamada
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Timeout")), 5000)
+        );
+        await Promise.race([checkAmandaHealth(), timeoutPromise]);
+        await Promise.race([sendHandshakeToAmanda(), timeoutPromise]);
         console.log("[E-SAUDE] Conectado com Amanda com sucesso!");
       } catch (error) {
-        console.error("[E-SAUDE] Erro ao conectar com Amanda:", error);
+        console.warn("[E-SAUDE] Amanda offline ou timeout. Tentando novamente em 30s...");
       }
     }, 2000);
   });

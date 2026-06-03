@@ -196,7 +196,7 @@
 
 - [x] Pagamento atrasado não desaparecia ao marcar como pago - CORRIGIDO (refetch adicionado)
 - [ ] Digitação em Anamnese (página se move, 1 caractere por vez) - Não confirmado
-- [ ] Integração com Google Calendar - Não iniciada (helper já existe)
+- [x] Integração com Google Calendar - IMPLEMENTADO (helper + tRPC procedures + testes)
 
 ---
 
