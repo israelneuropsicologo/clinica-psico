@@ -195,7 +195,7 @@
 ## 🐛 Bugs Conhecidos (Não Críticos)
 
 - [x] Pagamento atrasado não desaparecia ao marcar como pago - CORRIGIDO (refetch adicionado)
-- [ ] Digitação em Anamnese (página se move, 1 caractere por vez) - Não confirmado
+- [ ] Digitação em Anamnese (página se move, 1 caractere por vez) - Pendente para próxima iteração
 - [x] Integração com Google Calendar - IMPLEMENTADO (helper + tRPC procedures + testes)
 
 ---

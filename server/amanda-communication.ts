@@ -1,7 +1,12 @@
 import axios from "axios";
 
+// Amanda (Chatbot) URLs
 const AMANDA_BASE_URL = "https://psicologo-nloa9w3g.manus.space";
-const AMANDA_TOKEN = "site-psicolog-token-64fc5b1393cc3713213c3dcf8c57fcaa";
+const AMANDA_TOKEN = "sk_txl9tplq8go4z2awfemx"; // Token permanente do Amanda
+
+// E-SAÚDE URLs
+const ESAUDE_BASE_URL = "https://3000-iq6fiqn3n7badlcgmb0p9-2683e58a.us2.manus.computer";
+const ESAUDE_TOKEN = "sk_txl9tplq8go4z2awfemx"; // Token compartilhado para autenticação
 
 export async function sendHandshakeToAmanda() {
   try {
@@ -13,7 +18,7 @@ export async function sendHandshakeToAmanda() {
       timestamp: new Date().toISOString(),
       data: {
         capabilities: ["receive_appointments", "validate_data", "auto_fix_errors"],
-        url: "https://sistemaclinicaapp.manus.space",
+        url: ESAUDE_BASE_URL,
       },
     };
 
@@ -28,7 +33,7 @@ export async function sendHandshakeToAmanda() {
       }
     );
 
-    console.log("[E-SAÚDE] Handshake enviado para Amanda:", response.data);
+    console.log("[E-SAÚDE] Handshake enviado para Amanda com sucesso", response.data);
     return response.data;
   } catch (error: any) {
     console.error("[E-SAÚDE] Erro ao enviar handshake:", error.message);
@@ -47,7 +52,7 @@ export async function checkAmandaHealth() {
       }
     );
 
-    console.log("[E-SAÚDE] Amanda está online:", response.data);
+    console.log("[E-SAÚDE] Amanda está online:", response.data.status);
     return response.data;
   } catch (error: any) {
     console.error("[E-SAÚDE] Amanda offline:", error.message);
@@ -68,7 +73,7 @@ export async function sendMessageToAmanda(message: any) {
       }
     );
 
-    console.log("[E-SAÚDE] Mensagem enviada para Amanda:", response.data);
+    console.log("[E-SAÚDE] Mensagem enviada para Amanda:", response.data.id);
     return response.data;
   } catch (error: any) {
     console.error("[E-SAÚDE] Erro ao enviar mensagem:", error.message);
@@ -89,7 +94,7 @@ export async function sendSyncStatusToAmanda(metrics: any) {
       }
     );
 
-    console.log("[E-SAÚDE] Status de sincronização enviado para Amanda:", response.data);
+    console.log("[E-SAÚDE] Status de sincronização enviado para Amanda:", response.data.timestamp);
     return response.data;
   } catch (error: any) {
     console.error("[E-SAÚDE] Erro ao enviar status:", error.message);

@@ -49,7 +49,7 @@ async function startServer() {
     res.json(status);
   });
   
-  // Autonomous Agents Communication Endpoints
+  // Autonomous Agents Communication Endpoints (HTTP diretos)
   registerAgentEndpoints(app);
   
   // tRPC API
@@ -102,17 +102,28 @@ async function startServer() {
     // Initialize ChatBot Amanda permanent token
     initChatbotToken().catch(err => console.error("[ChatBot] Erro ao inicializar token:", err));
     
-    // Comunicacao com Amanda via endpoints tRPC
+    // Comunicacao com Amanda via endpoints HTTP diretos
     console.log("[E-SAUDE] Sistema pronto para comunicacao com Amanda");
-    console.log("[E-SAUDE] Amanda pode chamar: POST /api/trpc/agentCommunication.receiveFromAmanda");
+    console.log("[E-SAUDE] Endpoints disponiveis:");
+    console.log("  GET  /api/agents/health");
+    console.log("  POST /api/agents/message");
+    console.log("  GET  /api/agents/logs");
+    console.log("  POST /api/agents/sync-status");
     
-    // Inicializar comunicacao com Amanda apos 10 segundos (nao bloqueia startup)
+    // Inicializar comunicacao com Amanda apos 5 segundos (nao bloqueia startup)
     setTimeout(() => {
-      console.log("[E-SAUDE] Tentando conectar com Amanda...");
+      console.log("[E-SAUDE] Tentando fazer handshake com Amanda...");
+      sendHandshakeToAmanda()
+        .then(() => console.log("[E-SAUDE] Handshake com Amanda estabelecido!"))
+        .catch((err) => console.warn("[E-SAUDE] Handshake falhou, tentando novamente em 30s...", err.message));
+    }, 5000);
+    
+    // Retry handshake a cada 30 segundos se falhar
+    setInterval(() => {
       sendHandshakeToAmanda().catch(() => {
-        console.warn("[E-SAUDE] Amanda offline ou indisponível");
+        // Silenciosamente tenta novamente
       });
-    }, 10000);
+    }, 30000);
   });
 }
 
