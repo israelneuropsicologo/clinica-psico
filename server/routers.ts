@@ -634,6 +634,9 @@ Responda em português brasileiro profissional.`,
 
       const sessionNumber = previousNotes.length + 1;
 
+      console.log("[autoFill] Iniciando preenchimento automático...");
+      console.log("[autoFill] Paciente:", input.patientId, "Sessão:", input.sessionId);
+
       const response = await invokeLLM({
         messages: [
           {
@@ -653,7 +656,11 @@ CAMPOS DO JSON (todos obrigatórios):
       });
 
       const rawContent = response.choices[0]?.message?.content;
-      if (!rawContent) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "IA não retornou resposta" });
+      if (!rawContent) {
+        console.error("[autoFill] IA não retornou resposta");
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "IA não retornou resposta" });
+      }
+      console.log("[autoFill] Resposta da IA recebida, tamanho:", String(rawContent).length);
 
       let filled: Record<string, unknown>;
       try {

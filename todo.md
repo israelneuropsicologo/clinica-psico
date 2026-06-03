@@ -275,3 +275,9 @@
 - [x] Integrar no protocolo autônomo
 - [x] Testar end-to-end
 - [x] Publicar sistema
+
+### Fase 78: Bug Fix - Filtro de Sessões e Preenchimento com IA
+- [ ] Corrigir lógica de filtro de sessões no prontuário (mostrar apenas do paciente)
+- [ ] Implementar preenchimento com IA nos campos do prontuário
+- [ ] Testar ambas as correções
+- [ ] Criar checkpoint final

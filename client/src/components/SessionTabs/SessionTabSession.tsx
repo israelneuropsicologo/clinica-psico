@@ -42,7 +42,7 @@ export function SessionTabSession({ data, onUpdate, patients, preSelectedPatient
           </Label>
           {preSelectedPatientId && preSelectedPatientName ? (
             <div className="flex items-center h-10 px-3 border border-input rounded-md bg-muted">
-              <span className="text-sm">{preSelectedPatientName}</span>
+              <span className="text-sm font-medium">{preSelectedPatientName}</span>
             </div>
           ) : (
             <Select
