@@ -590,3 +590,105 @@ export const syncLogs = mysqlTable("sync_logs", {
 
 export type SyncLog = typeof syncLogs.$inferSelect;
 export type InsertSyncLog = typeof syncLogs.$inferInsert;
+
+// ─── Agent Communications (Comunicação entre Agentes) ──────────────────────────
+export const agentCommunications = mysqlTable("agent_communications", {
+  id: int("id").autoincrement().primaryKey(),
+  fromAgent: varchar("fromAgent", { length: 100 }).notNull(), // site-psicolog ou esaude-clinica
+  toAgent: varchar("toAgent", { length: 100 }).notNull(),
+  messageType: mysqlEnum("messageType", [
+    "handshake",
+    "health_check",
+    "error_detected",
+    "consistency_check",
+    "daily_report_request",
+    "sync_status",
+    "auto_fix"
+  ]).notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "received", "processed", "failed"]).default("pending").notNull(),
+  payload: text("payload").notNull(), // JSON com dados da mensagem
+  response: text("response"), // JSON com resposta
+  errorMessage: text("errorMessage"),
+  retryCount: int("retryCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgentCommunication = typeof agentCommunications.$inferSelect;
+export type InsertAgentCommunication = typeof agentCommunications.$inferInsert;
+
+// ─── Agent Analysis (Análise de Módulos e Otimizações) ──────────────────────────
+export const agentAnalysis = mysqlTable("agent_analysis", {
+  id: int("id").autoincrement().primaryKey(),
+  analysisType: mysqlEnum("analysisType", [
+    "module_health",
+    "performance_bottleneck",
+    "data_inconsistency",
+    "error_pattern",
+    "optimization_opportunity",
+    "security_issue"
+  ]).notNull(),
+  module: varchar("module", { length: 100 }).notNull(), // patients, sessions, calendar, email, etc
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).notNull(),
+  description: text("description").notNull(),
+  findings: text("findings").notNull(), // JSON com detalhes da análise
+  recommendations: text("recommendations").notNull(), // JSON com recomendações
+  autoFixApplied: boolean("autoFixApplied").default(false).notNull(),
+  fixResult: text("fixResult"), // JSON com resultado da correção
+  status: mysqlEnum("status", ["open", "in_progress", "resolved", "wont_fix"]).default("open").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgentAnalysis = typeof agentAnalysis.$inferSelect;
+export type InsertAgentAnalysis = typeof agentAnalysis.$inferInsert;
+
+// ─── Agent Tokens (Tokens de Autenticação entre Agentes) ──────────────────────────
+export const agentTokens = mysqlTable("agent_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  agentName: varchar("agentName", { length: 100 }).notNull(), // site-psicolog ou esaude-clinica
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AgentToken = typeof agentTokens.$inferSelect;
+export type InsertAgentToken = typeof agentTokens.$inferInsert;
+
+// ─── Agent Health Metrics (Métricas de Saúde dos Agentes) ──────────────────────────
+export const agentHealthMetrics = mysqlTable("agent_health_metrics", {
+  id: int("id").autoincrement().primaryKey(),
+  agentName: varchar("agentName", { length: 100 }).notNull(),
+  healthScore: decimal("healthScore", { precision: 5, scale: 2 }).notNull(), // 0-100
+  uptime: int("uptime").notNull(), // em segundos
+  lastHealthCheck: timestamp("lastHealthCheck").notNull(),
+  totalAppointments: int("totalAppointments").default(0).notNull(),
+  syncedAppointments: int("syncedAppointments").default(0).notNull(),
+  failedAppointments: int("failedAppointments").default(0).notNull(),
+  averageSyncTimeMs: int("averageSyncTimeMs").default(0).notNull(),
+  databaseHealth: mysqlEnum("databaseHealth", ["healthy", "degraded", "unhealthy"]).default("healthy").notNull(),
+  apiLatencyMs: int("apiLatencyMs").default(0).notNull(),
+  pendingRetries: int("pendingRetries").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AgentHealthMetric = typeof agentHealthMetrics.$inferSelect;
+export type InsertAgentHealthMetric = typeof agentHealthMetrics.$inferInsert;
+
+// ─── Daily Reports (Relatórios Diários de Saúde) ──────────────────────────
+export const dailyReports = mysqlTable("daily_reports", {
+  id: int("id").autoincrement().primaryKey(),
+  reportDate: date("reportDate").notNull(),
+  agentName: varchar("agentName", { length: 100 }).notNull(),
+  summary: text("summary").notNull(), // JSON com resumo do dia
+  performance: text("performance").notNull(), // JSON com métricas de performance
+  errors: text("errors"), // JSON com erros encontrados
+  recommendations: text("recommendations").notNull(), // JSON com recomendações
+  autoActionsApplied: text("autoActionsApplied"), // JSON com ações automáticas executadas
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DailyReport = typeof dailyReports.$inferSelect;
+export type InsertDailyReport = typeof dailyReports.$inferInsert;

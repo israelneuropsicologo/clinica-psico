@@ -77,6 +77,7 @@ import { internalUsersRouter } from "./routers/internalUsers";
 import { rolesRouter } from "./routers/roles";
 import { patientSharingRouter } from "./routers/patient-sharing";
 import { emailAliasesRouter } from "./routers/email-aliases";
+import { autonomousAgentsRouter } from "./routers/autonomous-agents";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -1019,6 +1020,7 @@ export const appRouter = router({
   roles: rolesRouter,
   patientSharing: patientSharingRouter,
   emailAliases: emailAliasesRouter,
+  autonomousAgents: autonomousAgentsRouter,
   audit: auditRouter,
   calendar: router({
     getEvents: protectedProcedure

@@ -218,6 +218,13 @@
       "when": 1780460378597,
       "tag": "0030_elite_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1780462318999,
+      "tag": "0031_quiet_leech",
+      "breakpoints": true
     }
   ]
 }
