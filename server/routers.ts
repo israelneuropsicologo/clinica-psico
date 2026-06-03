@@ -361,7 +361,7 @@ const sessionsRouter = router({
               description: `Sessão paga - ${new Date(session.scheduledAt).toLocaleDateString("pt-BR")}`,
               amount: amount.toFixed(2) as any, // Converter para string com 2 casas decimais
               category: "session",
-              paidAt: new Date(),
+              paidAt: Date.now(), // UTC milliseconds
               createdAt: new Date(),
             });
           }
