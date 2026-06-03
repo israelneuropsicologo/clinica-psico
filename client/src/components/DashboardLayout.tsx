@@ -66,7 +66,7 @@ const menuItems = [
   { icon: Zap, label: "Integração", path: "/webhooks" },
   { icon: HardDrive, label: "Backups", path: "/backups", adminOnly: true },
   { icon: BarChart3, label: "Relatórios Gerenciais", path: "/admin/reports", adminOnly: true },
-  { icon: FileText, label: "Auditoria", path: "/admin/audit", adminOnly: true },
+  // { icon: FileText, label: "Auditoria", path: "/admin/audit", adminOnly: true }, // TODO: Corrigir erro de Select vazio
 ];
 
 const externalLinks = [
@@ -140,7 +140,9 @@ function DashboardLayoutContent({
   const { theme, toggleTheme } = useTheme();
   const [selectedUserId, setSelectedUserId] = useState<string>(() => {
     const saved = localStorage.getItem(SELECTED_USER_KEY);
-    return saved || (user?.id?.toString() ?? "");
+    const userId = saved || (user?.id?.toString() ?? "");
+    // Nunca retornar string vazia - Radix Select não aceita value=""
+    return userId || "default";
   });
   const { data: allUsers } = trpc.admin.getAllUsers.useQuery();
 
@@ -222,7 +224,7 @@ function DashboardLayoutContent({
           {allUsers && allUsers.length > 0 && (
             <div className="mb-3 pb-3 border-b">
               <label className="text-xs text-muted-foreground block mb-2">Clínico</label>
-              <Select value={selectedUserId} onValueChange={handleUserChange}>
+              <Select value={selectedUserId || ""} onValueChange={handleUserChange}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>

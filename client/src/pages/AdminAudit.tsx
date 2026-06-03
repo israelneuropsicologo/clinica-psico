@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import DashboardLayout from "@/components/DashboardLayout";
 
 const ACTIONS = [
   "login",
@@ -89,7 +90,8 @@ export default function AdminAudit() {
   };
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Relatório de Atividades</h1>
         <p className="text-gray-600 mt-2">
@@ -125,7 +127,6 @@ export default function AdminAudit() {
                   <SelectValue placeholder="Todas as ações" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as ações</SelectItem>
                   {ACTIONS.map((action) => (
                     <SelectItem key={action} value={action}>
                       {action}
@@ -147,7 +148,6 @@ export default function AdminAudit() {
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os tipos</SelectItem>
                   {ENTITY_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
@@ -286,6 +286,7 @@ export default function AdminAudit() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
