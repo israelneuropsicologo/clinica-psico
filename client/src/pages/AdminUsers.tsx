@@ -255,7 +255,7 @@ export default function AdminUsers() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Usuários Ativos</CardTitle>
@@ -389,6 +389,7 @@ export default function AdminUsers() {
           {isLoading ? (
             <div className="text-center py-8">Carregando...</div>
           ) : users && users.length > 0 ? (
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -488,6 +489,7 @@ export default function AdminUsers() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
               Nenhum usuário interno criado ainda
@@ -508,7 +510,7 @@ export default function AdminUsers() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
               {modules.map((module) => (
                 <div
                   key={module.id}
