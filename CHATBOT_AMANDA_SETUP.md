@@ -12,7 +12,7 @@ Integrar o ChatBot Amanda com o sistema de clínica para que agendamentos apare�
 
 ### URL
 ```
-POST https://3000-iq6fiqn3n7badlcgmb0p9-2683e58a.us2.manus.computer/api/trpc/webhooks.syncChatbotAppointment
+POST https://sistemaclinicaapp.manus.space/api/trpc/webhooks.syncChatbotAppointment
 ```
 
 ### Headers
@@ -62,7 +62,7 @@ Content-Type: application/json
 ## 📋 Exemplo de Requisição (cURL)
 ```bash
 curl -X POST \
-  'https://3000-iq6fiqn3n7badlcgmb0p9-2683e58a.us2.manus.computer/api/trpc/webhooks.syncChatbotAppointment' \
+  'https://sistemaclinicaapp.manus.space/api/trpc/webhooks.syncChatbotAppointment' \
   -H 'Content-Type: application/json' \
   -d '{
     "customer_id": "amanda-001",
