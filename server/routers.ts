@@ -640,56 +640,16 @@ Responda em português brasileiro profissional.`,
             role: "system",
             content: `Você é um assistente de psicólogo clínico. Sua tarefa é preencher um prontuário de sessão psicológica em formato JSON estruturado.
 
-REGRAS OBRIGATÓRIAS:
-1. Retorne APENAS um objeto JSON válido, sem texto antes ou depois
-2. TODOS os campos abaixo devem ser preenchidos com conteúdo específico e contextualizado
-3. NÃO coloque todo o conteúdo em um único campo - cada campo tem seu propósito específico
-4. Use linguagem técnica de psicologia clínica em português
-5. Baseie-se SEMPRE no histórico do paciente fornecido para criar narrativas coerentes
-6. Se for a primeira sessão, crie uma narrativa de apresentação e avaliação inicial
-7. Se houver sessões anteriores, crie uma narrativa que demonstre continuidade e evolução
-8. Cada campo deve ter conteúdo ÚNICO - não repita informações entre campos
-9. NUNCA deixe campos vazios - preencha com conteúdo relevante ou guia de formatação
-10. Guie o psicólogo com sugestões de formatação quando apropriado
+RETORNE APENAS UM OBJETO JSON VÁLIDO, SEM NENHUM TEXTO ANTES OU DEPOIS.
 
 CAMPOS DO JSON (todos obrigatórios):
-- "content": texto narrativo geral da sessão (2-3 parágrafos resumindo o encontro)
-- "generalPresentation": aparência física, postura, comportamento motor, contato visual do paciente nesta sessão
-- "currentMedications": medicações psiquiátricas ou relevantes em uso (escreva "Nenhuma" se não houver)
-- "emotionalState": estado emocional observado durante a sessão (ex: "ansioso com momentos de relaxamento")
-- "predominantMood": humor predominante descrito clinicamente (ex: "eutímico com leve disforia")
-- "mood": classificação do humor - DEVE ser exatamente um destes valores: "very_bad", "bad", "neutral", "good", "very_good"
-- "sufferingLevel": número inteiro de 0 a 10 indicando nível de sofrimento
-- "mainDemand": o que o paciente trouxe como demanda principal para esta sessão
-- "topicsAddressed": tópicos e temas discutidos durante a sessão
-- "relevantNarrative": falas ou narrativas significativas do paciente (pode incluir citações)
-- "clinicalAssessment": avaliação clínica do terapeuta sobre o estado do paciente
-- "technicalAnalysis": análise técnica aprofundada usando referencial teórico
-- "techniquesUsed": técnicas terapêuticas aplicadas nesta sessão
-- "plannedInterventions": intervenções planejadas para esta e próximas sessões
-- "therapeuticPlan": plano terapêutico atualizado
-- "homework": tarefa de casa proposta ao paciente
-- "treatmentResponse": como o paciente está respondendo ao tratamento
-- "goalsProgress": progresso nos objetivos terapêuticos estabelecidos
-- "observedInsights": insights do paciente observados durante a sessão
-- "observedResistances": resistências, defesas ou dificuldades observadas
-- "nextSessionGoals": objetivos específicos para a próxima sessão
-- "treatmentPlanAdjustments": ajustes necessários no plano de tratamento
-- "selfHarmRisk": risco de autolesão - DEVE ser exatamente: "absent", "low", "moderate", "high" ou "extreme"
-- "thirdPartyRisk": risco a terceiros - DEVE ser exatamente: "absent", "low", "moderate", "high" ou "extreme"
-- "suicideRisk": risco de suicídio - DEVE ser exatamente: "absent", "low", "moderate", "high" ou "extreme"
-- "countertransference": observações de contratransferência do terapeuta
-- "clinicalHypotheses": hipóteses clínicas e diagnósticas
-- "supervisionNotes": pontos relevantes para levar à supervisão
-- "referrals": encaminhamentos realizados (escreva "Nenhum" se não houver)
-- "privateObservations": observações privadas do terapeuta`,
+{"content": "texto narrativo", "generalPresentation": "apresentação", "currentMedications": "medicações", "emotionalState": "estado emocional", "predominantMood": "humor predominante", "mood": "very_bad|bad|neutral|good|very_good", "sufferingLevel": 0-10, "mainDemand": "demanda", "topicsAddressed": "tópicos", "relevantNarrative": "narrativas", "clinicalAssessment": "avaliação", "technicalAnalysis": "análise", "techniquesUsed": "técnicas", "plannedInterventions": "intervenções", "therapeuticPlan": "plano", "homework": "tarefa", "treatmentResponse": "resposta", "goalsProgress": "progresso", "observedInsights": "insights", "observedResistances": "resistências", "nextSessionGoals": "objetivos", "treatmentPlanAdjustments": "ajustes", "selfHarmRisk": "absent|low|moderate|high|extreme", "thirdPartyRisk": "absent|low|moderate|high|extreme", "suicideRisk": "absent|low|moderate|high|extreme", "countertransference": "contratransferência", "clinicalHypotheses": "hipóteses", "supervisionNotes": "supervisão", "referrals": "encaminhamentos", "privateObservations": "observações privadas"}`,
           },
           {
             role: "user",
-            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}.\n\nCRIE UMA NARRATIVA COERENTE E CONTEXTUALIZADA:\n- Use o histórico do paciente como base para criar continuidade\n- Demonstre evolução ou mudanças em relação às sessões anteriores\n- Crie sugestões específicas e personalizadas para este paciente\n- Se não houver dados anteriores, forneça um guia de formatação para ajudar o psicólogo\n- Cada campo deve complementar os outros, não repetir\n\nGere o preenchimento do prontuário.`,
+            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}.\n\nGere APENAS o JSON do preenchimento do prontuário, sem nenhum texto adicional.`,
           },
         ],
-        response_format: { type: "json_object" },
       });
 
       const rawContent = response.choices[0]?.message?.content;
@@ -708,10 +668,23 @@ CAMPOS DO JSON (todos obrigatórios):
             const match = jsonStr.match(/\{[\s\S]*\}/);
             if (match) jsonStr = match[0];
           }
-          filled = JSON.parse(jsonStr);
+          // Try to parse, if fails, wrap in object
+          try {
+            filled = JSON.parse(jsonStr);
+          } catch (e) {
+            console.warn("[autoFill] First parse attempt failed, trying alternative parsing...");
+            // Try to extract JSON from the response more aggressively
+            const jsonMatch = jsonStr.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
+            if (jsonMatch) {
+              filled = JSON.parse(jsonMatch[0]);
+            } else {
+              throw e;
+            }
+          }
         }
       } catch (parseErr) {
-        console.error("[autoFill] Failed to parse AI response:", typeof rawContent === "string" ? rawContent.substring(0, 300) : rawContent);
+        console.error("[autoFill] Failed to parse AI response:", typeof rawContent === "string" ? rawContent.substring(0, 500) : rawContent);
+        console.error("[autoFill] Parse error:", parseErr);
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao processar resposta da IA: formato inválido" });
       }
 
