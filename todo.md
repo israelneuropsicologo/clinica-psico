@@ -271,7 +271,7 @@
 - [x] Criar API tRPC de consumo (7 procedures)
 - [x] Integrar router de créditos virtuais em routers.ts
 - [x] Criar 20 testes Vitest (todos passando)
-- [ ] Criar dashboard de monitoramento
-- [ ] Integrar no protocolo autônomo
-- [ ] Testar end-to-end
-- [ ] Publicar sistema
+- [x] Criar dashboard de monitoramento
+- [x] Integrar no protocolo autônomo
+- [x] Testar end-to-end
+- [x] Publicar sistema

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,23 +8,26 @@ export function VirtualCreditsDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState<"7d" | "30d" | "90d">("30d");
 
   // Fetch user credits balance
-  const { data: userBalance } = trpc.virtualCredits.getBalance.useQuery();
+  const { data: userBalanceData, isLoading: isLoadingBalance } = trpc.virtualCredits.getBalance.useQuery();
+  const userBalance = userBalanceData?.balance || "0";
 
   // Fetch transaction history
-  const { data: transactionData } = trpc.virtualCredits.getTransactionHistory.useQuery({
+  const { data: transactionData, isLoading: isLoadingTransactions } = trpc.virtualCredits.getTransactionHistory.useQuery({
     limit: 50,
   });
   const transactions = transactionData?.transactions || [];
 
-  // Fetch agent balance (admin only) - skipped for now
-  // const { data: agentBalance } = trpc.virtualCredits.getAgentBalance.useQuery(undefined, {
-  //   enabled: false, // Only enable for admins
-  // });
+  // Fetch agent balance (admin only)
+  const { data: agentBalanceData } = trpc.virtualCredits.getAgentBalance.useQuery(
+    { agentName: "esaude-agent" },
+    { enabled: false } // Only enable for admins
+  );
 
-  // Fetch agent communication log (admin only) - skipped for now
-  // const { data: agentLogs } = trpc.virtualCredits.getAgentCommunicationLog.useQuery(undefined, {
-  //   enabled: false, // Only enable for admins
-  // });
+  // Fetch agent communication log (admin only)
+  const { data: agentLogsData } = trpc.virtualCredits.getAgentCommunicationLog.useQuery(
+    { limit: 20 },
+    { enabled: false } // Only enable for admins
+  );
 
   // Calculate statistics
   const totalSpent = transactions.reduce((sum: number, t: any) => sum + parseFloat(t.amount.toString()), 0);
@@ -69,7 +72,7 @@ export function VirtualCreditsDashboard() {
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-600">Saldo Atual</p>
             <p className="text-3xl font-bold text-green-600">
-              {userBalance && typeof userBalance === "string" ? parseFloat(userBalance).toFixed(2) : "0.00"}
+              {isLoadingBalance ? "..." : parseFloat(userBalance).toFixed(2)}
             </p>
             <p className="text-xs text-gray-500">Créditos disponíveis</p>
           </div>
@@ -124,34 +127,40 @@ export function VirtualCreditsDashboard() {
       {/* Transaction History */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold mb-4">Histórico de Transações</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-2">Data</th>
-                <th className="text-left py-2">Tipo</th>
-                <th className="text-left py-2">Descrição</th>
-                <th className="text-right py-2">Créditos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((t: any) => (
-                <tr key={t.id} className="border-b hover:bg-gray-50">
-                  <td className="py-2">{new Date(t.createdAt).toLocaleDateString("pt-BR")}</td>
-                  <td className="py-2">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                      {t.type}
-                    </span>
-                  </td>
-                  <td className="py-2">{t.description}</td>
-                  <td className="text-right py-2 font-semibold text-red-600">
-                    -{parseFloat(t.amount.toString()).toFixed(2)}
-                  </td>
+        {isLoadingTransactions ? (
+          <div className="text-center py-8 text-gray-500">Carregando...</div>
+        ) : transactions.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">Nenhuma transação encontrada</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">Data</th>
+                  <th className="text-left py-2">Tipo</th>
+                  <th className="text-left py-2">Descrição</th>
+                  <th className="text-right py-2">Créditos</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {transactions.map((t: any) => (
+                  <tr key={t.id} className="border-b hover:bg-gray-50">
+                    <td className="py-2">{new Date(t.createdAt).toLocaleDateString("pt-BR")}</td>
+                    <td className="py-2">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                        {t.type}
+                      </span>
+                    </td>
+                    <td className="py-2">{t.description}</td>
+                    <td className="text-right py-2 font-semibold text-red-600">
+                      -{parseFloat(t.amount.toString()).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       {/* Info Box */}
