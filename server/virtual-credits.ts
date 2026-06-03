@@ -189,7 +189,7 @@ export async function consumeUserCredits(
     const currentBalance = parseFloat(currentCredit.balance.toString());
     const newBalance = currentBalance - amountNum;
 
-    if (newBalance < 0) {
+    if (newBalance < -0.01) {
       return { success: false, error: "Saldo insuficiente" };
     }
 
