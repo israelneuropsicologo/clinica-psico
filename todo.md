@@ -150,12 +150,12 @@
 - [x] Criar testes Vitest para compartilhamento (20 testes passando)
 
 ### Fase 72: API tRPC para Gerenciar Email Aliases (Admin Only)
-- [ ] Criar procedure `emailAliases.addAlias` para adicionar novo alias
-- [ ] Criar procedure `emailAliases.removeAlias` para remover alias
-- [ ] Criar procedure `emailAliases.listAliases` para listar aliases
+- [x] Criar procedure `emailAliases.addAlias` para adicionar novo alias
+- [x] Criar procedure `emailAliases.removeAlias` para remover alias
+- [x] Criar procedure `emailAliases.listAliases` para listar aliases
 - [ ] Criar UI para gerenciar aliases (página Admin)
-- [ ] Implementar validação de email
-- [ ] Criar testes Vitest para email aliases
+- [x] Implementar validação de email
+- [x] Criar testes Vitest para email aliases (10 testes passando)
 
 ### Fase 73: Testes com Múltiplos Usuários
 - [ ] Testar envio de email com múltiplos usuários
