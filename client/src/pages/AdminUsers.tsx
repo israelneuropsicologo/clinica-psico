@@ -184,9 +184,8 @@ export default function AdminUsers() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="px-6">
-      <div className="flex justify-between items-center">
+      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Usuários Internos</h1>
           <p className="text-gray-600 mt-1">
@@ -253,6 +252,7 @@ export default function AdminUsers() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -549,8 +549,6 @@ export default function AdminUsers() {
           </div>
         </DialogContent>
       </Dialog>
-        </div>
-      </div>
       </div>
     </DashboardLayout>
   );
