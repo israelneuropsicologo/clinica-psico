@@ -26,6 +26,7 @@ export async function sendHandshakeToAmanda() {
       `${AMANDA_BASE_URL}/api/agents/message`,
       message,
       {
+        timeout: 5000,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${AMANDA_TOKEN}`,
@@ -46,6 +47,7 @@ export async function checkAmandaHealth() {
     const response = await axios.get(
       `${AMANDA_BASE_URL}/api/agents/health`,
       {
+        timeout: 5000,
         headers: {
           "Authorization": `Bearer ${AMANDA_TOKEN}`,
         },
@@ -66,6 +68,7 @@ export async function sendMessageToAmanda(message: any) {
       `${AMANDA_BASE_URL}/api/agents/message`,
       message,
       {
+        timeout: 5000,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${AMANDA_TOKEN}`,
@@ -87,6 +90,7 @@ export async function sendSyncStatusToAmanda(metrics: any) {
       `${AMANDA_BASE_URL}/api/agents/sync-status`,
       metrics,
       {
+        timeout: 5000,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${AMANDA_TOKEN}`,

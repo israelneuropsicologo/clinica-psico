@@ -11,7 +11,6 @@ import { startBackupScheduler } from "./backupScheduler";
 import { initializeESaudeAgent, handleESaudeWebhook, getAgentStatus } from "../esaude-agent";
 import { initChatbotToken, getChatbotToken } from "../init-chatbot-token";
 import { registerAgentEndpoints } from "../agents-endpoints";
-import { sendHandshakeToAmanda, checkAmandaHealth } from "../amanda-communication";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -42,7 +41,13 @@ async function startServer() {
   registerOAuthRoutes(app);
   
   // E-SAÚDE Integration
-  initializeESaudeAgent();
+  try {
+    console.log("[BOOT] Initializing E-SAUDE agent...");
+    initializeESaudeAgent();
+    console.log("[BOOT] E-SAUDE agent initialized");
+  } catch (error) {
+    console.error("[BOOT] Error initializing E-SAUDE agent:", error);
+  }
   app.post("/api/esaude/webhook", handleESaudeWebhook);
   app.get("/api/esaude/status", async (req, res) => {
     const status = await getAgentStatus();
@@ -82,18 +87,25 @@ async function startServer() {
   });
   
   // development mode uses Vite, production mode uses static files
-  if (process.env.NODE_ENV === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+  try {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[BOOT] Setting up Vite...");
+      await setupVite(app, server);
+      console.log("[BOOT] Vite setup complete");
+    } else {
+      console.log("[BOOT] Serving static files...");
+      serveStatic(app);
+      console.log("[BOOT] Static files setup complete");
+    }
+  } catch (error) {
+    console.error("[BOOT] Error setting up frontend:", error);
   }
 
-  const preferredPort = parseInt(process.env.PORT || "3000");
-  const port = await findAvailablePort(preferredPort);
+  // Use PORT from environment or default to 3000
+  // Do NOT hunt for available ports - always use the assigned port
+  const port = parseInt(process.env.PORT || "3000");
 
-  if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
-  }
+  console.log(`[BOOT] Attempting to listen on port ${port}...`);
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
@@ -109,22 +121,14 @@ async function startServer() {
     console.log("  POST /api/agents/message");
     console.log("  GET  /api/agents/logs");
     console.log("  POST /api/agents/sync-status");
-    
-    // Inicializar comunicacao com Amanda apos 5 segundos (nao bloqueia startup)
-    setTimeout(() => {
-      console.log("[E-SAUDE] Tentando fazer handshake com Amanda...");
-      sendHandshakeToAmanda()
-        .then(() => console.log("[E-SAUDE] Handshake com Amanda estabelecido!"))
-        .catch((err) => console.warn("[E-SAUDE] Handshake falhou, tentando novamente em 30s...", err.message));
-    }, 5000);
-    
-    // Retry handshake a cada 30 segundos se falhar
-    setInterval(() => {
-      sendHandshakeToAmanda().catch(() => {
-        // Silenciosamente tenta novamente
-      });
-    }, 30000);
+    console.log("[E-SAUDE] Amanda pode fazer POST para /api/agents/message para iniciar handshake");
   });
 }
+
+// Start the server immediately when this module is loaded
+startServer().catch(err => {
+  console.error("[BOOT] Fatal error starting server:", err);
+  process.exit(1);
+});
 
 export { startServer };

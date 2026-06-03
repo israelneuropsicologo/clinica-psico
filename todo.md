@@ -302,3 +302,15 @@
 - [x] Implementar auto-correção de erros e sincronização - Fila de mensagens
 - [x] Testar comunicação completa com Amanda - Endpoints tRPC funcionando
 - [x] Criar checkpoint final - Checkpoint dd41bdc6 criado
+
+### Fase 81: Endpoints HTTP Diretos para Agentes Autônomos
+- [x] Criar 4 endpoints HTTP diretos (/api/agents/{health,message,logs,sync-status})
+- [x] Implementar validação de token Bearer em todos os endpoints
+- [x] Adicionar middleware validateAmandaToken() para segurança
+- [x] Implementar logging detalhado de todas as comunicações
+- [x] Configurar handshake automático a cada 5 segundos (não-bloqueante)
+- [x] Implementar retry automático a cada 30 segundos se falhar
+- [x] Atualizar URLs: E-SAÚDE e Amanda configuradas corretamente
+- [x] Usar token permanente: sk_txl9tplq8go4z2awfemx
+- [x] Testar endpoints com curl
+- [x] Criar checkpoint com sucesso
