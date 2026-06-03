@@ -10,6 +10,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startBackupScheduler } from "./backupScheduler";
 import { initializeESaudeAgent, handleESaudeWebhook, getAgentStatus } from "../esaude-agent";
+import { initChatbotToken, getChatbotToken } from "../init-chatbot-token";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -73,6 +74,8 @@ async function startServer() {
     console.log(`Server running on http://localhost:${port}/`);
     // Start backup scheduler
     startBackupScheduler();
+    // Initialize ChatBot Amanda permanent token
+    initChatbotToken().catch(err => console.error("[ChatBot] Erro ao inicializar token:", err));
   });
 }
 

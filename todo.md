@@ -277,7 +277,19 @@
 - [x] Publicar sistema
 
 ### Fase 78: Bug Fix - Filtro de Sessões e Preenchimento com IA
-- [ ] Corrigir lógica de filtro de sessões no prontuário (mostrar apenas do paciente)
-- [ ] Implementar preenchimento com IA nos campos do prontuário
-- [ ] Testar ambas as correções
-- [ ] Criar checkpoint final
+- [x] Corrigir lógica de filtro de sessões no prontuário (mostrar apenas do paciente)
+- [x] Implementar preenchimento com IA nos campos do prontuário
+- [x] Testar ambas as correções
+- [x] Criar checkpoint final
+
+### Fase 79: Integração Permanente ChatBot Amanda
+- [x] Criar token permanente para ChatBot Amanda na inicialização
+- [x] Implementar webhook automático sem expiração
+- [x] Criar guia de configuração (CHATBOT_AMANDA_SETUP.md)
+- [x] Sincronizar pacientes em tempo real (endpoint já existe)
+- [x] Agendamentos aparecerem imediatamente em "Agendamentos Diretos" (endpoint já existe)
+- [x] Testar fluxo completo: ChatBot → Paciente → Agendamento (4 testes passando)
+- [x] Validar criação de paciente com leadSource=chatbot
+- [x] Validar criação de agendamento com status=scheduled
+- [x] Validar rejeição de token inválido
+- [x] Validar validação de campos obrigatórios
