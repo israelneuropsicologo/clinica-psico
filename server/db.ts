@@ -336,7 +336,17 @@ export async function createSession(data: InsertSession): Promise<number> {
 export async function updateSession(id: number, userId: number, data: Partial<InsertSession>): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  await db.update(sessions).set(data).where(and(eq(sessions.id, id), eq(sessions.userId, userId)));
+  // Autorizar update se o paciente pertence ao usuário (não apenas se a sessão pertence)
+  // Isso permite que usuários com acesso ao paciente atualizem a sessão
+  const patientIds = db.select({ id: patients.id }).from(patients).where(eq(patients.userId, userId));
+  await db.update(sessions)
+    .set(data)
+    .where(
+      and(
+        eq(sessions.id, id),
+        inArray(sessions.patientId, patientIds)
+      )
+    );
 }
 
 export async function deleteSession(id: number, userId: number): Promise<void> {
