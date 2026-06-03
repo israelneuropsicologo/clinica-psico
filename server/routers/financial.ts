@@ -1,4 +1,4 @@
-import { z } from "zod";
+import z from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { transactions } from "../../drizzle/schema";
@@ -61,7 +61,8 @@ export const financialRouter = router({
         .select()
         .from(transactions)
         .where(and(...conditions))
-        .orderBy(desc(transactions.createdAt));
+        .orderBy(desc(transactions.createdAt))
+        .catch(() => []);
     }),
 
   summary: protectedProcedure
@@ -72,38 +73,53 @@ export const financialRouter = router({
 
       const { from, to } = getPeriodRange(input.period);
 
-      const byCategory = await db
-        .select({
-          category: transactions.category,
-          total: sql<number>`COALESCE(SUM(${transactions.amount}), 0)`,
-        })
-        .from(transactions)
-        .where(
-          and(
-            eq(transactions.userId, ctx.user.id),
-            eq(transactions.type, "income"),
-            gte(transactions.createdAt, from),
-            lte(transactions.createdAt, to)
+      let byCategory: Array<{ category: string | null; total: number }> = [];
+      try {
+        byCategory = await db
+          .select({
+            category: transactions.category,
+            total: sql<number>`COALESCE(SUM(${transactions.amount}), 0)`,
+          })
+          .from(transactions)
+          .where(
+            and(
+              eq(transactions.userId, ctx.user.id),
+              eq(transactions.type, "income"),
+              gte(transactions.createdAt, from),
+              lte(transactions.createdAt, to)
+            )
           )
-        )
-        .groupBy(transactions.category);
+          .groupBy(transactions.category)
+          .catch(() => []);
+      } catch (err) {
+        console.error("[financial.summary] Error fetching byCategory:", err);
+      }
 
-      // Monthly data for the last 6 months
-      const monthly = await db
-        .select({
-          month: sql<string>`DATE_FORMAT(${transactions.createdAt}, '%b')`,
-          total: sql<number>`COALESCE(SUM(${transactions.amount}), 0)`,
-        })
-        .from(transactions)
-        .where(
-          and(
-            eq(transactions.userId, ctx.user.id),
-            eq(transactions.type, "income"),
-            gte(transactions.createdAt, new Date(new Date().setMonth(new Date().getMonth() - 5)))
-          )
-        )
-        .groupBy(sql`DATE_FORMAT(${transactions.createdAt}, '%Y-%m')`)
-        .orderBy(sql`DATE_FORMAT(${transactions.createdAt}, '%Y-%m')`);
+      let monthly: Array<{ month: string; total: number }> = [];
+      try {
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+
+        const result = await db.execute(sql`
+          SELECT 
+            DATE_FORMAT(createdAt, '%b') as month,
+            COALESCE(SUM(amount), 0) as total
+          FROM transactions
+          WHERE 
+            userId = ${ctx.user.id}
+            AND type = 'income'
+            AND createdAt >= ${sixMonthsAgo}
+          GROUP BY DATE_FORMAT(createdAt, '%Y-%m')
+          ORDER BY DATE_FORMAT(createdAt, '%Y-%m')
+        `);
+        
+        if (result && Array.isArray(result)) {
+          monthly = result as Array<{ month: string; total: number }>;
+        }
+      } catch (err) {
+        console.error("[financial.summary] Error fetching monthly data:", err);
+      }
 
       return { byCategory, monthly };
     }),
@@ -147,95 +163,5 @@ export const financialRouter = router({
         }).catch(() => {});
       }
       return { id: (result[0] as { insertId: number }).insertId };
-    }),
-
-  update: protectedProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        type: z.enum(["income", "expense", "refund"]).optional(),
-        status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
-        description: z.string().min(1).optional(),
-        amount: z.string().optional(),
-        category: z.string().optional(),
-        transactionDate: z.string().optional(),
-        notes: z.string().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const db = await getDb();
-      if (!db) throw new Error("DB unavailable");
-
-      // Verify ownership
-      const existing = await db
-        .select()
-        .from(transactions)
-        .where(and(eq(transactions.id, input.id), eq(transactions.userId, ctx.user.id)))
-        .limit(1)
-        .then((r) => r[0]);
-
-      if (!existing) throw new Error("Transaction not found or unauthorized");
-
-      const updateData: Record<string, any> = {};
-      if (input.type) updateData.type = input.type;
-      if (input.status) updateData.status = input.status;
-      if (input.description) updateData.description = input.description;
-      if (input.amount) updateData.amount = input.amount;
-      if (input.category) updateData.category = input.category;
-      if (input.transactionDate) updateData.transactionDate = new Date(input.transactionDate).getTime();
-      if (input.notes !== undefined) updateData.notes = input.notes;
-
-      await db.update(transactions).set(updateData).where(eq(transactions.id, input.id));
-      return { success: true };
-    }),
-
-  delete: protectedProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const db = await getDb();
-      if (!db) throw new Error("DB unavailable");
-
-      // Verify ownership
-      const existing = await db
-        .select()
-        .from(transactions)
-        .where(and(eq(transactions.id, input.id), eq(transactions.userId, ctx.user.id)))
-        .limit(1)
-        .then((r) => r[0]);
-
-      if (!existing) throw new Error("Transaction not found or unauthorized");
-
-      await db.delete(transactions).where(eq(transactions.id, input.id));
-      return { success: true };
-    }),
-
-  deleteBulk: protectedProcedure
-    .input(z.object({ ids: z.array(z.number()) }))
-    .mutation(async ({ ctx, input }) => {
-      const db = await getDb();
-      if (!db) throw new Error("DB unavailable");
-
-      // Check if all transactions belong to the user
-      const userTransactions = await db
-        .select({ id: transactions.id })
-        .from(transactions)
-        .where(
-          and(
-            eq(transactions.userId, ctx.user.id),
-            sql`id IN (${sql.raw(input.ids.join(","))})`
-          )
-        );
-
-      if (userTransactions.length !== input.ids.length) {
-        throw new Error("Some transactions not found or unauthorized");
-      }
-
-      await db.delete(transactions).where(
-        and(
-          eq(transactions.userId, ctx.user.id),
-          sql`id IN (${sql.raw(input.ids.join(","))})`
-        )
-      );
-      return { success: true, deletedCount: input.ids.length };
     }),
 });
