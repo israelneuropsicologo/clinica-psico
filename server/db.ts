@@ -318,10 +318,18 @@ export async function checkDuplicateSession(
 export async function getSessionById(id: number, userId: number): Promise<Session | undefined> {
   const db = await getDb();
   if (!db) return undefined;
+  // Buscar sessão através do paciente (não apenas sessions.userId)
+  // Isso permite acesso em sistema multi-conta
+  const patientIds = db.select({ id: patients.id }).from(patients).where(eq(patients.userId, userId));
   const result = await db
     .select()
     .from(sessions)
-    .where(and(eq(sessions.id, id), eq(sessions.userId, userId)))
+    .where(
+      and(
+        eq(sessions.id, id),
+        inArray(sessions.patientId, patientIds)
+      )
+    )
     .limit(1);
   return result[0];
 }
