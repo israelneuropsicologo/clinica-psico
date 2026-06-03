@@ -335,13 +335,8 @@ export async function createSession(data: InsertSession): Promise<number> {
 
 export async function updateSession(id: number, userId: number, data: Partial<InsertSession>): Promise<void> {
   const db = await getDb();
-  if (!db) {
-    console.error("[updateSession] Database connection failed");
-    return;
-  }
-  console.log("[updateSession] Updating session", { id, userId, data });
-  const result = await db.update(sessions).set(data).where(and(eq(sessions.id, id), eq(sessions.userId, userId)));
-  console.log("[updateSession] Update result:", result);
+  if (!db) return;
+  await db.update(sessions).set(data).where(and(eq(sessions.id, id), eq(sessions.userId, userId)));
 }
 
 export async function deleteSession(id: number, userId: number): Promise<void> {

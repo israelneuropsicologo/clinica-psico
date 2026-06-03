@@ -169,7 +169,7 @@ export function SessionDetailTabs({
                 toast.error("Salve o prontuário primeiro para usar o preenchimento com IA");
               }
             }}
-            disabled={autoFillMutation.isPending}
+            disabled={autoFillMutation.isPending || !noteId}
             className="gap-1.5 border-violet-400 text-violet-600 hover:bg-violet-50 dark:border-violet-500 dark:text-violet-400 dark:hover:bg-violet-900/20"
           >
             {autoFillMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
