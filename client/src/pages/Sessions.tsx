@@ -253,8 +253,12 @@ function CreateSessionDialog({
   onSuccess: () => void;
 }) {
   const { data: patients } = trpc.patients.list.useQuery({});
+  const [location] = useLocation();
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const patientIdFromUrl = urlParams.get('patientId') || '';
+  
   const [form, setForm] = useState({
-    patientId: "",
+    patientId: patientIdFromUrl,
     scheduledDate: "",
     scheduledTime: "09:00",
     durationMinutes: "50",

@@ -319,7 +319,7 @@ export default function PatientDetail() {
               <>
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-muted-foreground">{clinicalNotes?.length ?? 0} prontuário(s) registrado(s)</p>
-                  <Button size="sm" onClick={() => navigate("/sessions")} className="gap-1.5">
+                  <Button size="sm" onClick={() => navigate(`/sessions?patientId=${patientId}`)} className="gap-1.5">
                     <Calendar className="h-3.5 w-3.5" /> Nova Sessão
                   </Button>
                 </div>
