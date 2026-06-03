@@ -179,6 +179,17 @@
 - [x] Configurar token secreto com segurança
 - [x] Documentar guia de configuração para E-SAÚDE
 
+### Fase 77: Bug Fix - Webhook Não Criava Novos Agendamentos
+- [x] Identificar problema: webhook apenas atualizava agendamentos existentes
+- [x] Implementar lógica de criação de paciente (se não existe)
+- [x] Implementar lógica de criação de agendamento (se não existe)
+- [x] Corrigir campos: scheduledAt (bigint), durationMinutes, modality
+- [x] Corrigir status padrão: confirmado (em vez de pendente)
+- [x] Melhorar tratamento de erro com retry count
+- [x] Adicionar 7 novos testes Vitest (todos passando)
+- [x] Testar cenário Márcia Borges (agora criada automaticamente)
+- [x] Validar sincronização bidirecional 100% funcional
+
 ---
 
 ## 🐛 Bugs Conhecidos (Não Críticos)

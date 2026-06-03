@@ -6,7 +6,7 @@
  */
 
 import { getDb } from "./db";
-import { syncLogs, sessions } from "../drizzle/schema";
+import { syncLogs, sessions, patients } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { notifyOwner } from "./_core/notification";
 
@@ -120,11 +120,12 @@ async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
     }
 
     // Validar dados
+    const appointmentDate = new Date(appointment.scheduledAt);
     const validation = validateAppointmentData({
       customer_name: appointment.patientId?.toString() || "",
       customer_email: "",
-      appointment_date: new Date(appointment.scheduledAt).toISOString().split('T')[0],
-      appointment_time: new Date(appointment.scheduledAt).toISOString().split('T')[1]?.substring(0, 5),
+      appointment_date: appointmentDate.toISOString().split('T')[0],
+      appointment_time: appointmentDate.toISOString().split('T')[1]?.substring(0, 5),
     });
 
     if (!validation.valid) {
@@ -148,8 +149,8 @@ async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
           customer_name: `Patient ${appointment.patientId}`,
           customer_email: `patient${appointment.patientId}@clinic.local`,
           customer_phone: "",
-          appointment_date: new Date(appointment.scheduledAt).toISOString().split('T')[0],
-          appointment_time: new Date(appointment.scheduledAt).toISOString().split('T')[1]?.substring(0, 5),
+          appointment_date: appointmentDate.toISOString().split('T')[0],
+          appointment_time: appointmentDate.toISOString().split('T')[1]?.substring(0, 5),
           session_type: appointment.sessionType || "presencial",
           service_type: "Consulta Psicológica",
           notes: appointment.notes || "",
@@ -163,11 +164,11 @@ async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
       return res.json();
     });
 
-    // Atualizar session com esaudeId (salvar em notes)
+      // Atualizar session com esaudeId (salvar em notes)
     const esaudeId = response.id || response.esaudeId || `appt_${appointmentId}_${Date.now()}`;
     await db
       .update(sessions)
-      .set({ notes: `esaudeId: ${esaudeId}` })
+      .set({ notes: `esaudeId: ${esaudeId}\nSincronizado com E-SAÚDE` })
       .where(eq(sessions.id, appointmentId));
 
     // Registrar sucesso
@@ -176,6 +177,7 @@ async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
       .set({
         status: "success",
         esaudeId,
+        errorMessage: null,
       })
       .where(eq(syncLogs.appointmentId, appointmentId));
 
@@ -185,19 +187,20 @@ async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
   } catch (error) {
     console.error(`[Error] Falha ao sincronizar agendamento ${appointmentId}:`, error);
 
-    // Atualizar log com erro
-    const db = await getDb();
-    if (db) {
-      const [log] = await db
+      // Atualizar log com erro
+    const dbForError = await getDb();
+    if (dbForError) {
+      const logsForError = await dbForError
         .select()
         .from(syncLogs)
         .where(eq(syncLogs.appointmentId, appointmentId))
         .limit(1);
 
+      const log = logsForError?.[0];
       const newRetryCount = (log?.retryCount || 0) + 1;
 
       if (newRetryCount >= MAX_RETRIES) {
-        await db
+        await dbForError
           .update(syncLogs)
           .set({
             status: "failed",
@@ -214,7 +217,7 @@ async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
 
         agentStatus.failureCount++;
       } else {
-        await db
+        await dbForError
           .update(syncLogs)
           .set({
             status: "retry",
@@ -246,32 +249,71 @@ async function processESaudeWebhook(payload: WebhookPayload): Promise<boolean> {
     const { action, appointment } = payload;
 
     // Buscar agendamento local pelo esaudeId
-    const [localAppointment] = await db
+    let [localAppointment] = await db
       .select()
       .from(sessions)
-      .where(sql`notes LIKE ${"%" + appointment.id + "%"}`) 
+      .where(sql`notes LIKE ${"% " + appointment.id + "%"}`) 
       .limit(1);
 
+    // Se não existe, CRIAR novo agendamento
     if (!localAppointment) {
-      console.warn(
-        `[Webhook] Agendamento não encontrado: ${appointment.customer_email} em ${appointment.appointment_date} ${appointment.appointment_time}`
+      console.log(
+        `[Webhook] Agendamento novo: ${appointment.customer_email} em ${appointment.appointment_date} ${appointment.appointment_time}`
       );
-      return false;
+      
+      // Buscar ou criar paciente
+      const existingPatients = await db
+        .select()
+        .from(patients)
+        .where(eq(patients.email, appointment.customer_email))
+        .limit(1);
+      
+      let patientId = existingPatients?.[0]?.id;
+      if (!patientId) {
+        const patientResult = await db
+          .insert(patients)
+          .values({
+            name: appointment.customer_name,
+            email: appointment.customer_email,
+            phone: appointment.customer_phone,
+            leadSource: "chatbot",
+            userId: 1,
+          });
+        patientId = (patientResult[0] as { insertId: number }).insertId;
+      }
+      
+      // Criar agendamento
+      const appointmentDateTime = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
+      const sessionResult = await db
+        .insert(sessions)
+        .values({
+          patientId,
+          userId: 1,
+          scheduledAt: appointmentDateTime.getTime(),
+          durationMinutes: 50,
+          status: "confirmed",
+          sessionType: "individual",
+          modality: "in_person",
+          notes: `esaudeId: ${appointment.id}\nOrigem: Chatbot Amanda`,
+        });
+      
+      const newSessionId = (sessionResult[0] as { insertId: number }).insertId;
+      localAppointment = { id: Number(newSessionId) } as any;
+      console.log(`[Webhook] Agendamento criado: ${newSessionId}`);
     }
 
     // Mapear ações
-    let newStatus = "pending";
+    let newStatus = "confirmed"; // Padrão é confirmado
     if (action === "appointment.confirmed") newStatus = "confirmed";
     if (action === "appointment.cancelled") newStatus = "cancelled";
-    if (action === "appointment.updated") newStatus = "updated";
+    if (action === "appointment.updated") newStatus = "confirmed";
 
     // Atualizar agendamento
     await db
       .update(sessions)
       .set({
         status: newStatus as any,
-        notes: `esaudeId: ${appointment.id}`,
-        updatedAt: new Date(),
+        notes: `esaudeId: ${appointment.id}\nOrigem: Chatbot Amanda`,
       })
       .where(eq(sessions.id, localAppointment.id));
 
@@ -284,9 +326,10 @@ async function processESaudeWebhook(payload: WebhookPayload): Promise<boolean> {
     });
 
     console.log(
-      `[Webhook] Agendamento ${localAppointment.id} atualizado: ${action} (${newStatus})`
+      `[Webhook] Agendamento ${localAppointment.id} processado: ${action} (${newStatus})`
     );
     agentStatus.successCount++;
+    agentStatus.lastSync = new Date();
     return true;
   } catch (error) {
     console.error("[Webhook] Erro ao processar:", error);
