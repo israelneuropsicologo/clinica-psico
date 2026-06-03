@@ -325,8 +325,10 @@
 - [x] Criar checkpoint com sucesso
 
 ### Fase 83: Dashboard com Chat Bidirecional E-SAÚDE ↔ Amanda
-- [ ] Integrar código de Amanda em E-SAÚDE
-- [ ] Criar componente de chat em tempo real
-- [ ] Implementar visualização de logs
-- [ ] Testar comunicação bidirecional
-- [ ] Publicar sistema
+- [x] Criar componente AgentCommunicationDashboard.tsx
+- [x] Implementar visualização de logs em tempo real
+- [x] Adicionar status dos agentes (online/offline)
+- [x] Integrar rota /agents no App.tsx
+- [x] Adicionar link "Agentes" no menu do dashboard
+- [x] Implementar envio de comandos
+- [x] Criar checkpoint com sucesso
