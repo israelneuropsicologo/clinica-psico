@@ -47,14 +47,7 @@ const SyncStatusSchema = z.object({
 });
 
 // ─── Helper Functions ───────────────────────────────────────────────────────
-// Token permanente para Amanda
-const AMANDA_PERMANENT_TOKEN = "sk_txl9tplq8go4z2awfemx";
-
 async function validateAgentToken(token: string): Promise<boolean> {
-  // Aceitar token permanente de Amanda
-  if (token === AMANDA_PERMANENT_TOKEN) {
-    return true;
-  }
   const db = await getDb();
   if (!db) return false;
 

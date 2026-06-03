@@ -1,12 +1,7 @@
 import axios from "axios";
 
-// Amanda (Chatbot) URLs
 const AMANDA_BASE_URL = "https://psicologo-nloa9w3g.manus.space";
-const AMANDA_TOKEN = "sk_txl9tplq8go4z2awfemx"; // Token permanente do Amanda
-
-// E-SAÚDE URLs
-const ESAUDE_BASE_URL = "https://3000-iq6fiqn3n7badlcgmb0p9-2683e58a.us2.manus.computer";
-const ESAUDE_TOKEN = "sk_txl9tplq8go4z2awfemx"; // Token compartilhado para autenticação
+const AMANDA_TOKEN = "site-psicolog-token-64fc5b1393cc3713213c3dcf8c57fcaa";
 
 export async function sendHandshakeToAmanda() {
   try {
@@ -18,7 +13,7 @@ export async function sendHandshakeToAmanda() {
       timestamp: new Date().toISOString(),
       data: {
         capabilities: ["receive_appointments", "validate_data", "auto_fix_errors"],
-        url: ESAUDE_BASE_URL,
+        url: "https://sistemaclinicaapp.manus.space",
       },
     };
 
@@ -26,7 +21,6 @@ export async function sendHandshakeToAmanda() {
       `${AMANDA_BASE_URL}/api/agents/message`,
       message,
       {
-        timeout: 5000,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${AMANDA_TOKEN}`,
@@ -34,7 +28,7 @@ export async function sendHandshakeToAmanda() {
       }
     );
 
-    console.log("[E-SAÚDE] Handshake enviado para Amanda com sucesso", response.data);
+    console.log("[E-SAÚDE] Handshake enviado para Amanda:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("[E-SAÚDE] Erro ao enviar handshake:", error.message);
@@ -47,14 +41,13 @@ export async function checkAmandaHealth() {
     const response = await axios.get(
       `${AMANDA_BASE_URL}/api/agents/health`,
       {
-        timeout: 5000,
         headers: {
           "Authorization": `Bearer ${AMANDA_TOKEN}`,
         },
       }
     );
 
-    console.log("[E-SAÚDE] Amanda está online:", response.data.status);
+    console.log("[E-SAÚDE] Amanda está online:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("[E-SAÚDE] Amanda offline:", error.message);
@@ -68,7 +61,6 @@ export async function sendMessageToAmanda(message: any) {
       `${AMANDA_BASE_URL}/api/agents/message`,
       message,
       {
-        timeout: 5000,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${AMANDA_TOKEN}`,
@@ -76,7 +68,7 @@ export async function sendMessageToAmanda(message: any) {
       }
     );
 
-    console.log("[E-SAÚDE] Mensagem enviada para Amanda:", response.data.id);
+    console.log("[E-SAÚDE] Mensagem enviada para Amanda:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("[E-SAÚDE] Erro ao enviar mensagem:", error.message);
@@ -90,7 +82,6 @@ export async function sendSyncStatusToAmanda(metrics: any) {
       `${AMANDA_BASE_URL}/api/agents/sync-status`,
       metrics,
       {
-        timeout: 5000,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${AMANDA_TOKEN}`,
@@ -98,7 +89,7 @@ export async function sendSyncStatusToAmanda(metrics: any) {
       }
     );
 
-    console.log("[E-SAÚDE] Status de sincronização enviado para Amanda:", response.data.timestamp);
+    console.log("[E-SAÚDE] Status de sincronização enviado para Amanda:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("[E-SAÚDE] Erro ao enviar status:", error.message);

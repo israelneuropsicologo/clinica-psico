@@ -195,7 +195,7 @@
 ## 🐛 Bugs Conhecidos (Não Críticos)
 
 - [x] Pagamento atrasado não desaparecia ao marcar como pago - CORRIGIDO (refetch adicionado)
-- [x] Digitação em Anamnese (página se move, 1 caractere por vez) - Pendente para próxima iteração
+- [ ] Digitação em Anamnese (página se move, 1 caractere por vez) - Não confirmado
 - [x] Integração com Google Calendar - IMPLEMENTADO (helper + tRPC procedures + testes)
 
 ---
@@ -302,33 +302,3 @@
 - [x] Implementar auto-correção de erros e sincronização - Fila de mensagens
 - [x] Testar comunicação completa com Amanda - Endpoints tRPC funcionando
 - [x] Criar checkpoint final - Checkpoint dd41bdc6 criado
-
-### Fase 81: Endpoints HTTP Diretos para Agentes Autônomos
-- [x] Criar 4 endpoints HTTP diretos (/api/agents/{health,message,logs,sync-status})
-- [x] Implementar validação de token Bearer em todos os endpoints
-- [x] Adicionar middleware validateAmandaToken() para segurança
-- [x] Implementar logging detalhado de todas as comunicações
-- [x] Configurar handshake automático a cada 5 segundos (não-bloqueante)
-- [x] Implementar retry automático a cada 30 segundos se falhar
-- [x] Atualizar URLs: E-SAÚDE e Amanda configuradas corretamente
-- [x] Usar token permanente: sk_txl9tplq8go4z2awfemx
-- [x] Testar endpoints com curl
-- [x] Criar checkpoint com sucesso
-
-### Fase 82: Corrigir DEADLINE_EXCEEDED e Implementar WebSocket
-- [x] Remover handshake bloqueante do startup
-- [x] Adicionar timeout aos axios calls (5000ms)
-- [x] Implementar WebSocket server em /ws/agents
-- [x] Integrar setupWebSocketServer no index.ts
-- [x] Instalar dependências: ws, @types/ws
-- [x] Testar WebSocket com logging detalhado
-- [x] Criar checkpoint com sucesso
-
-### Fase 83: Dashboard com Chat Bidirecional E-SAÚDE ↔ Amanda
-- [x] Criar componente AgentCommunicationDashboard.tsx
-- [x] Implementar visualização de logs em tempo real
-- [x] Adicionar status dos agentes (online/offline)
-- [x] Integrar rota /agents no App.tsx
-- [x] Adicionar link "Agentes" no menu do dashboard
-- [x] Implementar envio de comandos
-- [x] Criar checkpoint com sucesso

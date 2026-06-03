@@ -11,7 +11,7 @@ import { startBackupScheduler } from "./backupScheduler";
 import { initializeESaudeAgent, handleESaudeWebhook, getAgentStatus } from "../esaude-agent";
 import { initChatbotToken, getChatbotToken } from "../init-chatbot-token";
 import { registerAgentEndpoints } from "../agents-endpoints";
-import { setupWebSocketServer } from "../websocket-server";
+import { sendHandshakeToAmanda, checkAmandaHealth } from "../amanda-communication";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -35,9 +35,6 @@ async function findAvailablePort(startPort: number): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  
-  // Setup WebSocket para comunicação em tempo real
-  setupWebSocketServer(server);
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -45,20 +42,14 @@ async function startServer() {
   registerOAuthRoutes(app);
   
   // E-SAÚDE Integration
-  try {
-    console.log("[BOOT] Initializing E-SAUDE agent...");
-    initializeESaudeAgent();
-    console.log("[BOOT] E-SAUDE agent initialized");
-  } catch (error) {
-    console.error("[BOOT] Error initializing E-SAUDE agent:", error);
-  }
+  initializeESaudeAgent();
   app.post("/api/esaude/webhook", handleESaudeWebhook);
   app.get("/api/esaude/status", async (req, res) => {
     const status = await getAgentStatus();
     res.json(status);
   });
   
-  // Autonomous Agents Communication Endpoints (HTTP diretos)
+  // Autonomous Agents Communication Endpoints
   registerAgentEndpoints(app);
   
   // tRPC API
@@ -91,25 +82,18 @@ async function startServer() {
   });
   
   // development mode uses Vite, production mode uses static files
-  try {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[BOOT] Setting up Vite...");
-      await setupVite(app, server);
-      console.log("[BOOT] Vite setup complete");
-    } else {
-      console.log("[BOOT] Serving static files...");
-      serveStatic(app);
-      console.log("[BOOT] Static files setup complete");
-    }
-  } catch (error) {
-    console.error("[BOOT] Error setting up frontend:", error);
+  if (process.env.NODE_ENV === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
   }
 
-  // Use PORT from environment or default to 3000
-  // Do NOT hunt for available ports - always use the assigned port
-  const port = parseInt(process.env.PORT || "3000");
+  const preferredPort = parseInt(process.env.PORT || "3000");
+  const port = await findAvailablePort(preferredPort);
 
-  console.log(`[BOOT] Attempting to listen on port ${port}...`);
+  if (port !== preferredPort) {
+    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
+  }
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
@@ -118,21 +102,18 @@ async function startServer() {
     // Initialize ChatBot Amanda permanent token
     initChatbotToken().catch(err => console.error("[ChatBot] Erro ao inicializar token:", err));
     
-    // Comunicacao com Amanda via endpoints HTTP diretos
+    // Comunicacao com Amanda via endpoints tRPC
     console.log("[E-SAUDE] Sistema pronto para comunicacao com Amanda");
-    console.log("[E-SAUDE] Endpoints disponiveis:");
-    console.log("  GET  /api/agents/health");
-    console.log("  POST /api/agents/message");
-    console.log("  GET  /api/agents/logs");
-    console.log("  POST /api/agents/sync-status");
-    console.log("[E-SAUDE] Amanda pode fazer POST para /api/agents/message para iniciar handshake");
+    console.log("[E-SAUDE] Amanda pode chamar: POST /api/trpc/agentCommunication.receiveFromAmanda");
+    
+    // Inicializar comunicacao com Amanda apos 10 segundos (nao bloqueia startup)
+    setTimeout(() => {
+      console.log("[E-SAUDE] Tentando conectar com Amanda...");
+      sendHandshakeToAmanda().catch(() => {
+        console.warn("[E-SAUDE] Amanda offline ou indisponível");
+      });
+    }, 10000);
   });
 }
-
-// Start the server immediately when this module is loaded
-startServer().catch(err => {
-  console.error("[BOOT] Fatal error starting server:", err);
-  process.exit(1);
-});
 
 export { startServer };

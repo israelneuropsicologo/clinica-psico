@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const AMANDA_BASE_URL = "https://psicologo-nloa9w3g.manus.space";
-const AMANDA_TOKEN = "sk_txl9tplq8go4z2awfemx"; // Token permanente unificado
+const AMANDA_TOKEN = "site-psicolog-token-64fc5b1393cc3713213c3dcf8c57fcaa";
 const ESAUDE_URL = "https://sistemaclinicaapp.manus.space";
 
 // Fila de mensagens entre agentes
