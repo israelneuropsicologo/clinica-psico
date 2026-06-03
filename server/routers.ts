@@ -80,6 +80,7 @@ import { emailAliasesRouter } from "./routers/email-aliases";
 import { autonomousAgentsRouter } from "./routers/autonomous-agents";
 import { virtualCreditsRouter } from "./routers/virtual-credits";
 import { agentCommunicationRouter } from "./routers/agent-communication";
+import { agentsRouter } from "./routers/agents";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -1022,6 +1023,7 @@ export const appRouter = router({
   autonomousAgents: autonomousAgentsRouter,
   virtualCredits: virtualCreditsRouter,
   agentCommunication: agentCommunicationRouter,
+  agents: agentsRouter,
   audit: auditRouter,
   calendar: router({
     getEvents: protectedProcedure
