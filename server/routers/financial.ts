@@ -72,11 +72,9 @@ export const financialRouter = router({
 
       const { from, to } = getPeriodRange(input.period);
 
-      const byCategory = await db
-        .select({
-          category: transactions.category,
-          total: sql<number>`COALESCE(SUM(amount), 0)`,
-        })
+      // Buscar todas as transacoes de income no periodo
+      const allTransactions = await db
+        .select()
         .from(transactions)
         .where(
           and(
@@ -85,25 +83,46 @@ export const financialRouter = router({
             gte(transactions.createdAt, from),
             lte(transactions.createdAt, to)
           )
-        )
-        .groupBy(transactions.category);
+        );
 
-      // Monthly data for the last 6 months
-      const monthly = await db
-        .select({
-          month: sql<string>`DATE_FORMAT(createdAt, '%b')`,
-          total: sql<number>`COALESCE(SUM(amount), 0)`,
-        })
+      // Agrupar por categoria
+      const byCategory = Array.from(
+        allTransactions.reduce((map, t) => {
+          const cat = t.category || "other";
+          const existing = map.get(cat) || 0;
+          map.set(cat, existing + (parseFloat(t.amount as any) || 0));
+          return map;
+        }, new Map<string, number>())
+      ).map(([category, total]) => ({ category, total }));
+
+      // Buscar ultimos 6 meses de transacoes
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+      
+      const monthlyTransactions = await db
+        .select()
         .from(transactions)
         .where(
           and(
             eq(transactions.userId, ctx.user.id),
             eq(transactions.type, "income"),
-            gte(transactions.createdAt, new Date(new Date().setMonth(new Date().getMonth() - 5)))
+            gte(transactions.createdAt, sixMonthsAgo)
           )
-        )
-        .groupBy(sql`DATE_FORMAT(createdAt, '%Y-%m')`)
-        .orderBy(sql`DATE_FORMAT(createdAt, '%Y-%m')`);
+        );
+
+      // Agrupar por mes usando JavaScript
+      const monthlyMap = new Map<string, number>();
+      monthlyTransactions.forEach(t => {
+        const date = new Date(t.createdAt);
+        const monthKey = date.toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
+        const existing = monthlyMap.get(monthKey) || 0;
+        monthlyMap.set(monthKey, existing + (parseFloat(t.amount as any) || 0));
+      });
+
+      const monthly = Array.from(monthlyMap.entries()).map(([month, total]) => ({
+        month,
+        total,
+      }));
 
       return { byCategory, monthly };
     }),
