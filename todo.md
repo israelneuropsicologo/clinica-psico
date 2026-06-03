@@ -153,7 +153,7 @@
 - [x] Criar procedure `emailAliases.addAlias` para adicionar novo alias
 - [x] Criar procedure `emailAliases.removeAlias` para remover alias
 - [x] Criar procedure `emailAliases.listAliases` para listar aliases
-- [ ] Criar UI para gerenciar aliases (página Admin)
+- [x] Criar UI para gerenciar aliases (página Admin) - AdminEmailAliases.tsx criado
 - [x] Implementar validação de email
 - [x] Criar testes Vitest para email aliases (10 testes passando)
 
@@ -162,11 +162,11 @@
 - [x] Validar que usuário não acessa paciente de outro
 - [x] Testar compartilhamento de pacientes entre usuários
 - [x] Testar criação de sessão com acesso compartilhado
-- [ ] Testar envio de email com múltiplos usuários
-- [ ] Validar que email contém link de login correto
-- [ ] Implementar template de email customizável
-- [ ] Adicionar suporte a anexos (credenciais em PDF)
-- [ ] Testar fluxo completo de autenticação com múltiplos usuários
+- [x] Testar envio de email com múltiplos usuários (15 testes passando)
+- [x] Validar que email contém link de login correto
+- [x] Implementar template de email customizável
+- [x] Adicionar suporte a anexos (credenciais em PDF)
+- [x] Testar fluxo completo de autenticação com múltiplos usuários
 
 ### Fase 74: Integração Bidirecional E-SAÚDE
 - [x] Criar tabela sync_logs no banco de dados
@@ -252,3 +252,15 @@
 - [x] Implementar geração de relatórios diários com recomendações
 - [x] Criar 12 testes Vitest para protocolo autônomo (todos passando)
 - [x] Integrar router em routers.ts e testar endpoints
+
+### Fase 76: Sistema de Créditos Virtuais Autossuficiente
+- [ ] Integrar router de créditos virtuais em routers.ts
+- [ ] Criar dashboard de monitoramento de créditos
+- [ ] Criar 10+ testes Vitest para sistema de créditos
+- [ ] Integrar créditos virtuais no protocolo autônomo
+- [ ] Iniciar scheduler de regeneração de créditos no servidor
+- [ ] Testar funcionamento pleno do sistema (end-to-end)
+- [ ] Testar funcionamento pleno do site e sincronização
+- [ ] Salvar checkpoint final e publicar sistema
+- [ ] Configurar monitoramento 24/7 e alertas automáticos
+- [ ] Manter sistema publicado com checkpoints regulares

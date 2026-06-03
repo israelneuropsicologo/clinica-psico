@@ -225,6 +225,13 @@
       "when": 1780462318999,
       "tag": "0031_quiet_leech",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1780463504994,
+      "tag": "0032_lethal_firebrand",
+      "breakpoints": true
     }
   ]
 }

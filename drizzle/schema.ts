@@ -692,3 +692,85 @@ export const dailyReports = mysqlTable("daily_reports", {
 
 export type DailyReport = typeof dailyReports.$inferSelect;
 export type InsertDailyReport = typeof dailyReports.$inferInsert;
+
+
+// ─── Virtual Credits (Créditos Virtuais Infinitos) ──────────────────────────
+export const virtualCredits = mysqlTable("virtual_credits", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id
+  balance: decimal("balance", { precision: 20, scale: 2 }).default("1000").notNull(), // Saldo de créditos virtuais
+  totalEarned: decimal("totalEarned", { precision: 20, scale: 2 }).default("1000").notNull(), // Total ganho
+  totalSpent: decimal("totalSpent", { precision: 20, scale: 2 }).default("0").notNull(), // Total gasto
+  regenerationRate: decimal("regenerationRate", { precision: 10, scale: 2 }).default("100").notNull(), // Créditos por ciclo
+  regenerationInterval: int("regenerationInterval").default(300).notNull(), // Intervalo em segundos (5 min = 300s)
+  lastRegeneration: timestamp("lastRegeneration").defaultNow().notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type VirtualCredit = typeof virtualCredits.$inferSelect;
+export type InsertVirtualCredit = typeof virtualCredits.$inferInsert;
+
+// ─── Virtual Credit Transactions (Transações de Créditos Virtuais) ─────────
+export const virtualCreditTransactions = mysqlTable("virtual_credit_transactions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // FK → users.id
+  transactionType: mysqlEnum("transactionType", [
+    "regeneration", // Regeneração automática
+    "email_send", // Envio de email
+    "api_call", // Chamada de API
+    "agent_communication", // Comunicação entre agentes (grátis)
+    "report_generation", // Geração de relatório
+    "data_sync", // Sincronização de dados
+    "bonus", // Bônus
+    "manual_adjustment", // Ajuste manual
+  ]).notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  description: text("description"),
+  balanceBefore: decimal("balanceBefore", { precision: 20, scale: 2 }).notNull(),
+  balanceAfter: decimal("balanceAfter", { precision: 20, scale: 2 }).notNull(),
+  metadata: text("metadata"), // JSON com dados adicionais
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type VirtualCreditTransaction = typeof virtualCreditTransactions.$inferSelect;
+export type InsertVirtualCreditTransaction = typeof virtualCreditTransactions.$inferInsert;
+
+// ─── Agent Credit Pool (Pool de Créditos para Agentes) ──────────────────────
+export const agentCreditPool = mysqlTable("agent_credit_pool", {
+  id: int("id").autoincrement().primaryKey(),
+  agentName: varchar("agentName", { length: 100 }).notNull(), // site-psicolog ou esaude-clinica
+  balance: decimal("balance", { precision: 20, scale: 2 }).default("10000").notNull(), // Saldo compartilhado do agente
+  totalEarned: decimal("totalEarned", { precision: 20, scale: 2 }).default("10000").notNull(),
+  totalSpent: decimal("totalSpent", { precision: 20, scale: 2 }).default("0").notNull(),
+  regenerationRate: decimal("regenerationRate", { precision: 10, scale: 2 }).default("500").notNull(), // Créditos por ciclo
+  lastRegeneration: timestamp("lastRegeneration").defaultNow().notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AgentCreditPool = typeof agentCreditPool.$inferSelect;
+export type InsertAgentCreditPool = typeof agentCreditPool.$inferInsert;
+
+// ─── Agent Credit Transactions (Transações do Pool de Agentes) ──────────────
+export const agentCreditTransactions = mysqlTable("agent_credit_transactions", {
+  id: int("id").autoincrement().primaryKey(),
+  agentName: varchar("agentName", { length: 100 }).notNull(), // site-psicolog ou esaude-clinica
+  transactionType: mysqlEnum("transactionType", [
+    "regeneration", // Regeneração automática
+    "communication_sent", // Comunicação enviada (grátis)
+    "communication_received", // Comunicação recebida (grátis)
+    "analysis_performed", // Análise realizada
+    "auto_fix_applied", // Auto-fix aplicado
+    "report_generated", // Relatório gerado
+    "bonus", // Bônus
+  ]).notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  description: text("description"),
+  balanceBefore: decimal("balanceBefore", { precision: 20, scale: 2 }).notNull(),
+  balanceAfter: decimal("balanceAfter", { precision: 20, scale: 2 }).notNull(),
+  relatedAgent: varchar("relatedAgent", { length: 100 }), // Agente relacionado (para comunicação)
+  metadata: text("metadata"), // JSON com dados adicionais
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AgentCreditTransaction = typeof agentCreditTransactions.$inferSelect;
+export type InsertAgentCreditTransaction = typeof agentCreditTransactions.$inferInsert;
