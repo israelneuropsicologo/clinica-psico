@@ -158,6 +158,10 @@
 - [x] Criar testes Vitest para email aliases (10 testes passando)
 
 ### Fase 73: Testes com Múltiplos Usuários
+- [x] Testar acesso de pacientes com múltiplos usuários (14 testes passando)
+- [x] Validar que usuário não acessa paciente de outro
+- [x] Testar compartilhamento de pacientes entre usuários
+- [x] Testar criação de sessão com acesso compartilhado
 - [ ] Testar envio de email com múltiplos usuários
 - [ ] Validar que email contém link de login correto
 - [ ] Implementar template de email customizável

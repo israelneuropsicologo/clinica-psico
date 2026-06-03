@@ -376,6 +376,13 @@ export async function getSessionById(id: number, userId: number): Promise<Sessio
 export async function createSession(data: InsertSession): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
+  
+  // Validar se o usuario tem acesso ao paciente (proprietario ou compartilhado)
+  const hasAccess = await canAccessPatient(data.userId, data.patientId);
+  if (!hasAccess) {
+    throw new Error("You don't have permission to create a session for this patient");
+  }
+  
   const result = await db.insert(sessions).values(data);
   return (result[0] as { insertId: number }).insertId;
 }
@@ -657,10 +664,22 @@ export async function getPatientByIdShared(id: number, userId: number): Promise<
   // Buscar IDs de todos os usuários vinculados
   const linkedUserIds = await getLinkedUserIds(userId);
   
+  // Verificar se eh o proprietario ou foi compartilhado
   const result = await db
     .select()
     .from(patients)
-    .where(and(eq(patients.id, id), sql`${patients.userId} IN (${sql.join(linkedUserIds)})`))
+    .where(
+      or(
+        and(eq(patients.id, id), sql`${patients.userId} IN (${sql.join(linkedUserIds)})`),
+        and(
+          eq(patients.id, id),
+          inArray(
+            patients.id,
+            db.select({ patientId: userShares.patientId }).from(userShares).where(eq(userShares.toUserId, userId))
+          )
+        )
+      )
+    )
     .limit(1);
   
   return result[0];
