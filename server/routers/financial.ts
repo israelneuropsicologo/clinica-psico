@@ -75,7 +75,7 @@ export const financialRouter = router({
       const byCategory = await db
         .select({
           category: transactions.category,
-          total: sql<number>`COALESCE(SUM(amount), 0)`,
+          total: sql<number>`COALESCE(SUM(${transactions.amount}), 0)`,
         })
         .from(transactions)
         .where(
@@ -91,8 +91,8 @@ export const financialRouter = router({
       // Monthly data for the last 6 months
       const monthly = await db
         .select({
-          month: sql<string>`DATE_FORMAT(createdAt, '%b')`,
-          total: sql<number>`COALESCE(SUM(amount), 0)`,
+          month: sql<string>`DATE_FORMAT(${transactions.createdAt}, '%b')`,
+          total: sql<number>`COALESCE(SUM(${transactions.amount}), 0)`,
         })
         .from(transactions)
         .where(
@@ -102,8 +102,8 @@ export const financialRouter = router({
             gte(transactions.createdAt, new Date(new Date().setMonth(new Date().getMonth() - 5)))
           )
         )
-        .groupBy(sql`DATE_FORMAT(createdAt, '%Y-%m')`)
-        .orderBy(sql`DATE_FORMAT(createdAt, '%Y-%m')`);
+        .groupBy(sql`DATE_FORMAT(${transactions.createdAt}, '%Y-%m')`)
+        .orderBy(sql`DATE_FORMAT(${transactions.createdAt}, '%Y-%m')`);
 
       return { byCategory, monthly };
     }),
