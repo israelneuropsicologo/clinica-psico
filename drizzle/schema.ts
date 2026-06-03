@@ -574,3 +574,19 @@ export const auditLogs = mysqlTable("audit_logs", {
 
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+// ─── Sync Logs (Logs de Sincronização E-SAÚDE) ──────────────────────────────
+export const syncLogs = mysqlTable("sync_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  appointmentId: int("appointmentId").notNull(), // FK → appointments.id
+  direction: mysqlEnum("direction", ["site_to_esaude", "esaude_to_site"]).notNull(),
+  status: mysqlEnum("status", ["pending", "success", "failed", "retry"]).default("pending").notNull(),
+  errorMessage: varchar("errorMessage", { length: 500 }),
+  esaudeId: varchar("esaudeId", { length: 255 }), // ID do agendamento em E-SAÚDE
+  retryCount: int("retryCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SyncLog = typeof syncLogs.$inferSelect;
+export type InsertSyncLog = typeof syncLogs.$inferInsert;

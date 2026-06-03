@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startBackupScheduler } from "./backupScheduler";
+import { initializeESaudeAgent, handleESaudeWebhook, getAgentStatus } from "../esaude-agent";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,6 +38,15 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+  
+  // E-SAÚDE Integration
+  initializeESaudeAgent();
+  app.post("/api/esaude/webhook", handleESaudeWebhook);
+  app.get("/api/esaude/status", async (req, res) => {
+    const status = await getAgentStatus();
+    res.json(status);
+  });
+  
   // tRPC API
   app.use(
     "/api/trpc",
