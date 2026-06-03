@@ -1,6 +1,17 @@
 import nodemailer from "nodemailer";
 import { google } from "googleapis";
 
+/**
+ * Gerar senha aleatória com apenas números
+ */
+function generateNumericPassword(length: number = 6): string {
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += Math.floor(Math.random() * 10).toString();
+  }
+  return password;
+}
+
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
@@ -51,6 +62,11 @@ export async function sendEmail(options: {
     return false;
   }
 }
+
+/**
+ * Exportar função para gerar senha
+ */
+export { generateNumericPassword };
 
 /**
  * Enviar email com link de login para usuário interno

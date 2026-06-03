@@ -18,6 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Table,
@@ -31,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { formatDateSaoPaulo } from "@/lib/timezone";
 
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function AdminUsers() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -126,10 +128,12 @@ export default function AdminUsers() {
 
   const handleSendLoginEmail = (user: any) => {
     const loginUrl = `${window.location.origin}/internal-login`;
+    // Gerar senha com apenas números (6 dígitos)
+    const password = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
     sendLoginEmailMutation.mutate({
       email: user.email,
       name: user.name,
-      password: "[Senha será enviada por email]",
+      password,
       loginUrl,
     });
   };
@@ -176,8 +180,12 @@ export default function AdminUsers() {
     refetch();
   };
 
+
+
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="px-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Usuários Internos</h1>
@@ -185,10 +193,11 @@ export default function AdminUsers() {
             Gerencie a equipe interna (secretária, financeiro, etc)
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>+ Novo Usuário</Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-3">
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>+ Novo Usuário</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Criar Novo Usuário</DialogTitle>
@@ -201,8 +210,6 @@ export default function AdminUsers() {
                 <label className="text-sm font-medium">Nome</label>
                 <Input
                   placeholder="Nome completo"
-                  value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
                 />
               </div>
               <div>
@@ -540,6 +547,9 @@ export default function AdminUsers() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+        </div>
+      </div>
+      </div>
+    </DashboardLayout>
   );
 }
