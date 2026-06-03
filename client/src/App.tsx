@@ -26,6 +26,7 @@ import InternalLogin from "./pages/InternalLogin";
 import AdminUsers from "./pages/AdminUsers";
 import AdminAudit from "./pages/AdminAudit";
 import { AdminEmailAliases } from "./pages/AdminEmailAliases";
+import { VirtualCreditsDashboard } from "./pages/VirtualCreditsDashboard";
 
 // App Router - v1.0.4 (Production Ready - isPaid Webhook Fix)
 function Router() {
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/admin/reports" component={AdminReports} />
       <Route path="/admin/audit" component={AdminAudit} />
       <Route path="/admin/email-aliases" component={AdminEmailAliases} />
+      <Route path="/admin/virtual-credits" component={VirtualCreditsDashboard} />
       <Route path="/pistas" component={Pistas} />
       <Route path="/ai-analytics" component={AIAnalytics} />
       <Route path="/invite/:token" component={PatientInvite} />
