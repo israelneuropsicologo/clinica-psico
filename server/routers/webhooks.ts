@@ -797,6 +797,62 @@ export const webhooksRouter = router({
     }),
 
   /**
+   * DEBUG: Validar formato dos dados do chatbot
+   */
+  debugChatbotAppointment: publicProcedure
+    .input(
+      z.object({
+        customer_id: z.string(),
+        customer_name: z.string(),
+        customer_email: z.string(),
+        customer_phone: z.string().optional(),
+        appointment_date: z.string(),
+        appointment_time: z.string(),
+        service_type: z.string().optional(),
+        notes: z.string().optional(),
+        session_type: z.string().optional(),
+        token: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const errors: string[] = [];
+
+      // Validar cada campo
+      if (!input.customer_id) errors.push("customer_id: obrigatório");
+      if (!input.customer_name) errors.push("customer_name: obrigatório");
+      if (!input.customer_email) errors.push("customer_email: obrigatório");
+      if (!input.appointment_date) errors.push("appointment_date: obrigatório");
+      if (!input.appointment_time) errors.push("appointment_time: obrigatório");
+
+      // Validar email
+      if (input.customer_email && !input.customer_email.includes("@")) {
+        errors.push("customer_email: deve ser um email válido (conter @)");
+      }
+
+      // Validar data (YYYY-MM-DD)
+      if (input.appointment_date && !/^\d{4}-\d{2}-\d{2}$/.test(input.appointment_date)) {
+        errors.push("appointment_date: deve estar no formato YYYY-MM-DD (ex: 2026-06-10)");
+      }
+
+      // Validar hora (HH:mm)
+      if (input.appointment_time && !/^\d{2}:\d{2}$/.test(input.appointment_time)) {
+        errors.push("appointment_time: deve estar no formato HH:mm (ex: 14:00)");
+      }
+
+      // Validar session_type
+      if (input.session_type && !["presencial", "online"].includes(input.session_type)) {
+        errors.push("session_type: deve ser 'presencial' ou 'online'");
+      }
+
+      return {
+        success: errors.length === 0,
+        errors,
+        received_data: input,
+        message: errors.length === 0 ? "✅ Dados válidos! Pode enviar para syncChatbotAppointment" : "❌ Erros encontrados",
+      };
+    }),
+
+  /**
    * Criar lead do chatbot (webhook)
    */
   createChatbotLead: publicProcedure

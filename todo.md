@@ -293,3 +293,12 @@
 - [x] Validar criação de agendamento com status=scheduled
 - [x] Validar rejeição de token inválido
 - [x] Validar validação de campos obrigatórios
+
+### Fase 80: Protocolo de Comunicação Autônoma com Amanda
+- [ ] Implementar 4 endpoints de agents (/health, /message, /logs, /sync-status)
+- [ ] Gerar token permanente para comunicação com Amanda
+- [ ] Implementar handshake e autenticação entre agentes
+- [ ] Implementar health checks automáticos (a cada 5 minutos)
+- [ ] Implementar auto-correção de erros e sincronização
+- [ ] Testar comunicação completa com Amanda
+- [ ] Criar checkpoint final
