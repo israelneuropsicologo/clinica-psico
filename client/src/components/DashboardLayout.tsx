@@ -66,7 +66,7 @@ const menuItems = [
   { icon: Zap, label: "Integração", path: "/webhooks" },
   { icon: HardDrive, label: "Backups", path: "/backups", adminOnly: true },
   { icon: BarChart3, label: "Relatórios Gerenciais", path: "/admin/reports", adminOnly: true },
-  // { icon: FileText, label: "Auditoria", path: "/admin/audit", adminOnly: true }, // TODO: Corrigir erro de Select vazio
+  { icon: FileText, label: "Auditoria", path: "/admin/audit", adminOnly: true }
 ];
 
 const externalLinks = [
