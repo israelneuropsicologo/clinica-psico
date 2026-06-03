@@ -698,8 +698,25 @@ CAMPOS DO JSON (todos obrigatórios):
         return isNaN(n) ? min : Math.min(max, Math.max(min, n));
       };
 
+      const validFields = [
+        "content", "generalPresentation", "currentMedications", "emotionalState",
+        "predominantMood", "mainDemand", "topicsAddressed", "relevantNarrative",
+        "clinicalAssessment", "technicalAnalysis", "techniquesUsed", "plannedInterventions",
+        "therapeuticPlan", "homework", "treatmentResponse", "goalsProgress",
+        "observedInsights", "observedResistances", "nextSessionGoals", "treatmentPlanAdjustments",
+        "countertransference", "clinicalHypotheses", "supervisionNotes", "referrals",
+        "privateObservations"
+      ];
+
+      const cleanedFilled: Record<string, unknown> = {};
+      for (const field of validFields) {
+        if (field in filled) {
+          cleanedFilled[field] = filled[field];
+        }
+      }
+
       return {
-        ...filled,
+        ...cleanedFilled,
         mood: safeMood(filled.mood),
         sufferingLevel: safeNum(filled.sufferingLevel, 0, 10),
         selfHarmRisk: safeRisk(filled.selfHarmRisk),
