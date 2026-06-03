@@ -359,7 +359,7 @@ const sessionsRouter = router({
               type: "income",
               status: "paid",
               description: `Sessão paga - ${new Date(session.scheduledAt).toLocaleDateString("pt-BR")}`,
-              amount,
+              amount: amount.toFixed(2) as any, // Converter para string com 2 casas decimais
               category: "session",
               paidAt: new Date(),
               createdAt: new Date(),
