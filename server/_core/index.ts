@@ -11,6 +11,7 @@ import { startBackupScheduler } from "./backupScheduler";
 import { initializeESaudeAgent, handleESaudeWebhook, getAgentStatus } from "../esaude-agent";
 import { initChatbotToken, getChatbotToken } from "../init-chatbot-token";
 import { registerAgentEndpoints } from "../agents-endpoints";
+import { setupWebSocketServer } from "../websocket-server";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -34,6 +35,9 @@ async function findAvailablePort(startPort: number): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  
+  // Setup WebSocket para comunicação em tempo real
+  setupWebSocketServer(server);
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

@@ -314,3 +314,19 @@
 - [x] Usar token permanente: sk_txl9tplq8go4z2awfemx
 - [x] Testar endpoints com curl
 - [x] Criar checkpoint com sucesso
+
+### Fase 82: Corrigir DEADLINE_EXCEEDED e Implementar WebSocket
+- [x] Remover handshake bloqueante do startup
+- [x] Adicionar timeout aos axios calls (5000ms)
+- [x] Implementar WebSocket server em /ws/agents
+- [x] Integrar setupWebSocketServer no index.ts
+- [x] Instalar dependências: ws, @types/ws
+- [x] Testar WebSocket com logging detalhado
+- [x] Criar checkpoint com sucesso
+
+### Fase 83: Dashboard com Chat Bidirecional E-SAÚDE ↔ Amanda
+- [ ] Integrar código de Amanda em E-SAÚDE
+- [ ] Criar componente de chat em tempo real
+- [ ] Implementar visualização de logs
+- [ ] Testar comunicação bidirecional
+- [ ] Publicar sistema

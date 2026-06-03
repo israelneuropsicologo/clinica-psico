@@ -53,6 +53,7 @@ import { Button } from "./ui/button";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: Zap, label: "Agentes", path: "/agents" },
   { icon: Users, label: "Pacientes", path: "/patients" },
   { icon: Inbox, label: "Leads", path: "/leads" },
   { icon: CheckSquare, label: "Agendamentos Diretos", path: "/direct-bookings" },
@@ -63,7 +64,7 @@ const menuItems = [
   { icon: DollarSign, label: "Financeiro", path: "/financial" },
   { icon: FileText, label: "Documentos", path: "/documents" },
   { icon: SettingsIcon, label: "Configurações", path: "/settings" },
-  { icon: Zap, label: "Integração", path: "/webhooks" },
+  { icon: ExternalLink, label: "Integração", path: "/webhooks" },
   { icon: HardDrive, label: "Backups", path: "/backups", adminOnly: true },
   { icon: BarChart3, label: "Relatórios Gerenciais", path: "/admin/reports", adminOnly: true },
   { icon: FileText, label: "Auditoria", path: "/admin/audit", adminOnly: true }
