@@ -229,14 +229,8 @@ export async function deletePatient(id: number, userId: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
   
-  // Obter clinicId do usuário
-  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!userRecord || userRecord.length === 0) return;
-  
-  const clinicId = userRecord[0].clinicId;
-  if (!clinicId) return;
-  
-  await db.delete(patients).where(and(eq(patients.id, id), eq(patients.userId, clinicId)));
+  // Deletar paciente usando userId diretamente
+  await db.delete(patients).where(and(eq(patients.id, id), eq(patients.userId, userId)));
 }
 
 export async function getPatientCount(userId: number): Promise<number> {
