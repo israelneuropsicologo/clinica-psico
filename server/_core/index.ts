@@ -91,25 +91,30 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
-    // Start backup scheduler
+  });
+  
+  // ALL background tasks AFTER server is listening
+  // This ensures server responds to health check immediately
+  setImmediate(() => {
     startBackupScheduler();
-    // Initialize ChatBot Amanda permanent token (non-blocking)
-    setImmediate(() => {
-      initChatbotToken().catch((err: any) => console.error("[ChatBot] Erro ao inicializar token:", err));
-    });
-    
-    // Comunicacao com Amanda via endpoints tRPC
+  });
+  
+  setImmediate(() => {
+    initChatbotToken().catch((err: any) => console.error("[ChatBot] Erro ao inicializar token:", err));
+  });
+  
+  setImmediate(() => {
     console.log("[E-SAUDE] Sistema pronto para comunicacao com Amanda");
     console.log("[E-SAUDE] Amanda pode chamar: POST /api/trpc/agentCommunication.receiveFromAmanda");
-    
-    // Inicializar comunicacao com Amanda apos 15 segundos (nao bloqueia startup)
-    setTimeout(() => {
-      console.log("[E-SAUDE] Tentando conectar com Amanda...");
-      sendHandshakeToAmanda().catch(() => {
-        console.warn("[E-SAUDE] Amanda offline ou indisponível");
-      });
-    }, 15000);
   });
+  
+  // Inicializar comunicacao com Amanda apos 20 segundos
+  setTimeout(() => {
+    console.log("[E-SAUDE] Tentando conectar com Amanda...");
+    sendHandshakeToAmanda().catch(() => {
+      console.warn("[E-SAUDE] Amanda offline ou indisponivel");
+    });
+  }, 20000);
 }
 
 export { startServer };
