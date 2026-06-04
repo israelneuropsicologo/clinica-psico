@@ -13,24 +13,9 @@ import { initChatbotToken, getChatbotToken } from "../init-chatbot-token";
 import { registerAgentEndpoints } from "../agents-endpoints";
 import { sendHandshakeToAmanda, checkAmandaHealth } from "../amanda-communication";
 
-function isPortAvailable(port: number): Promise<boolean> {
-  return new Promise(resolve => {
-    const server = net.createServer();
-    server.listen(port, () => {
-      server.close(() => resolve(true));
-    });
-    server.on("error", () => resolve(false));
-  });
-}
+// Removed: isPortAvailable function - not needed
 
-async function findAvailablePort(startPort: number): Promise<number> {
-  for (let port = startPort; port < startPort + 100; port++) {
-    if (await isPortAvailable(port)) {
-      return port;
-    }
-  }
-  throw new Error("No available ports found");
-}
+// Removed: findAvailablePort function - use port 3000 directly in production
 
 async function startServer() {
   const app = express();
@@ -41,16 +26,30 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   
-  // E-SAÚDE Integration
-  initializeESaudeAgent();
+  // E-SAÚDE Integration (non-blocking)
+  // Initialize in background, don't block startup
+  setImmediate(() => {
+    try {
+      initializeESaudeAgent();
+    } catch (err: any) {
+      console.error("[E-SAUDE] Init error:", err);
+    }
+  });
+  
   app.post("/api/esaude/webhook", handleESaudeWebhook);
   app.get("/api/esaude/status", async (req, res) => {
     const status = await getAgentStatus();
     res.json(status);
   });
   
-  // Autonomous Agents Communication Endpoints
-  registerAgentEndpoints(app);
+  // Autonomous Agents Communication Endpoints (non-blocking)
+  setImmediate(() => {
+    try {
+      registerAgentEndpoints(app);
+    } catch (err: any) {
+      console.error("[AGENTS] Register error:", err);
+    }
+  });
   
   // tRPC API
   app.use(
@@ -88,31 +87,28 @@ async function startServer() {
     serveStatic(app);
   }
 
-  const preferredPort = parseInt(process.env.PORT || "3000");
-  const port = await findAvailablePort(preferredPort);
-
-  if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
-  }
+  const port = parseInt(process.env.PORT || "3000");
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     // Start backup scheduler
     startBackupScheduler();
-    // Initialize ChatBot Amanda permanent token
-    initChatbotToken().catch(err => console.error("[ChatBot] Erro ao inicializar token:", err));
+    // Initialize ChatBot Amanda permanent token (non-blocking)
+    setImmediate(() => {
+      initChatbotToken().catch((err: any) => console.error("[ChatBot] Erro ao inicializar token:", err));
+    });
     
     // Comunicacao com Amanda via endpoints tRPC
     console.log("[E-SAUDE] Sistema pronto para comunicacao com Amanda");
     console.log("[E-SAUDE] Amanda pode chamar: POST /api/trpc/agentCommunication.receiveFromAmanda");
     
-    // Inicializar comunicacao com Amanda apos 10 segundos (nao bloqueia startup)
+    // Inicializar comunicacao com Amanda apos 15 segundos (nao bloqueia startup)
     setTimeout(() => {
       console.log("[E-SAUDE] Tentando conectar com Amanda...");
       sendHandshakeToAmanda().catch(() => {
         console.warn("[E-SAUDE] Amanda offline ou indisponível");
       });
-    }, 10000);
+    }, 15000);
   });
 }
 
