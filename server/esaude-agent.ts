@@ -102,8 +102,9 @@ async function retryWithBackoff<T>(
 
 /**
  * Sincronizar agendamento do site para E-SAÚDE
+ * Exportada para uso em outros módulos
  */
-async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
+export async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
 
@@ -119,11 +120,22 @@ async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
       throw new Error(`Agendamento ${appointmentId} não encontrado`);
     }
 
+    // Buscar dados do paciente
+    const [patient] = await db
+      .select()
+      .from(patients)
+      .where(eq(patients.id, appointment.patientId))
+      .limit(1);
+
+    if (!patient) {
+      throw new Error(`Paciente ${appointment.patientId} não encontrado`);
+    }
+
     // Validar dados
     const appointmentDate = new Date(appointment.scheduledAt);
     const validation = validateAppointmentData({
-      customer_name: appointment.patientId?.toString() || "",
-      customer_email: "",
+      customer_name: patient.name || "",
+      customer_email: patient.email || "",
       appointment_date: appointmentDate.toISOString().split('T')[0],
       appointment_time: appointmentDate.toISOString().split('T')[1]?.substring(0, 5),
     });
@@ -161,14 +173,14 @@ async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           token: apiToken,
-          customer_id: `patient_${appointment.patientId}`,
-          customer_name: `Patient ${appointment.patientId}`,
-          customer_email: `patient${appointment.patientId}@clinic.local`,
-          customer_phone: "",
+          customer_id: patient.externalCustomerId || `patient_${appointment.patientId}`,
+          customer_name: patient.name,
+          customer_email: patient.email,
+          customer_phone: patient.phone || "",
           appointment_date: appointmentDate.toISOString().split('T')[0],
           appointment_time: appointmentDate.toISOString().split('T')[1]?.substring(0, 5),
-          session_type: appointment.sessionType || "presencial",
-          service_type: "Consulta Psicológica",
+          session_type: appointment.modality === "online" ? "virtual" : "presencial",
+          service_type: appointment.sessionType || "Consulta Psicológica",
           notes: appointment.notes || "",
         }),
       });
@@ -475,4 +487,4 @@ export async function getAgentStatus(): Promise<AgentStatus> {
 
 // ─── Exports ───────────────────────────────────────────────────────────────
 
-export { syncSiteToESaude, processESaudeWebhook, syncPendingAppointments };
+export { processESaudeWebhook, syncPendingAppointments };

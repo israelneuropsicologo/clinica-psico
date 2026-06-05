@@ -6,15 +6,17 @@ import {
   getPatientByExternalId,
   logWebhook,
 } from "../db-webhooks";
-import { createPatient, updatePatient, createSession } from "../db";
+import { createPatient, updatePatient, createSession, getDb } from "../db";
 import { notifyOwner } from "../_core/notification";
 import { logLGPDEvent, LGPDEventType } from "../_core/lgpdLogger";
 import type { InsertSession } from "../../drizzle/schema";
 import { TRPCError } from "@trpc/server";
+import { syncSiteToESaude } from "../esaude-agent";
 
 export const websiteAppointmentsRouter = router({
   /**
    * Sincronizar agendamento do site profissional (psicologo.manus.space)
+   * Salva no banco local E cria tarefa de sincronização com E-SAÚDE
    */
   appointmentFromWebsite: publicProcedure
     .input(
@@ -97,14 +99,20 @@ export const websiteAppointmentsRouter = router({
             status: "scheduled",
             sessionType: "individual",
             modality: input.modality === "virtual" ? "online" : "in_person",
-            sessionType2: input.consultationType,
             notes: `Agendamento do site profissional\nTipo: ${input.consultationType}\nObservações: ${input.observations || "Nenhuma"}`,
             isPaid: input.paymentStatus === "approved" ? "paid" : "pending",
             createdAt: new Date(),
             updatedAt: new Date(),
           };
 
-          await createSession(sessionData);
+          const sessionId = await createSession(sessionData);
+          
+          // Sincronizar com E-SAÚDE (aguardar um pouco para garantir que foi salvo no banco)
+          setTimeout(() => {
+            syncSiteToESaude(sessionId).catch((err) => {
+              console.error(`[Error] Falha ao sincronizar agendamento ${sessionId} com E-SAÚDE:`, err);
+            });
+          }, 500); // Aguardar 500ms para garantir que o banco salvou
         }
 
         if (isNew) {
