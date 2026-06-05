@@ -94,7 +94,7 @@ export const websiteAppointmentsRouter = router({
             patientId,
             scheduledAt,
             durationMinutes: 50,
-            status: "pending",
+            status: "scheduled",
             sessionType: "individual",
             modality: input.modality === "virtual" ? "online" : "in_person",
             sessionType2: input.consultationType,

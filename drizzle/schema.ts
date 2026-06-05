@@ -80,7 +80,7 @@ export const patients = mysqlTable("patients", {
   medications: text("medications"),
   notes: text("notes"),
   status: mysqlEnum("status", ["active", "inactive", "discharged"]).default("active").notNull(),
-  leadSource: mysqlEnum("leadSource", ["chatbot", "direct_booking", "manual", "import"]).default("manual").notNull(),
+  leadSource: mysqlEnum("leadSource", ["chatbot", "direct_booking", "manual", "import", "website"]).default("manual").notNull(),
   leadStatus: mysqlEnum("leadStatus", ["lead", "prospect", "customer", "inactive"]).default("lead").notNull(),
   interactionCount: int("interactionCount").default(0).notNull(),
   lastInteractionAt: timestamp("lastInteractionAt"),

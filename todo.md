@@ -302,3 +302,13 @@
 - [x] Implementar auto-correção de erros e sincronização - Fila de mensagens
 - [x] Testar comunicação completa com Amanda - Endpoints tRPC funcionando
 - [x] Criar checkpoint final - Checkpoint dd41bdc6 criado
+
+### Fase 81: Corrigir Sincronização de Agendamentos do Site
+- [x] Corrigir status inválido em website-appointments.ts (pending → scheduled)
+- [x] Adicionar token de autenticação em esaude-agent.ts
+- [x] Adicionar "website" ao enum leadSource no schema
+- [x] Remover criação automática de sessão em createPatient (permitir webhook decidir)
+- [x] Testar fluxo completo: site → E-SAÚDE → banco de dados (7 testes passando)
+- [x] Validar que agendamentos aparecem em "Agendamentos Diretos"
+- [x] Validar que pacientes são criados com leadSource="website"
+- [x] Criar 13 testes Vitest para webhook de agendamentos (6 + 7 testes passando)

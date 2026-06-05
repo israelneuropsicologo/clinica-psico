@@ -6,7 +6,7 @@
  */
 
 import { getDb } from "./db";
-import { syncLogs, sessions, patients } from "../drizzle/schema";
+import { syncLogs, sessions, patients, apiTokens } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { notifyOwner } from "./_core/notification";
 
@@ -139,12 +139,28 @@ async function syncSiteToESaude(appointmentId: number): Promise<boolean> {
       return false;
     }
 
+    // Buscar token de API válido
+    const apiTokenRecord = await db
+      .select()
+      .from(apiTokens)
+      .where(and(
+        eq(apiTokens.userId, appointment.userId),
+        eq(apiTokens.isActive, 1)
+      ))
+      .limit(1);
+
+    const apiToken = apiTokenRecord?.[0]?.token;
+    if (!apiToken) {
+      throw new Error(`Nenhum token de API valido encontrado para userId ${appointment.userId}`);
+    }
+
     // Chamar E-SAÚDE com retry
     const response = await retryWithBackoff(async () => {
       const res = await fetch(`${ESAUDE_API_URL}/webhooks.createDirectBooking`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          token: apiToken,
           customer_id: `patient_${appointment.patientId}`,
           customer_name: `Patient ${appointment.patientId}`,
           customer_email: `patient${appointment.patientId}@clinic.local`,

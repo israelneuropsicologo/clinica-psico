@@ -1037,14 +1037,19 @@ export const webhooksRouter = router({
         const externalBookingId = `${input.customer_id}_${input.appointment_date}_${input.appointment_time}`;
         
         // Verificar se já existe sessão com este externalBookingId
-        const db = getDb();
-        const existingSession = await db.query.sessions.findFirst({
-          where: and(
-            eq(sessions.userId, userId),
-            eq(sessions.externalBookingId, externalBookingId)
-          ),
-        });
+        const db = await getDb();
+        const existingSessionList = await db
+          .select()
+          .from(sessions)
+          .where(
+            and(
+              eq(sessions.userId, userId),
+              eq(sessions.externalBookingId, externalBookingId)
+            )
+          )
+          .limit(1);
 
+        const existingSession = existingSessionList?.[0];
         if (existingSession) {
           // Sessão já existe - retornar sucesso
           return {

@@ -232,6 +232,13 @@
       "when": 1780463504994,
       "tag": "0032_lethal_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1780634693184,
+      "tag": "0033_lean_mockingbird",
+      "breakpoints": true
     }
   ]
 }

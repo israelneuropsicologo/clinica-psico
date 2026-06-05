@@ -195,57 +195,8 @@ export async function createPatient(data: InsertPatient): Promise<number> {
   const result = await db.insert(patients).values(data);
   const patientId = (result[0] as { insertId: number }).insertId;
   
-  // Criar uma sessão padrão automaticamente
-  let sessionId: number | null = null;
-  try {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1); // Próximo dia
-    tomorrow.setHours(9, 0, 0, 0); // 09:00 AM
-    const scheduledAtMs = tomorrow.getTime(); // Converter para ms
-    
-    const sessionResult = await db.insert(sessions).values({
-      patientId,
-      userId: data.userId,
-      scheduledAt: scheduledAtMs,
-      durationMinutes: 50,
-      sessionType: "individual",
-      modality: "in_person",
-      status: "scheduled",
-      isPaid: "pending",
-      notes: "Sessão criada automaticamente",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    sessionId = (sessionResult[0] as { insertId: number }).insertId;
-    console.log(`[Success] Sessão automática criada para paciente ${patientId}`);
-  } catch (error) {
-    console.error("[Error] Falha ao criar sessão padrão para paciente", patientId, ":", error);
-    // Não interromper o fluxo se a sessão não for criada
-  }
-  
-  // Criar uma nota clínica padrão automaticamente
-  if (sessionId) {
-    try {
-      await db.insert(clinicalNotes).values({
-        sessionId,
-        patientId,
-        userId: data.userId,
-        content: "Nota clínica criada automaticamente ao registrar o paciente.",
-        sessionNumber: 0,
-        sessionType2: "individual",
-        modality2: "in_person",
-        selfHarmRisk: "absent" as const,
-        thirdPartyRisk: "absent" as const,
-        suicideRisk: "absent" as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      console.log(`[Success] Nota clínica automática criada para paciente ${patientId}`);
-    } catch (error) {
-      console.error("[Error] Falha ao criar nota clínica padrão para paciente", patientId, ":", error);
-      // Não interromper o fluxo se a nota não for criada
-    }
-  }
+  // NÃO criar sessão/nota automática - deixar para o webhook/router decidir
+  // Isso permite que cada origem (site, chatbot, manual) crie a sessão com dados corretos
   
   return patientId;
 }
