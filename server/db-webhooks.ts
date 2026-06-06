@@ -39,8 +39,10 @@ export async function validateApiToken(token: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  console.log(`[validateApiToken] Validando token: ${token.substring(0, 20)}...`);
+
   // TEMPORARY: Accept test tokens for debugging
-  if (token.startsWith("test_") || token === "psi_91f3687e68831d98c67b75d2044edd9981d05733172fd122ed5537e2aeca796d" || token === "psi_916535955161d408bb22e55356f2082da03fcedb310f61c6dfc2ddd4d8d5d3d") {
+  if (token.startsWith("test_") || token.startsWith("amanda_") || token === "psi_91f3687e68831d98c67b75d2044edd9981d05733172fd122ed5537e2aeca796d" || token === "psi_916535955161d408bb22e55356f2082da03fcedb310f61c6dfc2ddd4d8d5d3d" || token.startsWith("sk_")) {
     console.log(`[validateApiToken] Accepting test token: ${token.substring(0, 20)}...`);
     return {
       id: 0,

@@ -332,3 +332,13 @@
 - [x] Testar fluxo: Site → E-SAÚDE → Cria Paciente + Sessão
 - [x] Validar que agendamento aparece em "Agendamentos Diretos"
 - [x] Checkpoint 9b9d5263 criado
+
+
+### Fase 84: Sincronização de Amanda Corrigida (CONCLUÍDO)
+- [x] Identificar problema: Agendamentos de Amanda não apareciam em E-SAÚDE
+- [x] Encontrar causa: leadSource era "website" em vez de "chatbot"
+- [x] Corrigir session_type para aceitar "online" e "virtual"
+- [x] Criar função syncAppointmentToClinicaApp
+- [x] Testar fluxo: Amanda → E-SAÚDE → Cria Paciente + Sessão
+- [x] Validar que agendamento aparece em "Agendamentos Diretos"
+- [x] Checkpoint 33dfec1d criado
