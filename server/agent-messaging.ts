@@ -98,7 +98,7 @@ export async function receiveMessageFromAmanda(message: any): Promise<any> {
         name: appointmentData.customer_name,
         email: appointmentData.customer_email,
         phone: appointmentData.customer_phone,
-        leadSource: "website",
+        leadSource: "chatbot",
       });
       
       const scheduledAt = new Date(`${appointmentData.appointment_date}T${appointmentData.appointment_time}`).getTime();
@@ -109,7 +109,7 @@ export async function receiveMessageFromAmanda(message: any): Promise<any> {
         durationMinutes: 50,
         status: "scheduled",
         sessionType: "individual",
-        modality: appointmentData.session_type === "virtual" ? "online" : "in_person",
+        modality: appointmentData.session_type === "online" || appointmentData.session_type === "virtual" ? "online" : "in_person",
         notes: `Agendamento confirmado por Amanda\nServico: ${appointmentData.service_type}`,
         isPaid: "pending",
         createdAt: new Date(),

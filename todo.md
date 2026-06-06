@@ -324,3 +324,11 @@
 - [x] Fluxo completo: Site → Amanda → E-SAÚDE → Aparece em "Agendamentos Diretos"
 - [x] Endpoints funcionando: receiveFromAmanda, appointmentFromWebsite, syncChatbotAppointment
 - [x] Checkpoint f8148c4d criado
+
+### Fase 83: Correção de Autenticação - Token do Site Profissional (CONCLUÍDO)
+- [x] Identificar problema: Token psi_... era rejeitado com HTTP 401
+- [x] Encontrar causa: Token não estava na lista de tokens aceitos em validateApiToken
+- [x] Adicionar token do site profissional à lista TEMPORARY
+- [x] Testar fluxo: Site → E-SAÚDE → Cria Paciente + Sessão
+- [x] Validar que agendamento aparece em "Agendamentos Diretos"
+- [x] Checkpoint 9b9d5263 criado
