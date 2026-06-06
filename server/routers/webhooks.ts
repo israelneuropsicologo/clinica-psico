@@ -1205,6 +1205,76 @@ export const webhooksRouter = router({
 
 
   /**
+   * Receber agendamento confirmado por Amanda
+   */
+  appointmentFromAmanda: publicProcedure
+    .input(
+      z.object({
+        customer_name: z.string(),
+        customer_email: z.string(),
+        customer_phone: z.string().optional(),
+        appointment_date: z.string(),
+        appointment_time: z.string(),
+        session_type: z.enum(["virtual", "presencial"]),
+        service_type: z.string(),
+        token: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const isValid = await validateApiToken(input.token);
+        if (!isValid) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid token" });
+        }
+
+        const patientId = await createPatient({
+          name: input.customer_name,
+          email: input.customer_email,
+          phone: input.customer_phone,
+          leadSource: "website",
+        });
+
+        const scheduledAt = new Date(`${input.appointment_date}T${input.appointment_time}`);
+        const sessionId = await createSession({
+          userId: 1,
+          patientId,
+          scheduledAt,
+          durationMinutes: 50,
+          status: "scheduled",
+          sessionType: "individual",
+          modality: input.session_type === "virtual" ? "online" : "in_person",
+          notes: `Agendamento confirmado por Amanda\nServico: ${input.service_type}`,
+          isPaid: "pending",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        await logLGPDEvent({
+          eventType: "PATIENT_CREATED" as LGPDEventType,
+          patientId,
+          action: "CREATE",
+          status: "SUCCESS",
+          description: `Paciente criado via agendamento Amanda: ${input.customer_name}`,
+        });
+
+        await notifyOwner({
+          title: "Novo Agendamento de Amanda",
+          content: `${input.customer_name} agendou uma ${input.service_type} para ${input.appointment_date} as ${input.appointment_time}`,
+        });
+
+        return {
+          success: true,
+          patientId,
+          sessionId,
+          message: "Agendamento criado com sucesso",
+        };
+      } catch (error: any) {
+        console.error("[Amanda Appointment] Erro:", error);
+        throw error;
+      }
+    }),
+
+  /**
    * Obter status da integracao
    */
   getStatus: protectedProcedure.query(async ({ ctx }) => {

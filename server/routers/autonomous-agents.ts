@@ -22,6 +22,7 @@ const AgentMessageSchema = z.object({
     "daily_report_request",
     "sync_status",
     "auto_fix",
+    "appointment_confirmed",
   ]),
   agent: z.string(),
   version: z.string(),
@@ -173,6 +174,56 @@ export const autonomousAgentsRouter = router({
             auto_actions_taken: [],
           },
         };
+      }
+
+      if (input.type === "appointment_confirmed") {
+        // Processar agendamento confirmado por Amanda
+        try {
+          const appointmentData = input.data as any;
+          
+          // Importar função para criar paciente e sessão
+          const { createPatient } = await import("../db");
+          const { createSession } = await import("../db");
+          
+          // Criar ou atualizar paciente
+          const patientId = await createPatient({
+            userId: 1,
+            name: appointmentData.customer_name,
+            email: appointmentData.customer_email,
+            phone: appointmentData.customer_phone,
+            leadSource: "website",
+          });
+          
+          // Criar sessão
+          const sessionId = await createSession({
+            userId: 1, // Admin user
+            patientId,
+            scheduledAt: new Date(appointmentData.appointment_date + " " + appointmentData.appointment_time).getTime(),
+            durationMinutes: 50,
+            status: "scheduled",
+            sessionType: "individual",
+            modality: appointmentData.session_type === "virtual" ? "online" : "in_person",
+            notes: `Agendamento confirmado por Amanda\nServiço: ${appointmentData.service_type}`,
+            isPaid: "pending",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+          
+          return {
+            status: "success",
+            message_type: "appointment_confirmed",
+            patientId,
+            sessionId,
+            result: "Appointment created successfully in E-SAÚDE",
+          };
+        } catch (error: any) {
+          console.error("[E-SAÚDE] Erro ao processar agendamento confirmado:", error);
+          return {
+            status: "error",
+            message_type: "appointment_confirmed",
+            error: error.message,
+          };
+        }
       }
 
       if (input.type === "error_detected") {

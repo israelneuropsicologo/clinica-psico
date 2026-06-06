@@ -85,9 +85,57 @@ export async function receiveMessageFromAmanda(message: any): Promise<any> {
     return { success: true, messageId, action: "handshake_received" };
   }
 
-  if (message.type === "appointment_sync") {
+  if (message.type === "appointment_sync" || message.type === "appointment_confirmed") {
     console.log("[E-SAUDE] Amanda enviando agendamentos sincronizados");
-    return { success: true, messageId, action: "appointments_received" };
+    
+    try {
+      const { createPatient, createSession } = await import("./db");
+      
+      const appointmentData = message.data || message;
+      
+      const patientId = await createPatient({
+        userId: 1,
+        name: appointmentData.customer_name,
+        email: appointmentData.customer_email,
+        phone: appointmentData.customer_phone,
+        leadSource: "website",
+      });
+      
+      const scheduledAt = new Date(`${appointmentData.appointment_date}T${appointmentData.appointment_time}`).getTime();
+      const sessionId = await createSession({
+        userId: 1,
+        patientId,
+        scheduledAt: scheduledAt,
+        durationMinutes: 50,
+        status: "scheduled",
+        sessionType: "individual",
+        modality: appointmentData.session_type === "virtual" ? "online" : "in_person",
+        notes: `Agendamento confirmado por Amanda\nServico: ${appointmentData.service_type}`,
+        isPaid: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      
+      console.log(`[E-SAUDE] Agendamento processado: Paciente ${patientId}, Sessao ${sessionId}`);
+      
+      return { 
+        success: true, 
+        messageId, 
+        action: "appointments_received",
+        patientId,
+        sessionId,
+      };
+    } catch (error: any) {
+      console.error("[E-SAUDE] Erro ao processar agendamento de Amanda:", error);
+      agentMessage.status = "error";
+      agentMessage.error = error.message;
+      return { 
+        success: false, 
+        messageId, 
+        action: "appointment_error",
+        error: error.message,
+      };
+    }
   }
 
   return { success: true, messageId };
