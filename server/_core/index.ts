@@ -117,4 +117,10 @@ async function startServer() {
   }, 20000);
 }
 
+// Iniciar servidor automaticamente
+startServer().catch((err) => {
+  console.error("[FATAL] Falha ao iniciar servidor:", err);
+  process.exit(1);
+});
+
 export { startServer };
