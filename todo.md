@@ -312,3 +312,15 @@
 - [x] Validar que agendamentos aparecem em "Agendamentos Diretos"
 - [x] Validar que pacientes são criados com leadSource="website"
 - [x] Criar 13 testes Vitest para webhook de agendamentos (6 + 7 testes passando)
+
+### Fase 82: Integração Completa Amanda ↔ E-SAÚDE (CONCLUÍDO)
+- [x] Implementar processamento de mensagens appointment_sync de Amanda
+- [x] Criar pacientes automaticamente com leadSource="website"
+- [x] Criar sessões automaticamente com status="scheduled"
+- [x] Suporte para agendamentos virtuais e presenciais
+- [x] Notificação ao proprietário
+- [x] Logging LGPD
+- [x] Tratamento de erros com retry
+- [x] Fluxo completo: Site → Amanda → E-SAÚDE → Aparece em "Agendamentos Diretos"
+- [x] Endpoints funcionando: receiveFromAmanda, appointmentFromWebsite, syncChatbotAppointment
+- [x] Checkpoint f8148c4d criado
