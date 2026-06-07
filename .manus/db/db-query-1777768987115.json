@@ -1,9 +1,0 @@
-{
-  "query": "CREATE TABLE `anamnese` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`patientId` int NOT NULL,\n\t`bloodType` varchar(10),\n\t`allergies` text,\n\t`chronicConditions` text,\n\t`disabilities` text,\n\t`mainComplaintDetail` text,\n\t`familyHistory` text,\n\t`personalHistory` text,\n\t`previousTreatments` text,\n\t`therapeuticGoals` text,\n\t`cidCode` varchar(20),\n\t`therapeuticApproach` varchar(100),\n\t`riskFactors` text,\n\t`protectiveFactors` text,\n\t`additionalNotes` text,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `anamnese_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `anamnese_patientId_unique` UNIQUE(`patientId`)\n)",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute CREATE TABLE `anamnese` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`patientId` int NOT NULL,\n\t`bloodType` varchar(10),\n\t`allergies` text,\n\t`chronicConditions` text,\n\t`disabilities` text,\n\t`mainComplaintDetail` text,\n\t`familyHistory` text,\n\t`personalHistory` text,\n\t`previousTreatments` text,\n\t`therapeuticGoals` text,\n\t`cidCode` varchar(20),\n\t`therapeuticApproach` varchar(100),\n\t`riskFactors` text,\n\t`protectiveFactors` text,\n\t`additionalNotes` text,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `anamnese_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `anamnese_patientId_unique` UNIQUE(`patientId`)\n)",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 2091
-}

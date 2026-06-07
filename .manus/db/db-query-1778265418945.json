@@ -1,9 +1,0 @@
-{
-  "query": "ALTER TABLE `sessions` \nMODIFY COLUMN `sessionValue` decimal(10,2) AFTER `modality`,\nMODIFY COLUMN `isPaid` enum('pending','paid','waived') NOT NULL DEFAULT 'pending' AFTER `sessionValue`,\nMODIFY COLUMN `cancelReason` text AFTER `isPaid`,\nMODIFY COLUMN `rejectionReason` text AFTER `cancelReason`,\nMODIFY COLUMN `rejectionDate` timestamp AFTER `rejectionReason`,\nMODIFY COLUMN `notes` text AFTER `rejectionDate`;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute ALTER TABLE `sessions` \nMODIFY COLUMN `sessionValue` decimal(10,2) AFTER `modality`,\nMODIFY COLUMN `isPaid` enum('pending','paid','waived') NOT NULL DEFAULT 'pending' AFTER `sessionValue`,\nMODIFY COLUMN `cancelReason` text AFTER `isPaid`,\nMODIFY COLUMN `rejectionReason` text AFTER `cancelReason`,\nMODIFY COLUMN `rejectionDate` timestamp AFTER `rejectionReason`,\nMODIFY COLUMN `notes` text AFTER `rejectionDate`;",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 382
-}

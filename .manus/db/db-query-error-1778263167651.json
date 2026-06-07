@@ -1,8 +1,0 @@
-{
-  "query": "ALTER TABLE `sessions` \nADD COLUMN `rejectionReason` text NULL AFTER `cancelReason`,\nADD COLUMN `rejectionDate` timestamp NULL AFTER `rejectionReason`;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute ALTER TABLE `sessions` \nADD COLUMN `rejectionReason` text NULL AFTER `cancelReason`,\nADD COLUMN `rejectionDate` timestamp NULL AFTER `rejectionReason`;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1054 (42S22) at line 1: Unknown column 'rejectionreason' in 'sessions'"
-  ]
-}

@@ -1,45 +1,31 @@
-// @ts-nocheck
-import { getLoginUrl } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useEffect } from "react";
-import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { getLoginUrl } from "@/const";
+import { Streamdown } from 'streamdown';
 
 /**
- * Home Page - Redirect to Dashboard or Login
- * Displays loading state while authenticating user
- * Version: 1.0.0 - Production Ready
- * 
- * Features:
- * - Automatic redirect to dashboard for authenticated users
- * - Redirect to login for unauthenticated users
- * - Professional loading screen with branding
+ * All content in this page are only for example, replace with your own feature implementation
+ * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
  */
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
-  const [, navigate] = useLocation();
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
 
-  // Redirect based on authentication status
-  useEffect(() => {
-    if (!loading) {
-      if (isAuthenticated) {
-        navigate("/dashboard");
-      } else {
-        window.location.href = getLoginUrl();
-      }
-    }
-  }, [isAuthenticated, loading, navigate]);
+  // If theme is switchable in App.tsx, we can implement theme toggling like this:
+  // const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground text-2xl font-bold">E</span>
-        </div>
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <p className="text-muted-foreground text-sm">Carregando E-Saúde...</p>
-        <p className="text-muted-foreground text-xs mt-4">Sistema de Gestão Clínica v1.0.1 - Publicado em 16/05/2026</p>
-      </div>
+    <div className="min-h-screen flex flex-col">
+      <main>
+        {/* Example: lucide-react for icons */}
+        <Loader2 className="animate-spin" />
+        Example Page
+        {/* Example: Streamdown for markdown rendering */}
+        <Streamdown>Any **markdown** content</Streamdown>
+        <Button variant="default">Example Button</Button>
+      </main>
     </div>
   );
 }
