@@ -149,6 +149,13 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
       console.warn(`[Validation] Agendamento ${appointmentId} rejeitado: ${validation.error}`);
       console.warn(`[Validation] Dados: name=${patient.name}, email=${patient.email}, phone=${patient.phone}`);
       
+      // Buscar sync log para verificar se já foi notificado
+      const [existingLog] = await db
+        .select()
+        .from(syncLogs)
+        .where(eq(syncLogs.appointmentId, appointmentId))
+        .limit(1);
+      
       // Marcar como rejeitado permanentemente (não tentar novamente)
       // Truncar erro para caber na coluna do banco (max 500 caracteres)
       const truncatedError = (validation.error || "Dados inválidos").substring(0, 500);
@@ -158,14 +165,17 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
           status: "failed",
           errorMessage: truncatedError,
           retryCount: 999, // Marcar como esgotado para não tentar novamente
+          notified: 1, // Marcar como notificado
         })
         .where(eq(syncLogs.appointmentId, appointmentId));
       
-      // Notificar admin sobre dados incompletos
-      await notifyOwner({
-        title: "⚠️ Agendamento com dados incompletos",
-        content: `Agendamento ${appointmentId} foi rejeitado: ${validation.error}\n\nPaciente: ${patient.name}\nEmail: ${patient.email}\nTelefone: ${patient.phone || "(vazio)"}`,
-      }).catch(() => {});
+      // Notificar admin APENAS UMA VEZ sobre dados incompletos
+      if (!existingLog || existingLog.notified === 0) {
+        await notifyOwner({
+          title: "⚠️ Agendamento com dados incompletos",
+          content: `Agendamento ${appointmentId} foi rejeitado: ${validation.error}\n\nPaciente: ${patient.name}\nEmail: ${patient.email}\nTelefone: ${patient.phone || "(vazio)"}`,
+        }).catch(() => {});
+      }
       
       return false;
     }

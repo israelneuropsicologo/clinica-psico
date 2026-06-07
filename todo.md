@@ -432,3 +432,11 @@
 - [x] Adicionar tratamento de erro para sincronização E-SAÚDE
 - [x] Testar com pnpm test - 421 testes passando
 - [x] Criar checkpoint
+
+### Fase 96: Parar Notificações de Erros de Dados Incompletos (CONCLUÍDO)
+- [x] Identificar problema: Notificações repetidas de agendamentos #1080001 e #1110001
+- [x] Adicionar coluna `notified` ao schema syncLogs
+- [x] Gerar e executar migração SQL
+- [x] Atualizar lógica de rejeição para enviar notificação APENAS UMA VEZ
+- [x] Testes: 421 passando
+- [x] Criar checkpoint
