@@ -153,8 +153,17 @@ export function SessionDetailTabs({
             variant="outline"
             onClick={() => {
               if (noteId && preSelectedPatientId) {
+                const patientIdNum = typeof preSelectedPatientId === 'string' ? parseInt(preSelectedPatientId, 10) : preSelectedPatientId;
+                const sessionIdNum = typeof sessionId === 'string' ? parseInt(sessionId, 10) : sessionId;
+                const noteIdNum = typeof noteId === 'string' ? parseInt(noteId, 10) : noteId;
+                
+                if (isNaN(patientIdNum) || isNaN(sessionIdNum) || isNaN(noteIdNum)) {
+                  toast.error("IDs inválidos para preenchimento com IA");
+                  return;
+                }
+                
                 autoFillMutation.mutate(
-                  { patientId: Number(preSelectedPatientId), sessionId: Number(sessionId), noteId: Number(noteId) },
+                  { patientId: patientIdNum, sessionId: sessionIdNum, noteId: noteIdNum },
                   {
                     onSuccess: (data) => {
                       console.log("[autoFill] Sucesso:", data);

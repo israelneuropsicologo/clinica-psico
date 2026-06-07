@@ -23,6 +23,20 @@ interface AmandaAppointmentData {
  */
 export async function syncAppointmentToClinicaApp(data: AmandaAppointmentData) {
   try {
+    // ✅ NOVO: Validar dados obrigatórios
+    if (!data.patientName || data.patientName.trim().length < 8) {
+      throw new Error("Nome do paciente deve ter 8+ caracteres");
+    }
+    if (!data.patientEmail || !data.patientEmail.includes("@")) {
+      throw new Error("Email do paciente inválido");
+    }
+    if (!data.patientPhone || data.patientPhone.trim().length === 0) {
+      throw new Error("Telefone do paciente é obrigatório");
+    }
+    if (!data.appointmentDate || !data.appointmentTime) {
+      throw new Error("Data e hora do agendamento são obrigatórias");
+    }
+    
     console.log(`[SYNC AMANDA] Sincronizando agendamento de Amanda:`, {
       appointmentId: data.appointmentId,
       patientName: data.patientName,
@@ -46,7 +60,7 @@ export async function syncAppointmentToClinicaApp(data: AmandaAppointmentData) {
         customer_id: `amanda_${data.appointmentId}`,
         customer_name: data.patientName,
         customer_email: data.patientEmail,
-        customer_phone: data.patientPhone || "",
+        customer_phone: data.patientPhone, // ✅ Garantido não-vazio pela validação acima
         appointment_date: data.appointmentDate,
         appointment_time: data.appointmentTime,
         session_type: data.sessionType === "online" ? "online" : "presencial",

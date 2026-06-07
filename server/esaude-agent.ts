@@ -70,6 +70,10 @@ function validateAppointmentData(data: any): { valid: boolean; error?: string } 
   if (!data.appointment_date || !data.appointment_time) {
     return { valid: false, error: "Data e hora são obrigatórias" };
   }
+  // ✅ NOVO: Validar telefone obrigatório
+  if (!data.customer_phone || data.customer_phone.trim().length === 0) {
+    return { valid: false, error: "Telefone é obrigatório para sincronização com E-SAÚDE" };
+  }
   return { valid: true };
 }
 
@@ -136,18 +140,33 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
     const validation = validateAppointmentData({
       customer_name: patient.name || "",
       customer_email: patient.email || "",
+      customer_phone: patient.phone || "",
       appointment_date: appointmentDate.toISOString().split('T')[0],
       appointment_time: appointmentDate.toISOString().split('T')[1]?.substring(0, 5),
     });
 
     if (!validation.valid) {
+      console.warn(`[Validation] Agendamento ${appointmentId} rejeitado: ${validation.error}`);
+      console.warn(`[Validation] Dados: name=${patient.name}, email=${patient.email}, phone=${patient.phone}`);
+      
+      // Marcar como rejeitado permanentemente (não tentar novamente)
+      // Truncar erro para caber na coluna do banco (max 500 caracteres)
+      const truncatedError = (validation.error || "Dados inválidos").substring(0, 500);
       await db
         .update(syncLogs)
         .set({
           status: "failed",
-          errorMessage: validation.error,
+          errorMessage: truncatedError,
+          retryCount: 999, // Marcar como esgotado para não tentar novamente
         })
         .where(eq(syncLogs.appointmentId, appointmentId));
+      
+      // Notificar admin sobre dados incompletos
+      await notifyOwner({
+        title: "⚠️ Agendamento com dados incompletos",
+        content: `Agendamento ${appointmentId} foi rejeitado: ${validation.error}\n\nPaciente: ${patient.name}\nEmail: ${patient.email}\nTelefone: ${patient.phone || "(vazio)"}`,
+      }).catch(() => {});
+      
       return false;
     }
 
@@ -226,13 +245,16 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
 
       const log = logsForError?.[0];
       const newRetryCount = (log?.retryCount || 0) + 1;
+      
+      // Truncar erro para caber na coluna do banco (max 500 caracteres)
+      const truncatedError = String(error).substring(0, 500);
 
       if (newRetryCount >= MAX_RETRIES) {
         await dbForError
           .update(syncLogs)
           .set({
             status: "failed",
-            errorMessage: String(error),
+            errorMessage: truncatedError,
             retryCount: newRetryCount,
           })
           .where(eq(syncLogs.appointmentId, appointmentId));
@@ -249,7 +271,7 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
           .update(syncLogs)
           .set({
             status: "retry",
-            errorMessage: String(error),
+            errorMessage: truncatedError,
             retryCount: newRetryCount,
           })
           .where(eq(syncLogs.appointmentId, appointmentId));

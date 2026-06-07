@@ -342,3 +342,36 @@
 - [x] Testar fluxo: Amanda → E-SAÚDE → Cria Paciente + Sessão
 - [x] Validar que agendamento aparece em "Agendamentos Diretos"
 - [x] Checkpoint 33dfec1d criado
+
+
+### Fase 87: Corrigir Preenchimento com IA
+- [x] Corrigir erro de tipo em patientId (string → number)
+- [x] Testar preenchimento com IA
+- [x] Validar que campos são preenchidos corretamente
+
+### Fase 88: Validação Rigorosa de Dados Incompletos (CONCLUÍDO)
+- [x] Identificar problema: Agendamentos #1080001 e #1110001 falhavam na sincronização com E-SAÚDE
+- [x] Diagnosticar causa: Dados incompletos (telefone vazio) passavam validação local mas E-SAÚDE rejeitava
+- [x] Implementar validação rigorosa em esaude-agent.ts:
+  - [x] Telefone agora é obrigatório (não apenas recomendado)
+  - [x] Dados incompletos são rejeitados permanentemente (retryCount = 999)
+  - [x] Admin é notificado sobre dados incompletos
+  - [x] Erros são truncados para 500 caracteres (evita "Data too long for column")
+- [x] Implementar validação em sync-amanda-to-esaude.ts:
+  - [x] Telefone obrigatório para agendamentos de Amanda
+  - [x] Falha rápido se dados estiverem incompletos
+- [x] Criar 4 testes Vitest para validação de dados incompletos (todos passando):
+  - [x] Rejeita agendamento SEM telefone
+  - [x] Rejeita agendamento COM nome inválido
+  - [x] Rejeita agendamento SEM email
+  - [x] Aceita agendamento COM todos os dados
+- [x] Validar que nenhum teste quebrou (421 testes passando, +4 novos)
+- [x] Resultado: Agendamentos incompletos não entram em retry loop infinito
+
+**Impacto:**
+- ✅ Agendamentos #1080001 e #1110001 serão rejeitados permanentemente
+- ✅ Não haverá mais notificações "Erro de Sincronização E-..." para dados incompletos
+- ✅ Admin será notificado sobre dados incompletos para correção manual
+- ✅ Sincronização com E-SAÚDE agora é mais robusta e confiável
+- ✅ 425 testes passando (421 + 4 novos)
+
