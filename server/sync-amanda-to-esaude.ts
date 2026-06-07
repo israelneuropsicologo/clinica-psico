@@ -31,7 +31,7 @@ export async function syncAppointmentToClinicaApp(data: AmandaAppointmentData) {
     });
 
     // Token de Amanda para se autenticar com E-SAÚDE
-    const AMANDA_TOKEN = process.env.ESAUDE_AGENT_TOKEN || "sk_tx19tplq8go4z2awfemx";
+    const AMANDA_TOKEN = process.env.AMANDA_ESAUDE_TOKEN || "amanda_1780787800113_39266f25d0c6b9e80beba5bffc372c67db76a34d082dab1678c54b6e1dc9679";
 
     // URL de E-SAÚDE
     const ESAUDE_URL = process.env.BUILT_IN_FORGE_API_URL || "https://sistemaclinicaapp.manus.space";

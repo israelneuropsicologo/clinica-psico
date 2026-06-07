@@ -15,15 +15,16 @@
   ],
   "git_remote": {
     "repo_url": "s3://vida-prod-gitrepo/webdev-git/310519663616814358/P4nfWouMd7MUucxFWnyo87",
-    "access_key_id": "ASIAZV3A2ECZFVCRABMU",
-    "secret_access_key": "fhldYWC/Fh6IR6GRFMkah1Rww3QdaLjr8jxbuP5g",
-    "session_token": "IQoJb3JpZ2luX2VjEKf//////////wEaCXVzLWVhc3QtMSJGMEQCIEMHByGEIOGsFASGEyn5UeX+r2NsK0igkSUXWbhMo9AoAiBQsY/DYG7htx1ntJ29jdeVxVXFjaiUdmYwTu29iaAJ7Sr2AwhvEAQaDDY2NTM4NjA5ODg2NiIMB7+qCR6/cJYEEloeKtMD+VExNlBjXua5EyZJrr/v9F8HYIhCv1j6a+bROmdFi9cqdwliEde7QX4JFvFlJwiC1AX+DlxYw/inJW/7mXZiLlNvEFovFH3k8bSR/J9+fVSSLnh0Ld8sgQCb+OFUsQiro3QipF+BIZGsejuCvHMj5saahq1YNddX9CUKLr54+diPzvhh3Ht7k/H3iY/keBykcgTRTcBv3ZATGjwPsvYdFCiOB8ogMFYwAYFlsOxDHsLoQsRod7GQ1YhGEbeVQaiprkpTFRbB1glhZtEdURka32jTWFgeBOain6npvW2P6j93gL2JrRTkz4InfGoJHngcs+2kummDsPBJ2UNIm27lXVv5ewUElDhjvQQyBtuxRkU/BFG7KhkD2umfpjXU3DYERL9QZC9yeHtgkbvPHCnwX23bns8CM0mVGJ5Sp8j0lz7qNdg2iKs4P1WjMPFGyunkFNtDFrSaYU5At6Q30IZSpXKVF1I96FyR78QHIVZL/bD3F69YE8hnXzs92EQrUXcAXJ77sVDSaUMYoJtX9GRJ+hzRTme8CDP0CPOys2RI0u0OfEAKR3sUVyKdhNKQI06MLWC12AiZrN4Ovo8DFmHwBD2xPmRH9X4dNjJ0KLroDwPYL5owzrCL0QY6ngFZPZqijcsM+ogvrw1AHx97rv4+oyt2Cd8WDDyfkcYhDUa5xPFS8ZL69qx8K25HyVniNJg4CVEui0vnGDXOMZYdjwv+jCUVRVjUFJLtmFQ+8VSwEk/3Etcw/cZuSglvBfyJuNU1aZ3GL1HlaMFhLaKUkrFu5h6Wy3ADP41lG8RGOWoPoJeIsFQ911odFS3jhGNZTRM7goPH+JQdQDxpUA==",
-    "expiration": "2026-06-06T02:08:14.000Z"
+    "access_key_id": "ASIAZV3A2ECZPFWOLRRZ",
+    "secret_access_key": "8MSLXyXk3MtA3C5p3zT4eAcFDdOjKUsvPsaQsPqs",
+    "session_token": "IQoJb3JpZ2luX2VjEMj//////////wEaCXVzLWVhc3QtMSJIMEYCIQC5iEMl/M6j9TEREX7hc/4ghrLvfwyrkKUwx+El1d6ctgIhAIEP3DqSUkPwkr/dmwqCi9MTVt7RSUD/muihZClaPALMKv8DCJD//////////wEQBBoMNjY1Mzg2MDk4ODY2Igy49BqsPNJdj+PxA24q0wNhW8Yad0eBqhzpOZG5DnmTuizOcoIcSJkwK+c7HREW5xEN9DSyfi23m1jhQSC2K8guQ2Frxfg4w8SIwdI7pF+VY6B3QjOMw2NUPfaSyaW2fIXCbK/9D341qT+vLAnyKRzQuTz6swu4sP3yM+dunnDw7FAN+HzqRQOoaA44OzyzyWnECXh1GoYNpUnbvuWLxV+vVhwno62PLevyLIH8gjWqJP/hfBG4kfd2JWAV8uC2TzFlqcQJD57k+Ga/x/9FvdL99DGZnmoreCPW+SwFsHDyGZ8MK+O+/i49pnxrIlxHAyxgebnTrx7SlOP1ynX0Fk1tbt+LCGE6nxmACkUh48hDJtPAI13ODAjLfDbaN1PjS4Veywrf7on4jv1ovNYnYh5wha/NBsnOgCmgactr9A/08G/gKKS6JVnWuLYMRNJirziHykXPi+B9xoxARdaqmRumfHU8mu8Lc9vVq/9Mxb9t1OLSV7QV4WvQHP/ozpOUtmQPy76SK0G/9VuYPdgyKA+CSxBzyPW3X/skPLgZQs3mCnvawT8xMDIRi9Hd6npg1s0lRaSEgNVxjPuDYqFo3d52VZvE8SAmZMPyfZD8cef/Vf5xf+uVOJcYe96D1++CYkoYPDDs1pLRBjqcAa/QQUX+11kcGsLAgkiAAWY4fcmCgG7m6vxGSTArGwNhGuNmfnN3PgnRrnF+unBKM+FoTjHse2BbiHImcFwljK20jyoglu7bTQndU2i6pD9N+OY5+1tnIWRc0pWKF899ZZHWh5AvB/YjaxGWl6gthhhBpsUMUjV/x8bL4DBmVEADqmUGomYh+/vxgk9t70G7ynDcO9Hj3pkW0/SEAg==",
+    "expiration": "2026-06-07T11:21:16.000Z"
   },
   "name": "clinica-psico",
   "path": "/home/ubuntu/clinica-psico",
   "port": 3000,
   "secrets": {
+    "AMANDA_ESAUDE_TOKEN": "amanda_1780787800113_39266f25d0c6b9e80beba5bffc372c67db76a34d082dab1678c54b6e1dc9679",
     "BUILT_IN_FORGE_API_KEY": "M9g8yRPc6P2GrEvoWF7sB5",
     "BUILT_IN_FORGE_API_URL": "https://forge.manus.ai",
     "ESAUDE_AGENT_TOKEN": "sk_tx19tplq8go4z2awfemx",
