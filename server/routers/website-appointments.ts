@@ -106,13 +106,17 @@ export const websiteAppointmentsRouter = router({
           };
 
           const sessionId = await createSession(sessionData);
+          console.log(`[DEBUG] Agendamento criado: sessionId=${sessionId}, patientId=${patientId}`);
           
-          // Sincronizar com E-SAÚDE (aguardar um pouco para garantir que foi salvo no banco)
-          setTimeout(() => {
-            syncSiteToESaude(sessionId).catch((err) => {
-              console.error(`[Error] Falha ao sincronizar agendamento ${sessionId} com E-SAÚDE:`, err);
-            });
-          }, 500); // Aguardar 500ms para garantir que o banco salvou
+          // Sincronizar com E-SAÚDE IMEDIATAMENTE (sem delay)
+          console.log(`[DEBUG] Iniciando sincronização para sessionId=${sessionId}`);
+          try {
+            const syncResult = await syncSiteToESaude(sessionId);
+            console.log(`[DEBUG] Sincronização bem-sucedida: ${JSON.stringify(syncResult)}`);
+          } catch (err) {
+            console.error(`[Error] Falha ao sincronizar agendamento ${sessionId} com E-SAÚDE:`, err);
+            // Continua mesmo se falhar - o agendamento foi criado no site
+          }
         }
 
         if (isNew) {

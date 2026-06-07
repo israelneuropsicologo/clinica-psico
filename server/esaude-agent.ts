@@ -53,7 +53,7 @@ let agentStatus: AgentStatus = {
 let syncInterval: NodeJS.Timeout | null = null;
 const SYNC_INTERVAL = 30 * 1000; // 30 segundos
 const MAX_RETRIES = 5;
-const ESAUDE_API_URL = "https://3000-iqeml0nzkls9iuio3yj0h-beff8383.us2.manus.computer/api/trpc";
+const ESAUDE_API_URL = "https://3000-iw6410boje2p2f6hfu7yl-a558e006.us1.manus.computer/api/trpc";
 
 // ─── Utilities ──────────────────────────────────────────────────────────────
 
@@ -61,8 +61,8 @@ const ESAUDE_API_URL = "https://3000-iqeml0nzkls9iuio3yj0h-beff8383.us2.manus.co
  * Validar dados do agendamento
  */
 function validateAppointmentData(data: any): { valid: boolean; error?: string } {
-  if (!data.customer_name || data.customer_name.trim().length < 8) {
-    return { valid: false, error: "Nome deve ter 8+ caracteres (sem espaços)" };
+  if (!data.customer_name || data.customer_name.trim().length < 3) {
+    return { valid: false, error: "Nome deve ter 3+ caracteres" };
   }
   if (!data.customer_email || !data.customer_email.includes("@")) {
     return { valid: false, error: "Email inválido" };
@@ -70,10 +70,7 @@ function validateAppointmentData(data: any): { valid: boolean; error?: string } 
   if (!data.appointment_date || !data.appointment_time) {
     return { valid: false, error: "Data e hora são obrigatórias" };
   }
-  // ✅ NOVO: Validar telefone obrigatório
-  if (!data.customer_phone || data.customer_phone.trim().length === 0) {
-    return { valid: false, error: "Telefone é obrigatório para sincronização com E-SAÚDE" };
-  }
+
   return { valid: true };
 }
 
