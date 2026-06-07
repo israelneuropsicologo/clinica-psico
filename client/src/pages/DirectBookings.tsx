@@ -11,6 +11,7 @@ import { initializeTimezone, formatDateWithTimezone } from "@/lib/timezoneHelper
 
 export default function DirectBookings() {
   const { data: sessions, isLoading, refetch } = trpc.webhooks.getDirectBookings.useQuery({});
+  const forceSyncMutation = trpc.webhooks.forceSyncPending.useQuery();
   const [rejectionModal, setRejectionModal] = useState<{ sessionId: number; patientName: string } | null>(null);
   const [userTimezone, setUserTimezone] = useState<string>("");
 
@@ -19,6 +20,13 @@ export default function DirectBookings() {
     const timezone = initializeTimezone();
     setUserTimezone(timezone);
   }, []);
+  
+  // Refetch quando forceSyncPending completa
+  useEffect(() => {
+    if (forceSyncMutation.data) {
+      refetch();
+    }
+  }, [forceSyncMutation.data, refetch]);
 
   const updateSession = trpc.sessions.update.useMutation({
     onSuccess: () => {

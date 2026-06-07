@@ -584,7 +584,6 @@ export const syncLogs = mysqlTable("sync_logs", {
   errorMessage: varchar("errorMessage", { length: 500 }),
   esaudeId: varchar("esaudeId", { length: 255 }), // ID do agendamento em E-SAÚDE
   retryCount: int("retryCount").default(0).notNull(),
-  notified: int("notified").default(0).notNull(), // Flag para rastrear se notificacao foi enviada (0=nao, 1=sim)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

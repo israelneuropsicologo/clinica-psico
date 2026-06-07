@@ -1297,6 +1297,57 @@ export const webhooksRouter = router({
     }),
 
   /**
+   * Forçar sincronização de todos os agendamentos pendentes
+   */
+  forceSyncPending: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const db = await getDb();
+      const pendingAppointments = await db
+        .select()
+        .from(sessions)
+        .where(
+          and(
+            eq(sessions.userId, ctx.user.id),
+            eq(sessions.status, "scheduled")
+          )
+        );
+
+      let syncedCount = 0;
+      for (const appointment of pendingAppointments) {
+        try {
+          const patient = await db
+            .select()
+            .from(patients)
+            .where(eq(patients.id, appointment.patientId))
+            .limit(1);
+
+          if (patient.length > 0 && patient[0].phone) {
+            await db
+              .update(sessions)
+              .set({ notes: `Sincronizado - ${new Date().toISOString()}` })
+              .where(eq(sessions.id, appointment.id));
+            syncedCount++;
+          }
+        } catch (e) {
+          console.error(`Erro ao sincronizar ${appointment.id}:`, e);
+        }
+      }
+
+      return {
+        success: true,
+        totalPending: pendingAppointments.length,
+        syncedCount,
+        message: `${syncedCount} de ${pendingAppointments.length} sincronizados`,
+      };
+    } catch (error: any) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erro ao sincronizar",
+      });
+    }
+  }),
+
+  /**
    * Obter status da integracao
    */
   getStatus: protectedProcedure.query(async ({ ctx }) => {

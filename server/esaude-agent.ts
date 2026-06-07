@@ -165,12 +165,11 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
           status: "failed",
           errorMessage: truncatedError,
           retryCount: 999, // Marcar como esgotado para não tentar novamente
-          notified: 1, // Marcar como notificado
         })
         .where(eq(syncLogs.appointmentId, appointmentId));
       
-      // Notificar admin APENAS UMA VEZ sobre dados incompletos
-      if (!existingLog || existingLog.notified === 0) {
+      // Notificar admin sobre dados incompletos
+      if (!existingLog) {
         await notifyOwner({
           title: "⚠️ Agendamento com dados incompletos",
           content: `Agendamento ${appointmentId} foi rejeitado: ${validation.error}\n\nPaciente: ${patient.name}\nEmail: ${patient.email}\nTelefone: ${patient.phone || "(vazio)"}`,
