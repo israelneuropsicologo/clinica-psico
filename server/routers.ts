@@ -415,8 +415,8 @@ const clinicalNotesRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        sessionId: z.number(),
-        patientId: z.number(),
+        sessionId: z.coerce.number(),
+        patientId: z.coerce.number(),
         content: z.string(),
         mood: z.enum(["very_bad", "bad", "neutral", "good", "very_good"]).optional(),
         progressRating: z.number().min(1).max(10).optional(),
@@ -433,7 +433,7 @@ const clinicalNotesRouter = router({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         content: z.string().optional(),
         mood: z.enum(["very_bad", "bad", "neutral", "good", "very_good"]).optional(),
         progressRating: z.number().min(1).max(10).optional(),
@@ -569,9 +569,9 @@ Responda em português brasileiro profissional.`,
   autoFill: protectedProcedure
     .input(
       z.object({
-        patientId: z.union([z.number(), z.string()]).pipe(z.coerce.number()),
-        sessionId: z.union([z.number(), z.string()]).pipe(z.coerce.number()),
-        noteId: z.union([z.number(), z.string()]).pipe(z.coerce.number()).optional(),
+        patientId: z.coerce.number(),
+        sessionId: z.coerce.number(),
+        noteId: z.coerce.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

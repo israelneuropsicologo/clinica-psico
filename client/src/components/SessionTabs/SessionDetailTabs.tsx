@@ -158,8 +158,10 @@ export function SessionDetailTabs({
                 const sessionIdNum = Number(sessionId);
                 const noteIdNum = noteId ? Number(noteId) : 0;
                 
+                console.log("[autoFill] IDs:", { patientIdNum, sessionIdNum, noteIdNum });
+                
                 if (isNaN(patientIdNum) || isNaN(sessionIdNum) || patientIdNum <= 0 || sessionIdNum <= 0) {
-                  toast.error("IDs inválidos para preenchimento com IA");
+                  toast.error("IDs invalidos para preenchimento com IA");
                   return;
                 }
                 

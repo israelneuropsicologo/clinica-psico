@@ -386,3 +386,13 @@
 - [x] Corrigir conversão de string para número (backend com z.coerce)
 - [x] Testar em produção - FUNCIONANDO PERFEITAMENTE!
 - [x] Criar checkpoint
+
+### Fase 90: Corrigir Erros de Validação e Limitação de Tokens (CONCLUÍDO)
+- [x] Identificar erro: "expected number, received string" em patientId
+- [x] Adicionar z.coerce.number() em clinicalNotes.create
+- [x] Adicionar z.coerce.number() em clinicalNotes.update
+- [x] Remover limitação de 5 tokens em SessionTabAI.tsx
+- [x] Testar botão "Preencher com IA" - FUNCIONANDO!
+- [x] Testar botão "Solicitar Análise de IA" - FUNCIONANDO!
+- [x] Testar salvamento de dados - FUNCIONANDO!
+- [x] Criar checkpoint

@@ -60,9 +60,9 @@ export function SessionTabAI({ data, onAnalyze, isLoading = false }: SessionTabA
             </ul>
           </div>
 
-          <div className="bg-blue-100 p-3 rounded-lg border border-blue-300">
-            <p className="text-xs text-blue-900 font-semibold">
-              💰 Custo: {tokenCost} Tokens de IA por análise
+          <div className="bg-green-100 p-3 rounded-lg border border-green-300">
+            <p className="text-xs text-green-900 font-semibold">
+              ✅ Análise ilimitada - Sem custo de tokens
             </p>
           </div>
 
