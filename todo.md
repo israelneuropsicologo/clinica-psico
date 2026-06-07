@@ -411,3 +411,24 @@
 - [x] Adicionar animações e transições suaves (hover effects, 200-300ms)
 - [x] Testar em produção - FUNCIONANDO PERFEITAMENTE!
 - [x] Criar checkpoint
+
+### Fase 95: Corrigir Agendamentos do Site NÃO Sincronizando com E-SAÚDE (CRÍTICO)
+- [ ] Investigar por que agendamento "Gaby silva" não vai para E-SAÚDE
+- [ ] Verificar webhook de confirmação de agendamento
+- [ ] Corrigir fluxo de sincronização
+- [ ] Testar agendamento completo
+- [ ] Criar checkpoint
+
+### Fase 96: Parar Notificações de Erros de Dados Incompletos (CRÍTICO)
+- [ ] Verificar por que Fase 88 não está rejeitando agendamentos incompletos
+- [ ] Corrigir validação de telefone obrigatório
+- [ ] Testar com agendamentos #1080001 e #1110001
+- [ ] Verificar se notificações pararam
+- [ ] Criar checkpoint
+
+### Fase 95: Corrigir Agendamentos do ChatBot NÃO Sincronizando com E-SAÚDE (CRÍTICO) (CONCLUÍDO)
+- [x] Identificar problema: Webhook syncChatbotAppointment não sincronizava com E-SAÚDE
+- [x] Adicionar chamada syncSiteToESaude no webhook
+- [x] Adicionar tratamento de erro para sincronização E-SAÚDE
+- [x] Testar com pnpm test - 421 testes passando
+- [x] Criar checkpoint

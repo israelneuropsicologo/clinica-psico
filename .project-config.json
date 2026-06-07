@@ -15,10 +15,10 @@
   ],
   "git_remote": {
     "repo_url": "s3://vida-prod-gitrepo/webdev-git/310519663616814358/P4nfWouMd7MUucxFWnyo87",
-    "access_key_id": "ASIAZV3A2ECZPFWOLRRZ",
-    "secret_access_key": "8MSLXyXk3MtA3C5p3zT4eAcFDdOjKUsvPsaQsPqs",
-    "session_token": "IQoJb3JpZ2luX2VjEMj//////////wEaCXVzLWVhc3QtMSJIMEYCIQC5iEMl/M6j9TEREX7hc/4ghrLvfwyrkKUwx+El1d6ctgIhAIEP3DqSUkPwkr/dmwqCi9MTVt7RSUD/muihZClaPALMKv8DCJD//////////wEQBBoMNjY1Mzg2MDk4ODY2Igy49BqsPNJdj+PxA24q0wNhW8Yad0eBqhzpOZG5DnmTuizOcoIcSJkwK+c7HREW5xEN9DSyfi23m1jhQSC2K8guQ2Frxfg4w8SIwdI7pF+VY6B3QjOMw2NUPfaSyaW2fIXCbK/9D341qT+vLAnyKRzQuTz6swu4sP3yM+dunnDw7FAN+HzqRQOoaA44OzyzyWnECXh1GoYNpUnbvuWLxV+vVhwno62PLevyLIH8gjWqJP/hfBG4kfd2JWAV8uC2TzFlqcQJD57k+Ga/x/9FvdL99DGZnmoreCPW+SwFsHDyGZ8MK+O+/i49pnxrIlxHAyxgebnTrx7SlOP1ynX0Fk1tbt+LCGE6nxmACkUh48hDJtPAI13ODAjLfDbaN1PjS4Veywrf7on4jv1ovNYnYh5wha/NBsnOgCmgactr9A/08G/gKKS6JVnWuLYMRNJirziHykXPi+B9xoxARdaqmRumfHU8mu8Lc9vVq/9Mxb9t1OLSV7QV4WvQHP/ozpOUtmQPy76SK0G/9VuYPdgyKA+CSxBzyPW3X/skPLgZQs3mCnvawT8xMDIRi9Hd6npg1s0lRaSEgNVxjPuDYqFo3d52VZvE8SAmZMPyfZD8cef/Vf5xf+uVOJcYe96D1++CYkoYPDDs1pLRBjqcAa/QQUX+11kcGsLAgkiAAWY4fcmCgG7m6vxGSTArGwNhGuNmfnN3PgnRrnF+unBKM+FoTjHse2BbiHImcFwljK20jyoglu7bTQndU2i6pD9N+OY5+1tnIWRc0pWKF899ZZHWh5AvB/YjaxGWl6gthhhBpsUMUjV/x8bL4DBmVEADqmUGomYh+/vxgk9t70G7ynDcO9Hj3pkW0/SEAg==",
-    "expiration": "2026-06-07T11:21:16.000Z"
+    "access_key_id": "ASIAZV3A2ECZJQBVY5QN",
+    "secret_access_key": "emmA5UCtCdel3xogg1GlJgsecg3UuJsb65niqdFm",
+    "session_token": "IQoJb3JpZ2luX2VjENf//////////wEaCXVzLWVhc3QtMSJIMEYCIQDXjzhH46Ko8WX7O555fgNS+kSjc9GhX1QrZBH0NVO7zAIhANKk2UEEFWAbWkGLYNTWQ0G6FInAYjjzNL13AvyR6K6qKv8DCKD//////////wEQBBoMNjY1Mzg2MDk4ODY2IgzG++RtSsGpeahKy90q0wOIIO2UrkrdJSz8TMZSv5jYCY0wxVbZeA/mMEovQl8EY1GNDw1/rxCh9FIibhF2PW6KGY6wFK/LPY3zH1bEjwC+lKpAVzVOETv766zkFb060HkaYqgisNqmgWPpqUmt/HiBq63ZAt5qYi/VeGbkv1kRvjrwWE1+AHYNwXkIPukeLamEvM9cpdOajk92dZHPEdmVLNynPSDBEXzwBrDH34NeGKaZn+P7HVVilpoDk6l9bMIGCGjqEj9tWfkbMtOlkrECDlHr6FbB1ED+DgwB8aD9qASScUsFLAjqmCTi/MO7Nv7V/WOQkLIDQP+CWmqL6vSTivHFnGmIUuSHDpOV21p+w4GWOxm8VjVPgeLNMDcxu8w71l0PNLmLiCpbvLSSx9eomaujhjGu7SnZ13tGJYBkobS9KmXjzUqvS5uCPTeUSZGsxcfCIqprQO/86zKjenYWIT0fShdYl0m8SgYWLDuJCGWnBcMqcsW+ZrzNn7arFsNx2QUIABwG10WdOGCCRIRXOkZ7YTbDCxyPvoKEt4Lz9cAnF2MHYxqMjz4KKlbBo2qcTi+05022SXyCwpsm6HVUUXUXyNB6EjVvwwlfoGkRLk9l/e+Ad8hZYI10+1CxMYy4dDDjgpbRBjqcAXNZWIx1a7PFdo9P2zfxLZWe4jXUgbxbKwvCYTgqd93lx5gZv49zGWRV9Xb6zCJNDGN86dUbC4Yq3jgVbwm8C4YRd9SUQwAVDwReH2NaigOr9aJFPIas3NJQsymKAhGT49SSpmLbJbpyU9XJL/IxjLhxhodEejhNrE8FTMw2tEeUqxq7iGESNqgrQC7sVCl8Uev1XlGeHsJ0dkU9yw==",
+    "expiration": "2026-06-08T02:34:11.000Z"
   },
   "name": "clinica-psico",
   "path": "/home/ubuntu/clinica-psico",

@@ -760,6 +760,28 @@ export const webhooksRouter = router({
           content: `${input.customer_name} agendou uma consulta para ${input.appointment_date} às ${input.appointment_time} (${input.session_type})`,
         });
 
+        // Sincronizar com E-SAÚDE
+        try {
+          await syncSiteToESaude({
+            sessionId,
+            patientId,
+            userId,
+            patientName: input.customer_name,
+            patientEmail: input.customer_email,
+            patientPhone: input.customer_phone || "",
+            appointmentDate: input.appointment_date,
+            appointmentTime: input.appointment_time,
+            modality,
+            source: "chatbot",
+          });
+        } catch (esaudeError) {
+          console.error("Erro ao sincronizar com E-SAÚDE:", esaudeError);
+          await notifyOwner({
+            title: "⚠️ Erro ao Sincronizar com E-SAÚDE",
+            content: `Agendamento de ${input.customer_name} foi criado localmente, mas houve erro ao sincronizar com E-SAÚDE.`,
+          });
+        }
+
         // Log de webhook
         await logWebhook(userId, "chatbot_appointment", input.customer_id, input, "success");
 
