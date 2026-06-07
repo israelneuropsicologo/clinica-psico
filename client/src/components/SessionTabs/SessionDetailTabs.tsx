@@ -152,21 +152,27 @@ export function SessionDetailTabs({
             size="sm"
             variant="outline"
             onClick={() => {
-              if (noteId && preSelectedPatientId) {
-                const patientIdNum = typeof preSelectedPatientId === 'string' ? parseInt(preSelectedPatientId, 10) : preSelectedPatientId;
-                const sessionIdNum = typeof sessionId === 'string' ? parseInt(sessionId, 10) : sessionId;
-                const noteIdNum = typeof noteId === 'string' ? parseInt(noteId, 10) : noteId;
+              if (preSelectedPatientId) {
+                // Garantir conversao segura para numeros
+                const patientIdNum = Number(preSelectedPatientId);
+                const sessionIdNum = Number(sessionId);
+                const noteIdNum = noteId ? Number(noteId) : 0;
                 
-                if (isNaN(patientIdNum) || isNaN(sessionIdNum) || isNaN(noteIdNum)) {
+                if (isNaN(patientIdNum) || isNaN(sessionIdNum) || patientIdNum <= 0 || sessionIdNum <= 0) {
                   toast.error("IDs inválidos para preenchimento com IA");
                   return;
                 }
                 
+                // Se não tem noteId, usar 0 para indicar que a IA deve criar uma nova nota
+                const finalNoteId = noteIdNum && !isNaN(noteIdNum) ? noteIdNum : 0;
+                
                 autoFillMutation.mutate(
-                  { patientId: patientIdNum, sessionId: sessionIdNum, noteId: noteIdNum },
+                  { patientId: patientIdNum, sessionId: sessionIdNum, noteId: finalNoteId },
                   {
                     onSuccess: (data) => {
                       console.log("[autoFill] Sucesso:", data);
+                      // Preencher os campos com os dados da IA
+                      onSave(data);
                       toast.success("Prontuário preenchido com IA!");
                       utils.clinicalNotes.bySession.invalidate();
                     },
@@ -177,10 +183,10 @@ export function SessionDetailTabs({
                   }
                 );
               } else {
-                toast.error("Salve o prontuário primeiro para usar o preenchimento com IA");
+                toast.error("Nenhum paciente selecionado para preenchimento com IA");
               }
             }}
-            disabled={autoFillMutation.isPending || !noteId}
+            disabled={autoFillMutation.isPending || !preSelectedPatientId}
             className="gap-1.5 border-violet-400 text-violet-600 hover:bg-violet-50 dark:border-violet-500 dark:text-violet-400 dark:hover:bg-violet-900/20"
           >
             {autoFillMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}

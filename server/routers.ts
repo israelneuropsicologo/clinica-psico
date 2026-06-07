@@ -569,9 +569,9 @@ Responda em português brasileiro profissional.`,
   autoFill: protectedProcedure
     .input(
       z.object({
-        patientId: z.number(),
-        sessionId: z.number(),
-        noteId: z.number().optional(),
+        patientId: z.union([z.number(), z.string()]).pipe(z.coerce.number()),
+        sessionId: z.union([z.number(), z.string()]).pipe(z.coerce.number()),
+        noteId: z.union([z.number(), z.string()]).pipe(z.coerce.number()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

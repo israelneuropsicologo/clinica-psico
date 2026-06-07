@@ -375,3 +375,14 @@
 - ✅ Sincronização com E-SAÚDE agora é mais robusta e confiável
 - ✅ 425 testes passando (421 + 4 novos)
 
+
+### Fase 89: Corrigir Botão "Preencher com IA" (CONCLUÍDO)
+- [x] Identificar problema: Botão desabilitado sem salvar nota primeiro
+- [x] Analisar código: noteId era obrigatório, mas era undefined ao abrir sessão
+- [x] Remover validação de noteId obrigatório em SessionDetailTabs.tsx
+- [x] Permitir criar nota automaticamente (noteId = 0)
+- [x] Preencher campos com dados da IA automaticamente (chamar onSave)
+- [x] Corrigir conversão de string para número (frontend com Number())
+- [x] Corrigir conversão de string para número (backend com z.coerce)
+- [x] Testar em produção - FUNCIONANDO PERFEITAMENTE!
+- [x] Criar checkpoint
