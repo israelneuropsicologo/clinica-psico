@@ -85,28 +85,44 @@ export async function notifyOwner(
   const endpoint = buildEndpointUrl(ENV.forgeApiUrl);
 
   try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        authorization: `Bearer ${ENV.forgeApiKey}`,
-        "content-type": "application/json",
-        "connect-protocol-version": "1",
-      },
-      body: JSON.stringify({ title, content }),
-    });
+    // Add 5 second timeout to prevent webhook blocking
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-    if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      console.warn(
-        `[Notification] Failed to notify owner (${response.status} ${response.statusText})${
-          detail ? `: ${detail}` : ""
-        }`
-      );
-      return false;
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          authorization: `Bearer ${ENV.forgeApiKey}`,
+          "content-type": "application/json",
+          "connect-protocol-version": "1",
+        },
+        body: JSON.stringify({ title, content }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        console.warn(
+          `[Notification] Failed to notify owner (${response.status} ${response.statusText})${
+            detail ? `: ${detail}` : ""
+          }`
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        console.warn("[notifyOwner] Timeout após 5s - continuando sem notificação");
+        return false; // Falha silenciosa, não trava o webhook
+      }
+      throw error;
     }
-
-    return true;
   } catch (error) {
     console.warn("[Notification] Error calling notification service:", error);
     return false;

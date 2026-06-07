@@ -1,0 +1,1 @@
+ALTER TABLE `patients` MODIFY COLUMN `leadSource` enum('chatbot','direct_booking','manual','import','website') NOT NULL DEFAULT 'manual';

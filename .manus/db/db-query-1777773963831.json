@@ -1,0 +1,130 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'patients' ORDER BY ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'patients' ORDER BY ORDINAL_POSITION;",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "userId"
+    },
+    {
+      "COLUMN_NAME": "name"
+    },
+    {
+      "COLUMN_NAME": "email"
+    },
+    {
+      "COLUMN_NAME": "phone"
+    },
+    {
+      "COLUMN_NAME": "birthDate"
+    },
+    {
+      "COLUMN_NAME": "cpf"
+    },
+    {
+      "COLUMN_NAME": "address"
+    },
+    {
+      "COLUMN_NAME": "emergencyContact"
+    },
+    {
+      "COLUMN_NAME": "emergencyPhone"
+    },
+    {
+      "COLUMN_NAME": "occupation"
+    },
+    {
+      "COLUMN_NAME": "referredBy"
+    },
+    {
+      "COLUMN_NAME": "mainComplaint"
+    },
+    {
+      "COLUMN_NAME": "medicalHistory"
+    },
+    {
+      "COLUMN_NAME": "medications"
+    },
+    {
+      "COLUMN_NAME": "notes"
+    },
+    {
+      "COLUMN_NAME": "status"
+    },
+    {
+      "COLUMN_NAME": "sessionValue"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "COLUMN_NAME": "externalCustomerId"
+    },
+    {
+      "COLUMN_NAME": "leadSource"
+    },
+    {
+      "COLUMN_NAME": "leadStatus"
+    },
+    {
+      "COLUMN_NAME": "interactionCount"
+    },
+    {
+      "COLUMN_NAME": "lastInteractionAt"
+    },
+    {
+      "COLUMN_NAME": "addressNumber"
+    },
+    {
+      "COLUMN_NAME": "addressComplement"
+    },
+    {
+      "COLUMN_NAME": "neighborhood"
+    },
+    {
+      "COLUMN_NAME": "city"
+    },
+    {
+      "COLUMN_NAME": "state"
+    },
+    {
+      "COLUMN_NAME": "zipCode"
+    },
+    {
+      "COLUMN_NAME": "phone2"
+    },
+    {
+      "COLUMN_NAME": "insuranceName"
+    },
+    {
+      "COLUMN_NAME": "insuranceNumber"
+    },
+    {
+      "COLUMN_NAME": "insurancePlan"
+    },
+    {
+      "COLUMN_NAME": "insuranceExpiry"
+    },
+    {
+      "COLUMN_NAME": "gender"
+    },
+    {
+      "COLUMN_NAME": "maritalStatus"
+    },
+    {
+      "COLUMN_NAME": "schooling"
+    },
+    {
+      "COLUMN_NAME": "religion"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nuserId\nname\nemail\nphone\nbirthDate\ncpf\naddress\nemergencyContact\nemergencyPhone\noccupation\nreferredBy\nmainComplaint\nmedicalHistory\nmedications\nnotes\nstatus\nsessionValue\ncreatedAt\nupdatedAt\nexternalCustomerId\nleadSource\nleadStatus\ninteractionCount\nlastInteractionAt\naddressNumber\naddressComplement\nneighborhood\ncity\nstate\nzipCode\nphone2\ninsuranceName\ninsuranceNumber\ninsurancePlan\ninsuranceExpiry\ngender\nmaritalStatus\nschooling\nreligion\n",
+  "stderr": "",
+  "execution_time_ms": 564
+}

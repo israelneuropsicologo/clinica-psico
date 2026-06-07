@@ -1,0 +1,114 @@
+{
+  "query": "SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME IN ('patient_documents','session_recordings') ORDER BY TABLE_NAME, ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME IN ('patient_documents','session_recordings') ORDER BY TABLE_NAME, ORDINAL_POSITION;",
+  "rows": [
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "userId"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "patientId"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "sessionId"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "fileName"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "fileKey"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "fileUrl"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "mimeType"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "fileSize"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "category"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "description"
+    },
+    {
+      "TABLE_NAME": "patient_documents",
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "userId"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "patientId"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "sessionId"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "fileName"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "fileKey"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "fileUrl"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "mimeType"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "fileSize"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "durationSeconds"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "transcription"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "transcriptionStatus"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "TABLE_NAME": "session_recordings",
+      "COLUMN_NAME": "supervision"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tCOLUMN_NAME\npatient_documents\tid\npatient_documents\tuserId\npatient_documents\tpatientId\npatient_documents\tsessionId\npatient_documents\tfileName\npatient_documents\tfileKey\npatient_documents\tfileUrl\npatient_documents\tmimeType\npatient_documents\tfileSize\npatient_documents\tcategory\npatient_documents\tdescription\npatient_documents\tcreatedAt\nsession_recordings\tid\nsession_recordings\tuserId\nsession_recordings\tpatientId\nsession_recordings\tsessionId\nsession_recordings\tfileName\nsession_recordings\tfileKey\nsession_recordings\tfileUrl\nsession_recordings\tmimeType\nsession_recordings\tfileSize\nsession_recordings\tdurationSeconds\nsession_recordings\ttranscription\nsession_recordings\ttranscriptionStatus\nsession_recordings\tcreatedAt\nsession_recordings\tsupervision\n",
+  "stderr": "",
+  "execution_time_ms": 565
+}

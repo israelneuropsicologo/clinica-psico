@@ -1,0 +1,61 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "anamnese"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "api_tokens"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "chatbot_interactions"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "clinical_notes"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "conversion_funnel"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "lgpd_audit_logs"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "patient_documents"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "patients"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "session_recordings"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "sessions"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "settings"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "timeline_analyses"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "transactions"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "user_links"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "users"
+    },
+    {
+      "Tables_in_P4nfWouMd7MUucxFWnyo87": "webhook_logs"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_P4nfWouMd7MUucxFWnyo87\n__drizzle_migrations\nanamnese\napi_tokens\nchatbot_interactions\nclinical_notes\nconversion_funnel\nlgpd_audit_logs\npatient_documents\npatients\nsession_recordings\nsessions\nsettings\ntimeline_analyses\ntransactions\nuser_links\nusers\nwebhook_logs\n",
+  "stderr": "",
+  "execution_time_ms": 570
+}

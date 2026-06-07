@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `api_tokens` (`id` int AUTO_INCREMENT NOT NULL, `userId` int NOT NULL, `token` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `description` text, `isActive` int NOT NULL DEFAULT 1, `createdAt` timestamp NOT NULL DEFAULT (now()), `expiresAt` timestamp, `lastUsedAt` timestamp, CONSTRAINT `api_tokens_id` PRIMARY KEY(`id`), CONSTRAINT `api_tokens_token_unique` UNIQUE(`token`));",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute CREATE TABLE IF NOT EXISTS `api_tokens` (`id` int AUTO_INCREMENT NOT NULL, `userId` int NOT NULL, `token` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `description` text, `isActive` int NOT NULL DEFAULT 1, `createdAt` timestamp NOT NULL DEFAULT (now()), `expiresAt` timestamp, `lastUsedAt` timestamp, CONSTRAINT `api_tokens_id` PRIMARY KEY(`id`), CONSTRAINT `api_tokens_token_unique` UNIQUE(`token`));",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1170
+}
