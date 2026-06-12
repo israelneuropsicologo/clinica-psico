@@ -219,7 +219,7 @@ const patientsRouter = router({
       // Include all values, including null (which clears fields)
       const data: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(rawData)) {
-        if (value !== undefined && value !== '') {
+        if (value !== undefined) {
           data[key] = value;
         }
       }

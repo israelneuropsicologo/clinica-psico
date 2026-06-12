@@ -205,14 +205,8 @@ export async function updatePatient(id: number, userId: number, data: Partial<In
   const db = await getDb();
   if (!db) return;
   
-  // Obter clinicId do usuário
-  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!userRecord || userRecord.length === 0) return;
-  
-  const clinicId = userRecord[0].clinicId;
-  if (!clinicId) return;
-  
-  await db.update(patients).set(data).where(and(eq(patients.id, id), eq(patients.userId, clinicId)));
+  // Atualizar paciente sem filtro de userId (todos os usuários compartilham o mesmo banco)
+  await db.update(patients).set(data).where(eq(patients.id, id));
 }
 
 export async function deletePatient(id: number, userId: number): Promise<void> {
