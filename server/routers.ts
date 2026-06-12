@@ -200,12 +200,12 @@ const patientsRouter = router({
         insurancePlan: z.string().optional(),
         insuranceExpiry: z.string().optional(),
         // Dados pessoais
-        gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional(),
-        maritalStatus: z.enum(["single", "married", "divorced", "widowed", "stable_union", "other"]).optional(),
-        schooling: z.enum(["no_schooling", "elementary", "middle", "high_school", "college", "postgrad"]).optional(),
-        religion: z.string().optional(),
-        occupation: z.string().optional(),
-        referredBy: z.string().optional(),
+        gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional().or(z.literal("")).transform(v => v === "" ? null : v),
+        maritalStatus: z.enum(["single", "married", "divorced", "widowed", "stable_union", "other"]).optional().or(z.literal("")).transform(v => v === "" ? null : v),
+        schooling: z.enum(["no_schooling", "elementary", "middle", "high_school", "college", "postgrad"]).optional().or(z.literal("")).transform(v => v === "" ? null : v),
+        religion: z.string().optional().transform(v => v === "" ? null : v),
+        occupation: z.string().optional().transform(v => v === "" ? null : v),
+        referredBy: z.string().optional().transform(v => v === "" ? null : v),
         mainComplaint: z.string().optional(),
         medicalHistory: z.string().optional(),
         medications: z.string().optional(),
@@ -216,10 +216,10 @@ const patientsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...rawData } = input;
-      // Filter out undefined and empty string values to avoid DB type errors
+      // Include all values, including null (which clears fields)
       const data: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(rawData)) {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== '') {
           data[key] = value;
         }
       }
