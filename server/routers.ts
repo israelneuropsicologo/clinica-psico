@@ -216,19 +216,27 @@ const patientsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...rawData } = input;
-      // Include all values, including null (which clears fields)
+      // Only include fields that were actually provided and have values
       const data: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(rawData)) {
-        if (value !== undefined) {
+        // Skip undefined values (not provided by frontend)
+        if (value === undefined) continue;
+        
+        // For enums and strings: convert empty string to null, otherwise include
+        if (value === '') {
+          data[key] = null;
+        } else {
           data[key] = value;
         }
       }
+      
       // Convert sessionValue string to number if present
       if (typeof data.sessionValue === 'string') {
         const parsed = parseFloat(data.sessionValue);
-        data.sessionValue = isNaN(parsed) ? undefined : parsed;
-        if (data.sessionValue === undefined) delete data.sessionValue;
+        data.sessionValue = isNaN(parsed) ? null : parsed;
       }
+      
+      // Only update if there are changes
       if (Object.keys(data).length > 0) {
         await updatePatient(id, ctx.user.id, data as Parameters<typeof updatePatient>[2]);
       }
