@@ -777,8 +777,7 @@ Responda em português brasileiro profissional.`,
         selfHarmRisk: safeRisk(filled.selfHarmRisk),
         thirdPartyRisk: safeRisk(filled.thirdPartyRisk),
         suicideRisk: safeRisk(filled.suicideRisk),
-        sessionNumber,
-      };
+      }
     }),
 
   analyzeWithAI: protectedProcedure
