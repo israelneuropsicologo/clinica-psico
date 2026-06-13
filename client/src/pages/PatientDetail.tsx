@@ -127,10 +127,6 @@ export default function PatientDetail() {
     onSuccess: () => { toast.success("Gravação excluída."); refetchRecordings(); },
     onError: (e) => toast.error(e.message),
   });
-  const deleteClinicalNoteMutation = trpc.clinicalNotes.delete.useMutation({
-    onSuccess: () => { toast.success("Prontuário excluído."); refetchNotes(); },
-    onError: (e) => toast.error(e.message),
-  });
   const transcribeMutation = trpc.recordings.transcribe.useMutation({
     onSuccess: () => { toast.success("Transcrição concluída!"); refetchRecordings(); },
     onError: (e) => toast.error(e.message),
@@ -324,20 +320,9 @@ export default function PatientDetail() {
               <>
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-muted-foreground">{clinicalNotes?.length ?? 0} prontuário(s) registrado(s)</p>
-                  <div className="flex gap-2">
-                    {clinicalNotes?.length ? (
-                      <Button size="sm" variant="destructive" onClick={() => {
-                        if (confirm(`Tem certeza que deseja apagar TODOS os ${clinicalNotes.length} prontuários?`)) {
-                          clinicalNotes.forEach(note => deleteClinicalNoteMutation.mutate({ id: note.id }));
-                        }
-                      }} className="gap-1.5">
-                        <Trash2 className="h-3.5 w-3.5" /> Apagar Todos
-                      </Button>
-                    ) : null}
-                    <Button size="sm" onClick={() => navigate(`/sessions?patientId=${patientId}`)} className="gap-1.5">
-                      <Calendar className="h-3.5 w-3.5" /> Nova Sessão
-                    </Button>
-                  </div>
+                  <Button size="sm" onClick={() => navigate(`/sessions?patientId=${patientId}`)} className="gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" /> Nova Sessão
+                  </Button>
                 </div>
                 {!clinicalNotes?.length ? (
                   <Card>
@@ -367,22 +352,7 @@ export default function PatientDetail() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex gap-2 items-center">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (confirm("Tem certeza que deseja apagar este prontuário?")) {
-                                    deleteClinicalNoteMutation.mutate({ id: note.id });
-                                  }
-                                }}
-                                className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                            </div>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                           </div>
                           {(note as Record<string, unknown>).mainDemand && (
                             <p className="text-xs text-muted-foreground line-clamp-2">
