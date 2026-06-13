@@ -420,6 +420,12 @@ export async function updateClinicalNote(id: number, userId: number, data: Parti
   await db.update(clinicalNotes).set(cleanData).where(and(eq(clinicalNotes.id, id), eq(clinicalNotes.userId, userId)));
 }
 
+export async function deleteClinicalNote(id: number, userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(clinicalNotes).where(and(eq(clinicalNotes.id, id), eq(clinicalNotes.userId, userId)));
+}
+
 // ─── Transactions ──────────────────────────────────────────────────────────
 
 export async function getTransactions(

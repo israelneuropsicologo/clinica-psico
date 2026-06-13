@@ -839,6 +839,14 @@ ${input.patientHistory}` : ""}`,
       await updateClinicalNote(input.noteId, ctx.user.id, { aiSuggestions: aiText });
       return { suggestions: aiText };
     }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.coerce.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { deleteClinicalNote } = await import("../db");
+      await deleteClinicalNote(input.id, ctx.user.id);
+      return { success: true };
+    }),
 });
 
 // ─── Transactions Router ────────────────────────────────────────────────────
