@@ -118,30 +118,8 @@ export async function getPatients(userId: number, search?: string, status?: stri
   const db = await getDb();
   if (!db) return [];
 
-  // Obter clinicId do usuario
-  const userRecord = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!userRecord || userRecord.length === 0) return [];
-  
-  // Buscar pacientes compartilhados
-  const sharedPatients = await db
-    .select({ patientId: userShares.patientId })
-    .from(userShares)
-    .where(eq(userShares.toUserId, userId));
-  
-  const sharedPatientIds = sharedPatients.map((sp) => sp.patientId);
-  
-  // Construir condicoes: pacientes proprios OU compartilhados
+  // Todos os usuários compartilham o mesmo banco - sem filtro de userId
   const patientConditions: any[] = [];
-  if (sharedPatientIds.length > 0) {
-    patientConditions.push(
-      or(
-        eq(patients.userId, userId),
-        inArray(patients.id, sharedPatientIds)
-      )!
-    );
-  } else {
-    patientConditions.push(eq(patients.userId, userId));
-  }
   
   if (status && status !== "all") {
     patientConditions.push(eq(patients.status, status as Patient["status"]));
@@ -155,6 +133,11 @@ export async function getPatients(userId: number, search?: string, status?: stri
         like(patients.cpf, `%${search}%`)
       )!
     );
+  }
+
+  // Se não há condições, retorna todos os pacientes
+  if (patientConditions.length === 0) {
+    return db.select().from(patients).orderBy(patients.name);
   }
 
   return db.select().from(patients).where(and(...patientConditions)).orderBy(patients.name);
@@ -425,9 +408,11 @@ export async function createClinicalNote(data: InsertClinicalNote): Promise<numb
 export async function updateClinicalNote(id: number, userId: number, data: Partial<InsertClinicalNote>): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  // Strip undefined values to avoid Drizzle sending NULL for NOT NULL columns
+  // Strip undefined values and convert empty strings to null
   const cleanData = Object.fromEntries(
-    Object.entries(data).filter(([, v]) => v !== undefined)
+    Object.entries(data)
+      .filter(([, v]) => v !== undefined)
+      .map(([k, v]) => [k, v === "" ? null : v])
   ) as Partial<InsertClinicalNote>;
   if (Object.keys(cleanData).length === 0) return;
   await db.update(clinicalNotes).set(cleanData).where(and(eq(clinicalNotes.id, id), eq(clinicalNotes.userId, userId)));
