@@ -760,7 +760,7 @@ Responda em português brasileiro profissional.`,
         "therapeuticPlan", "homework", "treatmentResponse", "goalsProgress",
         "observedInsights", "observedResistances", "nextSessionGoals", "treatmentPlanAdjustments",
         "countertransference", "clinicalHypotheses", "supervisionNotes", "referrals",
-        "privateObservations"
+        "privateObservations", "mood", "sufferingLevel", "selfHarmRisk", "thirdPartyRisk", "suicideRisk"
       ];
 
       const cleanedFilled: Record<string, unknown> = {};
@@ -770,14 +770,14 @@ Responda em português brasileiro profissional.`,
         }
       }
 
-      return {
-        ...cleanedFilled,
-        mood: safeMood(filled.mood),
-        sufferingLevel: safeNum(filled.sufferingLevel, 0, 10),
-        selfHarmRisk: safeRisk(filled.selfHarmRisk),
-        thirdPartyRisk: safeRisk(filled.thirdPartyRisk),
-        suicideRisk: safeRisk(filled.suicideRisk),
-      }
+      // Adicionar campos de risco e mood se estiverem presentes
+      if (filled.mood) cleanedFilled.mood = safeMood(filled.mood);
+      if (filled.sufferingLevel !== undefined) cleanedFilled.sufferingLevel = safeNum(filled.sufferingLevel, 0, 10);
+      if (filled.selfHarmRisk) cleanedFilled.selfHarmRisk = safeRisk(filled.selfHarmRisk);
+      if (filled.thirdPartyRisk) cleanedFilled.thirdPartyRisk = safeRisk(filled.thirdPartyRisk);
+      if (filled.suicideRisk) cleanedFilled.suicideRisk = safeRisk(filled.suicideRisk);
+
+      return cleanedFilled;
     }),
 
   analyzeWithAI: protectedProcedure
