@@ -211,29 +211,68 @@ const extractSections = (content: string) => {
   return sections;
 };
 
-// Gerar PDF
+// Gerar PDF com html2pdf
 const generatePDF = async (content: string, patientName?: string) => {
   try {
-    const { jsPDF } = await import("jspdf");
-    const doc = new jsPDF();
+    const html2pdf = (await import("html2pdf.js")).default;
+    
+    // Criar elemento HTML para capturar
+    const element = document.createElement("div");
+    element.style.padding = "20px";
+    element.style.fontFamily = "Arial, sans-serif";
+    element.style.fontSize = "11px";
+    element.style.lineHeight = "1.5";
+    element.style.color = "#000";
     
     // Título
-    doc.setFontSize(16);
-    doc.text("Análise Técnica do Prontuário", 10, 10);
+    const title = document.createElement("h1");
+    title.textContent = "Análise Técnica do Prontuário";
+    title.style.fontSize = "18px";
+    title.style.marginBottom = "10px";
+    title.style.marginTop = "0";
+    element.appendChild(title);
     
+    // Informações do paciente
     if (patientName) {
-      doc.setFontSize(12);
-      doc.text(`Paciente: ${patientName}`, 10, 20);
-      doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 10, 27);
+      const info = document.createElement("p");
+      info.innerHTML = `<strong>Paciente:</strong> ${patientName}<br/><strong>Data:</strong> ${new Date().toLocaleDateString("pt-BR")}`;
+      info.style.marginBottom = "15px";
+      info.style.marginTop = "0";
+      element.appendChild(info);
     }
     
-    // Conteúdo
-    doc.setFontSize(10);
-    const lines = doc.splitTextToSize(content, 190);
-    doc.text(lines, 10, patientName ? 35 : 25);
+    // Conteúdo formatado
+    const contentDiv = document.createElement("div");
+    contentDiv.style.whiteSpace = "pre-wrap";
+    contentDiv.style.wordWrap = "break-word";
+    contentDiv.style.overflow = "visible";
     
-    // Salvar
-    doc.save(`analise-ia-${patientName || "paciente"}.pdf`);
+    // Formatar conteúdo com negrito
+    const formattedContent = content
+      .split(/(\*\*.*?\*\*)/g)
+      .map((part) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return `<strong>${part.slice(2, -2)}</strong>`;
+        }
+        return part;
+      })
+      .join("");
+    
+    contentDiv.innerHTML = formattedContent.replace(/\n/g, "<br/>");
+    element.appendChild(contentDiv);
+    
+    // Configurar opções do html2pdf
+    const options = {
+      margin: [10, 10, 10, 10] as [number, number, number, number],
+      filename: `analise-ia-${patientName || "paciente"}.pdf`,
+      image: { type: "jpeg" as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { orientation: "portrait" as const, unit: "mm" as const, format: "a4" as const },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+    } as any;
+    
+    // Gerar PDF
+    await html2pdf().set(options).from(element).save();
     toast.success("PDF gerado com sucesso!");
   } catch (error) {
     console.error("Erro ao gerar PDF:", error);
