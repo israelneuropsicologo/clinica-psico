@@ -171,6 +171,30 @@ const generatePDF = async (content: string, patientName?: string) => {
     // Aguardar renderização
     await new Promise((resolve) => setTimeout(resolve, 500));
 
+    // Remover estilos complexos que causam erro
+    element.style.all = "initial";
+    element.style.padding = "25px 20px";
+    element.style.fontFamily = "Arial, sans-serif";
+    element.style.fontSize = "11px";
+    element.style.lineHeight = "1.6";
+    element.style.color = "#000";
+    element.style.backgroundColor = "#fff";
+    element.style.width = "210mm";
+    element.style.boxSizing = "border-box";
+    element.style.display = "block";
+
+    // Remover cores oklch recursivamente
+    const removeOklchColors = (el: HTMLElement) => {
+      el.style.borderColor = "#ccc";
+      el.style.backgroundColor = "#f5f5f5";
+      Array.from(el.children).forEach((child) => {
+        if (child instanceof HTMLElement) {
+          removeOklchColors(child);
+        }
+      });
+    };
+    removeOklchColors(element);
+
     // Capturar como canvas
     const canvas = await html2canvas(element, {
       scale: 2,
