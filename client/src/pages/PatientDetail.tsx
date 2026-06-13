@@ -1218,8 +1218,6 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
   // @ts-ignore
         ...(isEmpty(prev.supervisionNotes) && data.supervisionNotes !== undefined && { supervisionNotes: String(data.supervisionNotes) }),
   // @ts-ignore
-        ...(isEmpty(prev.sessionNumber) && data.sessionNumber !== undefined && { sessionNumber: String(data.sessionNumber) }),
-  // @ts-ignore
         ...(isEmpty(prev.currentMedications) && (data as Record<string, unknown>).currentMedications !== undefined && { currentMedications: String((data as Record<string, unknown>).currentMedications) }),
   // @ts-ignore
         ...(isEmpty(prev.generalPresentation) && (data as Record<string, unknown>).generalPresentation !== undefined && { generalPresentation: String((data as Record<string, unknown>).generalPresentation) }),
@@ -1266,8 +1264,6 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
     updateMutation.mutate({
   // @ts-ignore
       id: note.id as number,
-  // @ts-ignore
-      sessionNumber: form.sessionNumber ? parseInt(form.sessionNumber) : undefined,
   // @ts-ignore
       sessionType2: sanitizeSessionType(form.sessionType2),
   // @ts-ignore

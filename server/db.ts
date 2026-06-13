@@ -408,11 +408,11 @@ export async function createClinicalNote(data: InsertClinicalNote): Promise<numb
 export async function updateClinicalNote(id: number, userId: number, data: Partial<InsertClinicalNote>): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  // Strip undefined values and convert empty strings to null
+  // Strip undefined values and empty strings - don't convert to null
+  // Empty strings should be handled by frontend (don't send them)
   const cleanData = Object.fromEntries(
     Object.entries(data)
-      .filter(([, v]) => v !== undefined)
-      .map(([k, v]) => [k, v === "" ? null : v])
+      .filter(([, v]) => v !== undefined && v !== "")
   ) as Partial<InsertClinicalNote>;
   if (Object.keys(cleanData).length === 0) return;
   await db.update(clinicalNotes).set(cleanData).where(and(eq(clinicalNotes.id, id), eq(clinicalNotes.userId, userId)));
