@@ -1118,6 +1118,58 @@ export const appRouter = router({
         return createCalendarEvent(accessToken, eventData, calendarId);
       }),
   }),
+  
+  // ─── Analysis History (Histórico de Análises) ────────────────────────────
+  analysisHistory: router({
+    save: protectedProcedure
+      .input(z.object({
+        patientId: z.number(),
+        content: z.string(),
+        analysisType: z.enum(["global", "session", "evolution"]).default("global"),
+        summary: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { saveAnalysisHistory } = await import("./db");
+        return saveAnalysisHistory(
+          input.patientId,
+          ctx.user.id,
+          input.content,
+          input.analysisType,
+          input.summary
+        );
+      }),
+    
+    getHistory: protectedProcedure
+      .input(z.object({
+        patientId: z.number(),
+        analysisType: z.enum(["global", "session", "evolution"]).optional(),
+        limit: z.number().default(50),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { getAnalysisHistory } = await import("./db");
+        return getAnalysisHistory(
+          input.patientId,
+          ctx.user.id,
+          { analysisType: input.analysisType, limit: input.limit }
+        );
+      }),
+    
+    getByDateRange: protectedProcedure
+      .input(z.object({
+        patientId: z.number(),
+        startDate: z.date(),
+        endDate: z.date(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { getAnalysisHistoryBetweenDates } = await import("./db");
+        return getAnalysisHistoryBetweenDates(
+          input.patientId,
+          ctx.user.id,
+          input.startDate,
+          input.endDate
+        );
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

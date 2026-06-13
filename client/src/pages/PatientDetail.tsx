@@ -51,6 +51,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateSaoPaulo } from "@/lib/timezone";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { AIAnalysisResult } from "@/components/AIAnalysisResult";
+import { AnalysisTimeline } from "@/components/AnalysisTimeline";
+import { AnalysisComparison } from "@/components/AnalysisComparison";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(ts: number | Date) {
@@ -2400,5 +2402,71 @@ function UploadRecordingDialog({ patientId, open, onClose, onSuccess }: { patien
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+
+// ── Analysis History Tab ──────────────────────────────────────────────────────
+function AnalysisHistoryTab({ patientId }: { patientId: number }) {
+  const { data: analyses, isLoading } = trpc.analysisHistory.getHistory.useQuery({
+    patientId,
+    limit: 50,
+  });
+  const [showComparison, setShowComparison] = useState(false);
+
+  const analysisItems =
+    analyses?.map((a) => ({
+      id: a.id,
+      createdAt: new Date(a.createdAt),
+      analysisType: a.analysisType as "global" | "session" | "evolution",
+      content: a.content,
+      summary: a.summary ?? undefined,
+    })) ?? [];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 mb-4">
+        <Button
+          onClick={() => setShowComparison(false)}
+          variant={!showComparison ? "default" : "outline"}
+          size="sm"
+        >
+          Timeline
+        </Button>
+        <Button
+          onClick={() => setShowComparison(true)}
+          variant={showComparison ? "default" : "outline"}
+          size="sm"
+        >
+          Comparar Períodos
+        </Button>
+      </div>
+
+      {!showComparison ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              Histórico de Análises de IA
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AnalysisTimeline analyses={analysisItems} isLoading={isLoading} />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              Comparação de Análises
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AnalysisComparison analyses={analysisItems} isLoading={isLoading} />
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

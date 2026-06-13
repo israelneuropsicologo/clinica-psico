@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, inArray, like, lte, ne, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
+  AnalysisHistory,
   ClinicalNote,
   EmailAlias,
   InsertClinicalNote,
@@ -21,6 +22,7 @@ import {
   User,
   UserLink,
   UserShare,
+  analysisHistory,
   clinicalNotes,
   emailAliases,
   patientDocuments,
@@ -1094,4 +1096,77 @@ export async function canAccessPatient(userId: number, patientId: number): Promi
     .limit(1);
 
   return shared && shared.length > 0;
+}
+
+
+// ─── Analysis History (Histórico de Análises) ──────────────────────────────
+
+export async function saveAnalysisHistory(
+  patientId: number,
+  userId: number,
+  content: string,
+  analysisType: "global" | "session" | "evolution" = "global",
+  summary?: string
+): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  
+  const result = await db.insert(analysisHistory).values({
+    patientId,
+    userId,
+    analysisType,
+    content,
+    summary,
+    createdAt: new Date(),
+  });
+  
+  return (result[0] as { insertId: number }).insertId;
+}
+
+export async function getAnalysisHistory(
+  patientId: number,
+  userId: number,
+  opts?: { analysisType?: "global" | "session" | "evolution"; limit?: number }
+): Promise<AnalysisHistory[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [
+    eq(analysisHistory.patientId, patientId),
+    eq(analysisHistory.userId, userId),
+  ];
+  
+  if (opts?.analysisType) {
+    conditions.push(eq(analysisHistory.analysisType, opts.analysisType));
+  }
+
+  return db
+    .select()
+    .from(analysisHistory)
+    .where(and(...conditions))
+    .orderBy(desc(analysisHistory.createdAt))
+    .limit(opts?.limit ?? 50);
+}
+
+export async function getAnalysisHistoryBetweenDates(
+  patientId: number,
+  userId: number,
+  startDate: Date,
+  endDate: Date
+): Promise<AnalysisHistory[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db
+    .select()
+    .from(analysisHistory)
+    .where(
+      and(
+        eq(analysisHistory.patientId, patientId),
+        eq(analysisHistory.userId, userId),
+        gte(analysisHistory.createdAt, startDate),
+        lte(analysisHistory.createdAt, endDate)
+      )
+    )
+    .orderBy(desc(analysisHistory.createdAt));
 }
