@@ -211,10 +211,11 @@ const extractSections = (content: string) => {
   return sections;
 };
 
-// Gerar PDF com html2pdf
+// Gerar PDF com html2canvas + jsPDF
 const generatePDF = async (content: string, patientName?: string) => {
   try {
-    const html2pdf = (await import("html2pdf.js")).default;
+    const { jsPDF } = await import("jspdf");
+    const html2canvas = (await import("html2canvas")).default;
     
     // Criar elemento HTML para capturar
     const element = document.createElement("div");
@@ -223,6 +224,10 @@ const generatePDF = async (content: string, patientName?: string) => {
     element.style.fontSize = "11px";
     element.style.lineHeight = "1.5";
     element.style.color = "#000";
+    element.style.backgroundColor = "#fff";
+    element.style.width = "210mm";
+    element.style.minHeight = "297mm";
+    element.style.boxSizing = "border-box";
     
     // Título
     const title = document.createElement("h1");
@@ -261,18 +266,51 @@ const generatePDF = async (content: string, patientName?: string) => {
     contentDiv.innerHTML = formattedContent.replace(/\n/g, "<br/>");
     element.appendChild(contentDiv);
     
-    // Configurar opções do html2pdf
-    const options = {
-      margin: [10, 10, 10, 10] as [number, number, number, number],
-      filename: `analise-ia-${patientName || "paciente"}.pdf`,
-      image: { type: "jpeg" as const, quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { orientation: "portrait" as const, unit: "mm" as const, format: "a4" as const },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-    } as any;
+    // Adicionar ao DOM temporariamente para renderizar
+    element.style.position = "fixed";
+    element.style.left = "-9999px";
+    element.style.top = "-9999px";
+    document.body.appendChild(element);
     
-    // Gerar PDF
-    await html2pdf().set(options).from(element).save();
+    // Capturar como canvas
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#fff",
+    });
+    
+    // Remover do DOM
+    document.body.removeChild(element);
+    
+    // Criar PDF
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+    
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth - 20;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    let heightLeft = imgHeight;
+    let position = 10;
+    
+    // Adicionar imagem ao PDF com quebra de página
+    pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight - 20;
+    
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight + 10;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - 20;
+    }
+    
+    pdf.save(`analise-ia-${patientName || "paciente"}.pdf`);
     toast.success("PDF gerado com sucesso!");
   } catch (error) {
     console.error("Erro ao gerar PDF:", error);

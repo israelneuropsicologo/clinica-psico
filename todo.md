@@ -503,3 +503,20 @@
 - [x] Adicionar botão "Imprimir" (window.print)
 - [x] Instalar jsPDF (4.2.1)
 - [x] Testar gráficos em desktop e mobile
+
+
+### Fase 105b: PDF Melhorado com html2pdf ✅ COMPLETA
+- [x] Instalar html2pdf.js (0.14.0)
+- [x] Reescrever função generatePDF para usar html2pdf
+- [x] Implementar paginação automática (pagebreak)
+- [x] Preservar formatação com negrito
+- [x] Testar PDF sem cortes no final
+
+### Fase 106: Corrigir Erro de PDF + Botões de Apagar Prontuários ✅ COMPLETA
+- [x] Debugar erro de geração de PDF (html2pdf)
+- [x] Corrigir função generatePDF em AIAnalysisResult.tsx (usando html2canvas + jsPDF)
+- [x] Adicionar botão para apagar prontuário individual
+- [x] Adicionar botão para apagar todos os prontuários
+- [x] Criar procedimento tRPC para deletar prontuários (clinicalNotes.delete)
+- [x] Testar exclusão individual e em lote
+- [x] Testar geração de PDF sem erros

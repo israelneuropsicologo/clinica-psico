@@ -839,6 +839,18 @@ ${input.patientHistory}` : ""}`,
       await updateClinicalNote(input.noteId, ctx.user.id, { aiSuggestions: aiText });
       return { suggestions: aiText };
     }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.coerce.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { clinicalNotes } = await import("../drizzle/schema");
+      
+      // Deletar prontuário
+      await db.delete(clinicalNotes).where(eq(clinicalNotes.id, input.id));
+      return { success: true };
+    }),
 });
 
 // ─── Transactions Router ────────────────────────────────────────────────────
