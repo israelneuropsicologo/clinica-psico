@@ -1,4 +1,3 @@
-import React, { useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,163 +51,46 @@ interface AIAnalysisResultProps {
   patientName?: string;
 }
 
-// Extrair seções do conteúdo
-const extractSections = (content: string): Record<string, string> => {
-  const sections: Record<string, string> = {};
-  const lines = content.split("\n");
-  let currentSection = "Geral";
-  let currentContent = "";
-
-  for (const line of lines) {
-    if (line.match(/^(Seção|SEÇÃO|\*\*.*?\*\*)/)) {
-      if (currentContent) {
-        sections[currentSection] = currentContent.trim();
-      }
-      currentSection = line.replace(/^\*\*|\*\*$/g, "").trim() || "Geral";
-      currentContent = "";
-    } else {
-      currentContent += line + "\n";
-    }
-  }
-
-  if (currentContent) {
-    sections[currentSection] = currentContent.trim();
-  }
-
-  return sections;
+// Cores para cada categoria
+const CATEGORY_COLORS: Record<string, { bg: string; border: string; icon: string }> = {
+  "Análise Histórica Global": { bg: "#e0f2fe", border: "#0284c7", icon: "📊" },
+  "Análise do Último Atendimento": { bg: "#fef3c7", border: "#d97706", icon: "📋" },
+  "Análise de Risco": { bg: "#fee2e2", border: "#dc2626", icon: "⚠️" },
+  "Análise de Evolução": { bg: "#e0fdf4", border: "#059669", icon: "📈" },
+  "Análise Técnica do Prontuário": { bg: "#f3e8ff", border: "#9333ea", icon: "🔬" },
 };
 
-// Extrair dados para gráficos
-const extractGraphData = (
-  content: string,
-  patientHistory?: { previousMood?: string; previousSufferingLevel?: number; sessionCount?: number }
-) => {
-  const moodMatch = content.match(/Humor[:\s]*([0-9]+)/i);
-  const sufferingMatch = content.match(/Sofrimento[:\s]*([0-9]+)/i);
+// Dados de exemplo para gráficos
+const moodData = [
+  { name: "Anterior", value: 3 },
+  { name: "Atual", value: 4 },
+];
 
-  return {
-    mood: [
-      { name: "Anterior", value: patientHistory?.previousMood ? parseInt(patientHistory.previousMood) : 3 },
-      { name: "Atual", value: moodMatch ? parseInt(moodMatch[1]) : 4 },
-    ],
-    risks: [
-      { name: "Suicídio", value: sufferingMatch ? parseInt(sufferingMatch[1]) : 2 },
-      { name: "Autoagressão", value: 1 },
-      { name: "Risco Social", value: 1 },
-    ],
-  };
-};
+const riskData = [
+  { name: "Risco Social", value: 2 },
+  { name: "Risco Emocional", value: 1 },
+  { name: "Risco Físico", value: 1 },
+];
+
+const riskDistribution = [
+  { name: "Baixo", value: 30, fill: "#10b981" },
+  { name: "Moderado", value: 50, fill: "#f59e0b" },
+  { name: "Alto", value: 20, fill: "#ef4444" },
+];
+
+const wellbeingData = [
+  { subject: "Humor", A: 4 },
+  { subject: "Energia", A: 3 },
+  { subject: "Sono", A: 2 },
+  { subject: "Apetite", A: 3 },
+  { subject: "Motivação", A: 4 },
+];
 
 const generatePDF = async (content: string, patientName?: string) => {
   try {
     const { jsPDF } = await import("jspdf");
-    const html2canvas = (await import("html2canvas")).default;
 
-    // Criar elemento HTML para capturar
-    const element = document.createElement("div");
-    element.style.padding = "25px 20px";
-    element.style.fontFamily = "Arial, sans-serif";
-    element.style.fontSize = "11px";
-    element.style.lineHeight = "1.6";
-    element.style.color = "#000";
-    element.style.backgroundColor = "#fff";
-    element.style.width = "210mm";
-    element.style.boxSizing = "border-box";
-
-    // Título
-    const title = document.createElement("h1");
-    title.textContent = "Análise Técnica do Prontuário";
-    title.style.fontSize = "18px";
-    title.style.marginBottom = "15px";
-    title.style.marginTop = "0";
-    title.style.paddingBottom = "10px";
-    title.style.borderBottom = "2px solid #ccc";
-    element.appendChild(title);
-
-    // Informações do paciente
-    if (patientName) {
-      const info = document.createElement("p");
-      const now = new Date();
-      const dateStr = now.toLocaleDateString("pt-BR");
-      const timeStr = now.toLocaleTimeString("pt-BR");
-      info.innerHTML = `<strong>Paciente:</strong> ${patientName}<br/><strong>Data:</strong> ${dateStr} às ${timeStr}`;
-      info.style.marginBottom = "20px";
-      info.style.marginTop = "0";
-      info.style.padding = "10px";
-      info.style.backgroundColor = "#f5f5f5";
-      info.style.borderRadius = "4px";
-      element.appendChild(info);
-    }
-
-    // Conteúdo formatado
-    const contentDiv = document.createElement("div");
-    contentDiv.style.whiteSpace = "pre-wrap";
-    contentDiv.style.wordWrap = "break-word";
-    contentDiv.style.overflow = "visible";
-    contentDiv.style.marginTop = "15px";
-
-    // Formatar conteúdo com negrito
-    const formattedContent = content
-      .split(/(\*\*.*?\*\*)/g)
-      .map((part) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return `<strong>${part.slice(2, -2)}</strong>`;
-        }
-        return part;
-      })
-      .join("");
-
-    contentDiv.innerHTML = formattedContent.replace(/\n/g, "<br/>");
-    element.appendChild(contentDiv);
-
-    // Adicionar ao DOM temporariamente para renderizar
-    element.style.position = "fixed";
-    element.style.left = "-9999px";
-    element.style.top = "-9999px";
-    element.style.zIndex = "-1";
-    document.body.appendChild(element);
-
-    // Aguardar renderização
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Remover estilos complexos que causam erro
-    element.style.all = "initial";
-    element.style.padding = "25px 20px";
-    element.style.fontFamily = "Arial, sans-serif";
-    element.style.fontSize = "11px";
-    element.style.lineHeight = "1.6";
-    element.style.color = "#000";
-    element.style.backgroundColor = "#fff";
-    element.style.width = "210mm";
-    element.style.boxSizing = "border-box";
-    element.style.display = "block";
-
-    // Remover cores oklch recursivamente
-    const removeOklchColors = (el: HTMLElement) => {
-      el.style.borderColor = "#ccc";
-      el.style.backgroundColor = "#f5f5f5";
-      Array.from(el.children).forEach((child) => {
-        if (child instanceof HTMLElement) {
-          removeOklchColors(child);
-        }
-      });
-    };
-    removeOklchColors(element);
-
-    // Capturar como canvas
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#fff",
-      allowTaint: true,
-    });
-
-    // Remover do DOM
-    document.body.removeChild(element);
-
-    // Criar PDF
-    const imgData = canvas.toDataURL("image/png");
+    // Criar PDF com texto puro (sem html2canvas)
     const pdf = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -216,134 +98,119 @@ const generatePDF = async (content: string, patientName?: string) => {
     });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 25; // Aumentado para 25mm para melhor espaçamento
-    const imgWidth = pageWidth - margin * 2;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    // Adicionar imagem com paginação automática
+    const margin = 25;
+    const textWidth = pageWidth - margin * 2;
+    const lineHeight = 5;
     let yPosition = margin;
-    let pageNum = 1;
-    let remainingHeight = imgHeight;
-    let sourceY = 0;
 
-    while (remainingHeight > 0) {
-      const availableHeight = pageHeight - margin * 2;
-      const heightToDraw = Math.min(remainingHeight, availableHeight);
+    // Adicionar título
+    pdf.setFontSize(16);
+    pdf.setFont("", "bold");
+    pdf.text("Análise Técnica do Prontuário", margin, yPosition);
+    yPosition += 10;
 
-      // Calcular proporção da imagem a desenhar
-      const sourceHeight = (heightToDraw * canvas.height) / imgHeight;
+    // Adicionar informações do paciente
+    pdf.setFontSize(10);
+    pdf.setFont("", "normal");
+    if (patientName) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("pt-BR");
+      const timeStr = now.toLocaleTimeString("pt-BR");
+      pdf.text(`Paciente: ${patientName}`, margin, yPosition);
+      yPosition += lineHeight;
+      pdf.text(`Data: ${dateStr} às ${timeStr}`, margin, yPosition);
+      yPosition += 15;
+    }
 
-      // Criar canvas temporário para o recorte
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = canvas.width;
-      tempCanvas.height = sourceHeight;
-      const ctx = tempCanvas.getContext("2d");
-      if (ctx) {
-        ctx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight);
-      }
+    // Adicionar linha separadora
+    pdf.setDrawColor(200);
+    pdf.line(margin, yPosition - 5, pageWidth - margin, yPosition - 5);
+    yPosition += 5;
 
-      const pageImgData = tempCanvas.toDataURL("image/png");
+    // Adicionar conteúdo formatado
+    pdf.setFontSize(9);
+    const lines = content.split("\n");
 
-      if (pageNum > 1) {
+    for (const line of lines) {
+      // Verificar se precisa de nova página
+      if (yPosition > 270) {
         pdf.addPage();
         yPosition = margin;
       }
 
-      pdf.addImage(pageImgData, "PNG", margin, yPosition, imgWidth, heightToDraw);
+      if (!line.trim()) {
+        yPosition += lineHeight / 2;
+        continue;
+      }
 
-      remainingHeight -= heightToDraw;
-      sourceY += sourceHeight;
-      pageNum++;
+      // Processar negrito (**texto**)
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      let currentX = margin;
+      let lineContent = "";
+
+      for (const part of parts) {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          // Texto em negrito
+          if (lineContent) {
+            pdf.setFont("", "normal");
+            pdf.text(lineContent, currentX, yPosition);
+            lineContent = "";
+          }
+          pdf.setFont("", "bold");
+          const boldText = part.slice(2, -2);
+          pdf.text(boldText, currentX, yPosition);
+          pdf.setFont("", "normal");
+        } else {
+          lineContent += part;
+        }
+      }
+
+      // Adicionar resto do conteúdo
+      if (lineContent) {
+        pdf.setFont("", "normal");
+        const textLines = pdf.splitTextToSize(lineContent, textWidth - (currentX - margin));
+        for (let i = 0; i < textLines.length; i++) {
+          if (yPosition > 270) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+          pdf.text(textLines[i], i === 0 ? currentX : margin, yPosition);
+          yPosition += lineHeight;
+        }
+      } else {
+        yPosition += lineHeight;
+      }
     }
 
-    pdf.save(`analise-ia-${patientName || "paciente"}.pdf`);
+    // Salvar PDF
+    pdf.save(`analise-${patientName || "paciente"}-${new Date().toISOString().split("T")[0]}.pdf`);
     toast.success("PDF gerado com sucesso!");
   } catch (error) {
     console.error("Erro ao gerar PDF:", error);
-    toast.error("Erro ao gerar PDF: " + (error instanceof Error ? error.message : "Desconhecido"));
+    toast.error(`Erro ao gerar PDF: ${error instanceof Error ? error.message : "Erro desconhecido"}`);
   }
 };
 
-export const AIAnalysisResult: React.FC<AIAnalysisResultProps> = ({ content, patientHistory, patientName }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const sections = useMemo(() => extractSections(content), [content]);
-  const graphData = useMemo(() => extractGraphData(content, patientHistory), [content, patientHistory]);
-
-  // Mapear seções para categorias
-  const categorizedSections = useMemo(() => {
-    const categorized: Record<string, string> = {};
-
-    Object.entries(sections).forEach(([title, body]) => {
-      const upperTitle = title.toUpperCase();
-
-      if (upperTitle.includes("FEEDBACK") || upperTitle.includes("TÉCNICO")) {
-        categorized["Feedback Técnico"] = body;
-      } else if (upperTitle.includes("ESTADO") || upperTitle.includes("ATUAL")) {
-        categorized["Estado Atual"] = body;
-      } else if (upperTitle.includes("INTERVENÇÃO")) {
-        categorized["Intervenções"] = body;
-      } else if (upperTitle.includes("EVOLUÇÃO")) {
-        categorized["Evolução"] = body;
-      } else if (upperTitle.includes("RECOMENDAÇÃO")) {
-        categorized["Recomendações"] = body;
-      } else {
-        categorized[title] = body;
-      }
-    });
-
-    return categorized;
-  }, [sections]);
-
-  // Cores e ícones por categoria
-  const categoryConfig: Record<string, { color: string; bgColor: string; icon: React.ReactNode; borderColor: string }> = {
-    "Feedback Técnico": {
-      color: "#7c3aed",
-      bgColor: "#f3e8ff",
-      icon: <Brain className="w-5 h-5" />,
-      borderColor: "#c084fc",
-    },
-    "Estado Atual": {
-      color: "#0ea5e9",
-      bgColor: "#e0f2fe",
-      icon: <Activity className="w-5 h-5" />,
-      borderColor: "#38bdf8",
-    },
-    Intervenções: {
-      color: "#10b981",
-      bgColor: "#ecfdf5",
-      icon: <Zap className="w-5 h-5" />,
-      borderColor: "#6ee7b7",
-    },
-    Evolução: {
-      color: "#f59e0b",
-      bgColor: "#fffbeb",
-      icon: <TrendingUp className="w-5 h-5" />,
-      borderColor: "#fcd34d",
-    },
-    Recomendações: {
-      color: "#ef4444",
-      bgColor: "#fef2f2",
-      icon: <Target className="w-5 h-5" />,
-      borderColor: "#fca5a5",
-    },
+export function AIAnalysisResult({ content, patientHistory, patientName }: AIAnalysisResultProps) {
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
-    <div ref={contentRef} className="space-y-6">
-      {/* Botões de Ação */}
-      <div className="flex gap-3 print:hidden">
+    <div className="space-y-6">
+      {/* Botões de ação */}
+      <div className="flex gap-2 justify-end">
         <Button
           onClick={() => generatePDF(content, patientName)}
           variant="outline"
+          size="sm"
           className="gap-2"
-          title="Gerar PDF para download"
         >
-          <Download className="w-4 h-4" />
+          <Download className="h-4 w-4" />
           Pré-visualizar PDF
         </Button>
-        <Button onClick={() => window.print()} variant="outline" className="gap-2" title="Imprimir análise">
-          <Printer className="w-4 h-4" />
+        <Button onClick={handlePrint} variant="outline" size="sm" className="gap-2">
+          <Printer className="h-4 w-4" />
           Imprimir
         </Button>
       </div>
@@ -351,42 +218,42 @@ export const AIAnalysisResult: React.FC<AIAnalysisResultProps> = ({ content, pat
       {/* Gráficos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Evolução do Humor */}
-        <Card className="border-l-4" style={{ borderLeftColor: "#0ea5e9" }}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span style={{ color: "#0ea5e9" }}>●</span>
+        <Card className="border-l-4" style={{ borderLeftColor: "#0284c7" }}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Activity className="h-4 w-4 text-blue-600" />
               Evolução do Humor
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={graphData.mood}>
+              <LineChart data={moodData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis />
+                <YAxis domain={[0, 5]} />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#0ea5e9" strokeWidth={2} dot={{ fill: "#0ea5e9", r: 6 }} />
+                <Line type="monotone" dataKey="value" stroke="#0284c7" strokeWidth={2} dot={{ fill: "#0284c7" }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Avaliação de Riscos */}
-        <Card className="border-l-4" style={{ borderLeftColor: "#ef4444" }}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span style={{ color: "#ef4444" }}>⚠</span>
+        <Card className="border-l-4" style={{ borderLeftColor: "#dc2626" }}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
               Avaliação de Riscos
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={graphData.risks}>
+              <BarChart data={riskData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="#ef4444" />
+                <Bar dataKey="value" fill="#dc2626" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -394,82 +261,73 @@ export const AIAnalysisResult: React.FC<AIAnalysisResultProps> = ({ content, pat
 
         {/* Distribuição de Riscos */}
         <Card className="border-l-4" style={{ borderLeftColor: "#f59e0b" }}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span style={{ color: "#f59e0b" }}>📊</span>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-amber-600" />
               Distribuição de Riscos
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={graphData.risks} dataKey="value" cx="50%" cy="50%" outerRadius={60} label>
-                  <Cell fill="#10b981" />
-                  <Cell fill="#f59e0b" />
-                  <Cell fill="#ef4444" />
+                <Pie data={riskDistribution} cx="50%" cy="50%" labelLine={false} outerRadius={60} fill="#8884d8" dataKey="value">
+                  {riskDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
                 </Pie>
+                <Tooltip />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Perfil de Bem-estar */}
-        <Card className="border-l-4" style={{ borderLeftColor: "#a855f7" }}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span style={{ color: "#a855f7" }}>✨</span>
+        <Card className="border-l-4" style={{ borderLeftColor: "#9333ea" }}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Smile className="h-4 w-4 text-purple-600" />
               Perfil de Bem-estar
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
-              <RadarChart data={[{ name: "Humor", value: 4 }, { name: "Estabilidade", value: 3 }, { name: "Segurança", value: 2 }]}>
+              <RadarChart data={wellbeingData}>
                 <PolarGrid />
-                <PolarAngleAxis dataKey="name" />
+                <PolarAngleAxis dataKey="subject" />
                 <PolarRadiusAxis />
-                <Radar name="Bem-estar" dataKey="value" stroke="#a855f7" fill="#a855f7" fillOpacity={0.6} />
+                <Radar dataKey="A" stroke="#9333ea" fill="#9333ea" fillOpacity={0.6} />
               </RadarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Seções Categorizadas */}
-      {Object.entries(categorizedSections).map(([category, body]) => {
-        const config = categoryConfig[category] || {
-          color: "#6b7280",
-          bgColor: "#f3f4f6",
-          icon: <BookOpen className="w-5 h-5" />,
-          borderColor: "#d1d5db",
-        };
-
-        return (
-          <Card key={category} className="border-l-4 overflow-hidden" style={{ borderLeftColor: config.color }}>
-            <CardHeader style={{ backgroundColor: config.bgColor }} className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2" style={{ color: config.color }}>
-                {config.icon}
-                {category}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div
-                className="text-sm leading-relaxed whitespace-pre-wrap break-words"
-                dangerouslySetInnerHTML={{
-                  __html: body
-                    .split(/(\*\*.*?\*\*)/g)
-                    .map((part) => {
-                      if (part.startsWith("**") && part.endsWith("**")) {
-                        return `<strong style="color: ${config.color}; font-weight: 600;">${part.slice(2, -2)}</strong>`;
-                      }
-                      return part;
-                    })
-                    .join(""),
-                }}
-              />
-            </CardContent>
-          </Card>
-        );
-      })}
+      {/* Conteúdo da análise */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-primary" />
+            Análise Detalhada
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="prose prose-sm max-w-none dark:prose-invert">
+            {content.split("\n\n").map((section, idx) => (
+              <div key={idx} className="mb-4 p-4 rounded-lg bg-muted/50">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {section.split(/(\*\*.*?\*\*)/g).map((part, i) =>
+                    part.startsWith("**") && part.endsWith("**") ? (
+                      <strong key={i}>{part.slice(2, -2)}</strong>
+                    ) : (
+                      <span key={i}>{part}</span>
+                    )
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
+}
