@@ -143,41 +143,47 @@ const generatePDF = async (content: string, patientName?: string) => {
         continue;
       }
 
-      // Processar negrito (**texto**)
-      const parts = line.split(/(\*\*.*?\*\*)/g);
-      let currentX = margin;
-      let lineContent = "";
+      // Processar negrito - quebrar linha inteira e renderizar com formatacao
+      const parts = line.split(/(\*\*.*?\*\*)/g).filter(p => p);
+      const wrappedLines = pdf.splitTextToSize(line.replace(/\*\*/g, ""), textWidth);
+      
+      for (const wrappedLine of wrappedLines) {
+        if (yPosition > 270) {
+          pdf.addPage();
+          yPosition = margin;
+        }
 
-      for (const part of parts) {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          // Texto em negrito
-          if (lineContent) {
+        let xPos = margin;
+        let tempLine = wrappedLine;
+        
+        for (const part of parts) {
+          if (!part || !tempLine.includes(part.replace(/\*\*/g, ""))) continue;
+          
+          const isBold = part.startsWith("**") && part.endsWith("**");
+          const cleanText = part.replace(/\*\*/g, "");
+          
+          if (!tempLine.includes(cleanText)) continue;
+          
+          const beforeText = tempLine.substring(0, tempLine.indexOf(cleanText));
+          
+          if (beforeText) {
             pdf.setFont("", "normal");
-            pdf.text(lineContent, currentX, yPosition);
-            lineContent = "";
+            pdf.text(beforeText, xPos, yPosition);
+            xPos += pdf.getStringUnitWidth(beforeText) * 12 / pdf.internal.scaleFactor;
           }
-          pdf.setFont("", "bold");
-          const boldText = part.slice(2, -2);
-          pdf.text(boldText, currentX, yPosition);
+          
+          pdf.setFont("", isBold ? "bold" : "normal");
+          pdf.text(cleanText, xPos, yPosition);
+          xPos += pdf.getStringUnitWidth(cleanText) * 12 / pdf.internal.scaleFactor;
+          
+          tempLine = tempLine.substring(tempLine.indexOf(cleanText) + cleanText.length);
+        }
+        
+        if (tempLine) {
           pdf.setFont("", "normal");
-        } else {
-          lineContent += part;
+          pdf.text(tempLine, xPos, yPosition);
         }
-      }
-
-      // Adicionar resto do conteúdo
-      if (lineContent) {
-        pdf.setFont("", "normal");
-        const textLines = pdf.splitTextToSize(lineContent, textWidth - (currentX - margin));
-        for (let i = 0; i < textLines.length; i++) {
-          if (yPosition > 270) {
-            pdf.addPage();
-            yPosition = margin;
-          }
-          pdf.text(textLines[i], i === 0 ? currentX : margin, yPosition);
-          yPosition += lineHeight;
-        }
-      } else {
+        
         yPosition += lineHeight;
       }
     }
