@@ -176,6 +176,7 @@ export default function Patients() {
               <SelectItem value="active">Ativos</SelectItem>
               <SelectItem value="inactive">Inativos</SelectItem>
               <SelectItem value="discharged">Com Alta</SelectItem>
+              <SelectItem value="archived">Arquivados</SelectItem>
             </SelectContent>
           </Select>
         </div>

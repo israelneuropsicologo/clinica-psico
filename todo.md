@@ -518,3 +518,63 @@
 - [x] Testar exclusao individual e em lote
 - [x] Testar geracao de PDF sem erros
 - [x] Manter filtro de userId para seguranca
+
+
+### Fase 107: PDF Corrigido - Erro Oklch ✅ COMPLETA
+- [x] Debugar erro "oklch" no PDF
+- [x] Remover cores oklch antes de capturar com html2canvas
+- [x] Converter cores oklch para RGB
+- [x] Testar geração de PDF sem erros
+- [x] Botão "Pré-visualizar PDF" funcionando
+- [x] Botão "Imprimir" funcionando
+
+### Fase 108: PDF Corrigido - Erro Oklch ✅ COMPLETA
+- [x] Corrigido erro "oklch" removendo estilos complexos
+- [x] Função generatePDF limpa recursivamente cores oklch
+- [x] Converte para RGB antes de capturar
+- [x] Ambos botões (PDF e Impressão) funcionam perfeitamente
+
+### Fase 109: Margens do PDF Ajustadas ✅ COMPLETA
+- [x] Aumentadas margens de 15mm para 25mm
+- [x] Texto não é mais cortado na margem esquerda
+- [x] Datas, links e conteúdo têm espaço adequado
+- [x] PDF gerado com qualidade profissional
+
+
+---
+
+## 🚀 PRÓXIMAS FASES (110-112)
+
+### Fase 110: Filtro de Pacientes por Status (Ativo/Inativo/Arquivado)
+- [ ] Adicionar campo `status` ao schema de pacientes (enum: active, inactive, archived)
+- [ ] Gerar migração SQL para adicionar coluna status
+- [ ] Executar migração SQL
+- [ ] Criar função filterPatientsByStatus em db.ts
+- [ ] Criar UI com 3 botões de filtro (Ativo, Inativo, Arquivado)
+- [ ] Integrar filtro em Pacientes.tsx
+- [ ] Implementar lógica de mudança de status (dropdown no perfil do paciente)
+- [ ] Testar filtros com múltiplos pacientes
+- [ ] Criar 8 testes Vitest para filtros de status
+
+### Fase 111: Histórico de Análises com Timestamps
+- [ ] Criar tabela `analysis_history` no schema (id, patientId, analysisData, createdAt, updatedAt)
+- [ ] Gerar migração SQL
+- [ ] Executar migração SQL
+- [ ] Modificar função autoFill para salvar análise em analysis_history
+- [ ] Criar função getAnalysisHistory em db.ts
+- [ ] Criar UI com timeline de análises (com datas e horas)
+- [ ] Integrar em PatientDetail.tsx na aba "Análise IA"
+- [ ] Mostrar data/hora de cada análise
+- [ ] Testar salvamento e recuperação de histórico
+- [ ] Criar 10 testes Vitest para histórico de análises
+
+### Fase 112: Comparação de Análises Entre Datas
+- [ ] Criar componente AnalysisComparison.tsx
+- [ ] Implementar seletor de duas datas para comparação
+- [ ] Exibir lado a lado: Análise Anterior vs Análise Atual
+- [ ] Destacar mudanças (verde para melhora, vermelho para piora)
+- [ ] Mostrar evolução de indicadores (humor, riscos, etc)
+- [ ] Adicionar botão "Comparar" na timeline de análises
+- [ ] Implementar cálculo de diferenças percentuais
+- [ ] Testar comparação com múltiplas análises
+- [ ] Criar 8 testes Vitest para comparação de análises

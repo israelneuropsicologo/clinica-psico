@@ -79,7 +79,7 @@ export const patients = mysqlTable("patients", {
   medicalHistory: text("medicalHistory"),
   medications: text("medications"),
   notes: text("notes"),
-  status: mysqlEnum("status", ["active", "inactive", "discharged"]).default("active").notNull(),
+  status: mysqlEnum("status", ["active", "inactive", "discharged", "archived"]).default("active").notNull(),
   leadSource: mysqlEnum("leadSource", ["chatbot", "direct_booking", "manual", "import", "website"]).default("manual").notNull(),
   leadStatus: mysqlEnum("leadStatus", ["lead", "prospect", "customer", "inactive"]).default("lead").notNull(),
   interactionCount: int("interactionCount").default(0).notNull(),
@@ -774,3 +774,17 @@ export const agentCreditTransactions = mysqlTable("agent_credit_transactions", {
 });
 export type AgentCreditTransaction = typeof agentCreditTransactions.$inferSelect;
 export type InsertAgentCreditTransaction = typeof agentCreditTransactions.$inferInsert;
+
+// ─── Analysis History (Histórico de Análises de IA) ───────────────────────────
+export const analysisHistory = mysqlTable("analysis_history", {
+  id: int("id").autoincrement().primaryKey(),
+  patientId: int("patientId").notNull(),
+  userId: int("userId").notNull(),
+  analysisType: mysqlEnum("analysisType", ["global", "session", "evolution"]).default("global").notNull(),
+  content: text("content").notNull(), // JSON stringified
+  summary: varchar("summary", { length: 500 }), // Resumo curto
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AnalysisHistory = typeof analysisHistory.$inferSelect;
+export type InsertAnalysisHistory = typeof analysisHistory.$inferInsert;

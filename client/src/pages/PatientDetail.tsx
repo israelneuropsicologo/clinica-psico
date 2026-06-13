@@ -217,7 +217,19 @@ export default function PatientDetail() {
 
         {/* Status strip */}
         <div className="flex items-center gap-2 flex-wrap">
-          <StatusBadge status={patient.status} />
+          <Select value={patient.status} onValueChange={(newStatus) => {
+            updateMutation.mutate({ id: patientId, status: newStatus as any });
+          }}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="inactive">Inativo</SelectItem>
+              <SelectItem value="discharged">Com Alta</SelectItem>
+              <SelectItem value="archived">Arquivado</SelectItem>
+            </SelectContent>
+          </Select>
           {patient.leadStatus && <StatusBadge status={patient.leadStatus} />}
           {patient.sessionValue && (
             <Badge variant="outline" className="text-xs">

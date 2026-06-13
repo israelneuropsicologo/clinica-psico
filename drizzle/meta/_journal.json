@@ -246,6 +246,20 @@
       "when": 1780843132343,
       "tag": "0034_nosy_cargill",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "5",
+      "when": 1781383046318,
+      "tag": "0035_glamorous_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1781383238722,
+      "tag": "0036_easy_domino",
+      "breakpoints": true
     }
   ]
 }
