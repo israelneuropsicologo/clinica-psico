@@ -217,7 +217,7 @@ const generatePDF = async (content: string, patientName?: string) => {
 
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 15;
+    const margin = 25; // Aumentado para 25mm para melhor espaçamento
     const imgWidth = pageWidth - margin * 2;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
