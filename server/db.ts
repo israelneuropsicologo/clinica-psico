@@ -196,18 +196,20 @@ export async function deletePatient(id: number, userId: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
   
-  // Deletar paciente usando userId diretamente
-  await db.delete(patients).where(and(eq(patients.id, id), eq(patients.userId, userId)));
+  // Deletar paciente - banco compartilhado, sem filtro de userId
+  // Todos os usuários veem todos os pacientes, então deletar sem filtro
+  await db.delete(patients).where(eq(patients.id, id));
 }
 
 export async function getPatientCount(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
   
+  // Contar pacientes ativos - banco compartilhado, sem filtro de userId
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(patients)
-    .where(and(eq(patients.userId, userId), eq(patients.status, "active")));
+    .where(eq(patients.status, "active"));
   return Number(result[0]?.count ?? 0);
 }
 

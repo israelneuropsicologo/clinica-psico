@@ -50,6 +50,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateSaoPaulo } from "@/lib/timezone";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { AIAnalysisResult } from "@/components/AIAnalysisResult";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(ts: number | Date) {
@@ -1664,16 +1665,17 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                 </Card>
               )}
               {aiFeedback && !aiFeedbackMutation.isPending && (
-                <Card className="border-purple-200 dark:border-purple-800">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resultado da Análise</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
-                      <MarkdownRenderer>{aiFeedback}</MarkdownRenderer>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="space-y-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resultado da Análise</h3>
+                  <AIAnalysisResult 
+                    content={aiFeedback}
+                    patientHistory={{
+                      previousMood: undefined,
+                      previousSufferingLevel: undefined,
+                      sessionCount: 1,
+                    }}
+                  />
+                </div>
               )}
               {!aiFeedback && !aiFeedbackMutation.isPending && (
                 <Card>
