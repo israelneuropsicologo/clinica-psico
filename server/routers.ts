@@ -31,6 +31,7 @@ import {
   createTransaction,
   deletDocument,
   deletePatient,
+  deleteClinicalNote,
   deleteSession,
   getClinicalNotesByPatient,
   getClinicalNotesBySession,
@@ -843,7 +844,6 @@ ${input.patientHistory}` : ""}`,
   delete: protectedProcedure
     .input(z.object({ id: z.coerce.number() }))
     .mutation(async ({ ctx, input }) => {
-      const { deleteClinicalNote } = await import("../db");
       await deleteClinicalNote(input.id, ctx.user.id);
       return { success: true };
     }),

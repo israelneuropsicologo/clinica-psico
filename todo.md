@@ -503,3 +503,18 @@
 - [x] Adicionar botão "Imprimir" (window.print)
 - [x] Instalar jsPDF (4.2.1)
 - [x] Testar gráficos em desktop e mobile
+
+
+### Fase 106: Corrigir PDF + Botoes de Apagar Prontuarios COMPLETA
+- [x] Corrigir erro de geracao de PDF (html2pdf)
+- [x] Implementar html2canvas + jsPDF para melhor renderizacao
+- [x] Instalar html2canvas (1.4.1)
+- [x] Adicionar botao "Apagar Todos" na aba Prontuario
+- [x] Adicionar botao "Apagar" individual em cada prontuario (icone lixeira)
+- [x] Criar funcao deleteClinicalNote em db.ts
+- [x] Criar procedure tRPC clinicalNotes.delete em routers.ts
+- [x] Adicionar mutation deleteClinicalNoteMutation em PatientDetail.tsx
+- [x] Implementar confirmacao antes de apagar
+- [x] Testar exclusao individual e em lote
+- [x] Testar geracao de PDF sem erros
+- [x] Manter filtro de userId para seguranca
