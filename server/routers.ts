@@ -650,18 +650,57 @@ Responda em português brasileiro profissional.`,
         messages: [
           {
             role: "system",
-            content: `Você é um assistente de psicólogo clínico. Sua tarefa é preencher um prontuário de sessão psicológica em formato JSON estruturado.
-
-RETORNE APENAS UM OBJETO JSON VÁLIDO, SEM NENHUM TEXTO ANTES OU DEPOIS.
-
-CAMPOS DO JSON (todos obrigatórios):
-{"content": "texto narrativo", "generalPresentation": "apresentação", "currentMedications": "medicações", "emotionalState": "estado emocional", "predominantMood": "humor predominante", "mood": "very_bad|bad|neutral|good|very_good", "sufferingLevel": 0-10, "mainDemand": "demanda", "topicsAddressed": "tópicos", "relevantNarrative": "narrativas", "clinicalAssessment": "avaliação", "technicalAnalysis": "análise", "techniquesUsed": "técnicas", "plannedInterventions": "intervenções", "therapeuticPlan": "plano", "homework": "tarefa", "treatmentResponse": "resposta", "goalsProgress": "progresso", "observedInsights": "insights", "observedResistances": "resistências", "nextSessionGoals": "objetivos", "treatmentPlanAdjustments": "ajustes", "selfHarmRisk": "absent|low|moderate|high|extreme", "thirdPartyRisk": "absent|low|moderate|high|extreme", "suicideRisk": "absent|low|moderate|high|extreme", "countertransference": "contratransferência", "clinicalHypotheses": "hipóteses", "supervisionNotes": "supervisão", "referrals": "encaminhamentos", "privateObservations": "observações privadas"}`,
+            content: `Você é um assistente de psicólogo clínico. Analise os dados fornecidos e retorne um JSON estruturado com a avaliação clínica da sessão.`,
           },
           {
             role: "user",
-            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}.\n\nGere APENAS o JSON do preenchimento do prontuário, sem nenhum texto adicional.`,
+            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}.\n\nAnalise e preencha os campos do prontuário.`,
           },
         ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "clinical_note",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                content: { type: "string" },
+                generalPresentation: { type: "string" },
+                currentMedications: { type: "string" },
+                emotionalState: { type: "string" },
+                predominantMood: { type: "string" },
+                mood: { type: "string", enum: ["very_bad", "bad", "neutral", "good", "very_good"] },
+                sufferingLevel: { type: "number", minimum: 0, maximum: 10 },
+                mainDemand: { type: "string" },
+                topicsAddressed: { type: "string" },
+                relevantNarrative: { type: "string" },
+                clinicalAssessment: { type: "string" },
+                technicalAnalysis: { type: "string" },
+                techniquesUsed: { type: "string" },
+                plannedInterventions: { type: "string" },
+                therapeuticPlan: { type: "string" },
+                homework: { type: "string" },
+                treatmentResponse: { type: "string" },
+                goalsProgress: { type: "string" },
+                observedInsights: { type: "string" },
+                observedResistances: { type: "string" },
+                nextSessionGoals: { type: "string" },
+                treatmentPlanAdjustments: { type: "string" },
+                selfHarmRisk: { type: "string", enum: ["absent", "low", "moderate", "high", "extreme"] },
+                thirdPartyRisk: { type: "string", enum: ["absent", "low", "moderate", "high", "extreme"] },
+                suicideRisk: { type: "string", enum: ["absent", "low", "moderate", "high", "extreme"] },
+                countertransference: { type: "string" },
+                clinicalHypotheses: { type: "string" },
+                supervisionNotes: { type: "string" },
+                referrals: { type: "string" },
+                privateObservations: { type: "string" },
+              },
+              required: ["content", "emotionalState", "mainDemand", "clinicalAssessment"],
+              additionalProperties: false,
+            },
+          },
+        },
       });
 
       const rawContent = response.choices[0]?.message?.content;
