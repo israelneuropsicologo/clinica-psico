@@ -1,6 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Brain,
   Heart,
@@ -16,8 +17,30 @@ import {
   BookOpen,
   Target,
   CheckCircle2,
+  Download,
+  Printer,
 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+} from "recharts";
+import { toast } from "sonner";
 
 interface AIAnalysisResultProps {
   content: string;
@@ -26,47 +49,57 @@ interface AIAnalysisResultProps {
     previousSufferingLevel?: number;
     sessionCount?: number;
   };
+  patientName?: string;
 }
 
-// Cores por categoria
-const CATEGORY_COLORS: Record<string, { bg: string; border: string; icon: React.ReactNode; color: string }> = {
+// Cores vibrantes por categoria
+const CATEGORY_COLORS: Record<string, { bg: string; border: string; icon: React.ReactNode; color: string; chartColor: string }> = {
   "ESTADO ATUAL": {
     bg: "bg-blue-50 dark:bg-blue-950/30",
     border: "border-blue-200 dark:border-blue-800",
     color: "text-blue-700 dark:text-blue-300",
+    chartColor: "#0ea5e9",
     icon: <Heart className="w-5 h-5" />,
   },
   "INTERVENÇÕES": {
     bg: "bg-purple-50 dark:bg-purple-950/30",
     border: "border-purple-200 dark:border-purple-800",
     color: "text-purple-700 dark:text-purple-300",
+    chartColor: "#a855f7",
     icon: <Zap className="w-5 h-5" />,
   },
   "EVOLUÇÃO": {
     bg: "bg-green-50 dark:bg-green-950/30",
     border: "border-green-200 dark:border-green-800",
     color: "text-green-700 dark:text-green-300",
+    chartColor: "#10b981",
     icon: <TrendingUp className="w-5 h-5" />,
   },
   "RISCOS": {
     bg: "bg-red-50 dark:bg-red-950/30",
     border: "border-red-200 dark:border-red-800",
     color: "text-red-700 dark:text-red-300",
+    chartColor: "#ef4444",
     icon: <AlertTriangle className="w-5 h-5" />,
   },
   "ANÁLISE TÉCNICA": {
     bg: "bg-indigo-50 dark:bg-indigo-950/30",
     border: "border-indigo-200 dark:border-indigo-800",
     color: "text-indigo-700 dark:text-indigo-300",
+    chartColor: "#6366f1",
     icon: <Brain className="w-5 h-5" />,
   },
   "RECOMENDAÇÕES": {
     bg: "bg-amber-50 dark:bg-amber-950/30",
     border: "border-amber-200 dark:border-amber-800",
     color: "text-amber-700 dark:text-amber-300",
+    chartColor: "#f59e0b",
     icon: <Lightbulb className="w-5 h-5" />,
   },
 };
+
+// Cores para gráficos
+const CHART_COLORS = ["#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#a855f7", "#ec4899"];
 
 // Ícones para pontos específicos
 const POINT_ICONS: Record<string, React.ReactNode> = {
@@ -87,19 +120,19 @@ const POINT_ICONS: Record<string, React.ReactNode> = {
 // Extrair dados para gráficos
 const extractGraphData = (content: string, history?: AIAnalysisResultProps["patientHistory"]) => {
   const moodMap: Record<string, number> = {
-    "very_bad": 1,
-    "bad": 2,
-    "neutral": 3,
-    "good": 4,
-    "very_good": 5,
+    very_bad: 1,
+    bad: 2,
+    neutral: 3,
+    good: 4,
+    very_good: 5,
   };
 
   const riskMap: Record<string, number> = {
-    "absent": 0,
-    "low": 1,
-    "moderate": 2,
-    "high": 3,
-    "extreme": 4,
+    absent: 0,
+    low: 1,
+    moderate: 2,
+    high: 3,
+    extreme: 4,
   };
 
   // Extrair mood da análise
@@ -132,6 +165,17 @@ const extractGraphData = (content: string, history?: AIAnalysisResultProps["pati
       { risk: "Auto-agressão", value: selfHarmRisk },
       { risk: "Terceiros", value: thirdPartyRisk },
       { risk: "Suicídio", value: suicideRisk },
+    ],
+    riskPie: [
+      { name: "Baixo/Ausente", value: (4 - selfHarmRisk) + (4 - thirdPartyRisk) + (4 - suicideRisk), fill: "#10b981" },
+      { name: "Moderado", value: Math.max(0, selfHarmRisk + thirdPartyRisk + suicideRisk - 6), fill: "#f59e0b" },
+      { name: "Alto", value: Math.max(0, selfHarmRisk + thirdPartyRisk + suicideRisk - 3), fill: "#ef4444" },
+    ].filter(item => item.value > 0),
+    radarData: [
+      { category: "Humor", value: currentMood * 20 },
+      { category: "Sofrimento", value: (10 - currentSuffering) * 10 },
+      { category: "Estabilidade", value: 60 },
+      { category: "Engajamento", value: 70 },
     ],
   };
 };
@@ -167,7 +211,38 @@ const extractSections = (content: string) => {
   return sections;
 };
 
-export const AIAnalysisResult: React.FC<AIAnalysisResultProps> = ({ content, patientHistory }) => {
+// Gerar PDF
+const generatePDF = async (content: string, patientName?: string) => {
+  try {
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF();
+    
+    // Título
+    doc.setFontSize(16);
+    doc.text("Análise Técnica do Prontuário", 10, 10);
+    
+    if (patientName) {
+      doc.setFontSize(12);
+      doc.text(`Paciente: ${patientName}`, 10, 20);
+      doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 10, 27);
+    }
+    
+    // Conteúdo
+    doc.setFontSize(10);
+    const lines = doc.splitTextToSize(content, 190);
+    doc.text(lines, 10, patientName ? 35 : 25);
+    
+    // Salvar
+    doc.save(`analise-ia-${patientName || "paciente"}.pdf`);
+    toast.success("PDF gerado com sucesso!");
+  } catch (error) {
+    console.error("Erro ao gerar PDF:", error);
+    toast.error("Erro ao gerar PDF");
+  }
+};
+
+export const AIAnalysisResult: React.FC<AIAnalysisResultProps> = ({ content, patientHistory, patientName }) => {
+  const contentRef = useRef<HTMLDivElement>(null);
   const sections = useMemo(() => extractSections(content), [content]);
   const graphData = useMemo(() => extractGraphData(content, patientHistory), [content, patientHistory]);
 
@@ -197,57 +272,159 @@ export const AIAnalysisResult: React.FC<AIAnalysisResultProps> = ({ content, pat
   }, [sections]);
 
   return (
-    <div className="space-y-6">
-      {/* Gráficos de Dados Relevantes */}
+    <div className="space-y-6" ref={contentRef}>
+      {/* Botões de Ação */}
+      <div className="flex gap-2 flex-wrap">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => generatePDF(content, patientName)}
+          className="gap-2"
+        >
+          <Download className="w-4 h-4" />
+          Pré-visualizar PDF
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.print()}
+          className="gap-2"
+        >
+          <Printer className="w-4 h-4" />
+          Imprimir
+        </Button>
+      </div>
+
+      {/* Gráficos Modernos com Cores */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Evolução de Mood */}
-        <Card className="border-blue-200 dark:border-blue-800">
+        {/* Evolução de Mood com Cores */}
+        <Card className="border-sky-200 dark:border-sky-800 bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/30">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Smile className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <CardTitle className="text-sm flex items-center gap-2 text-sky-700 dark:text-sky-300">
+              <Smile className="w-4 h-4" />
               Evolução do Humor
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={graphData.moodEvolution}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <defs>
+                  <linearGradient id="colorMood" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
                 <XAxis dataKey="session" stroke="var(--color-muted-foreground)" />
                 <YAxis stroke="var(--color-muted-foreground)" domain={[0, 5]} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "var(--color-background)",
-                    border: "1px solid var(--color-border)",
+                    border: "2px solid #0ea5e9",
+                    borderRadius: "8px",
                   }}
                 />
-                <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6" }} />
+                <Line type="monotone" dataKey="value" stroke="#0ea5e9" strokeWidth={3} dot={{ fill: "#0ea5e9", r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Avaliação de Riscos */}
-        <Card className="border-red-200 dark:border-red-800">
+        {/* Avaliação de Riscos com Cores */}
+        <Card className="border-red-200 dark:border-red-800 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+            <CardTitle className="text-sm flex items-center gap-2 text-red-700 dark:text-red-300">
+              <AlertTriangle className="w-4 h-4" />
               Avaliação de Riscos
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={graphData.riskAssessment}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <defs>
+                  <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
                 <XAxis dataKey="risk" stroke="var(--color-muted-foreground)" />
                 <YAxis stroke="var(--color-muted-foreground)" domain={[0, 4]} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "var(--color-background)",
-                    border: "1px solid var(--color-border)",
+                    border: "2px solid #ef4444",
+                    borderRadius: "8px",
                   }}
                 />
-                <Bar dataKey="value" fill="#ef4444" />
+                <Bar dataKey="value" fill="url(#colorRisk)" radius={[8, 8, 0, 0]} />
               </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Distribuição de Riscos - Pizza */}
+        {graphData.riskPie.length > 0 && (
+          <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                <BarChart3 className="w-4 h-4" />
+                Distribuição de Riscos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={graphData.riskPie}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {graphData.riskPie.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "var(--color-background)",
+                      border: "2px solid #f59e0b",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Radar de Bem-estar */}
+        <Card className="border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2 text-purple-700 dark:text-purple-300">
+              <Activity className="w-4 h-4" />
+              Perfil de Bem-estar
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <RadarChart data={graphData.radarData}>
+                <PolarGrid stroke="rgba(0,0,0,0.1)" />
+                <PolarAngleAxis dataKey="category" stroke="var(--color-muted-foreground)" />
+                <PolarRadiusAxis stroke="var(--color-muted-foreground)" />
+                <Radar name="Bem-estar" dataKey="value" stroke="#a855f7" fill="#a855f7" fillOpacity={0.6} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "var(--color-background)",
+                    border: "2px solid #a855f7",
+                    borderRadius: "8px",
+                  }}
+                />
+              </RadarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>

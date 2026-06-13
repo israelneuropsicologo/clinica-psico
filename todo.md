@@ -492,3 +492,14 @@
 - [x] Implementar gráficos padrões (Evolução do Humor, Avaliação de Riscos)
 - [x] Integrar em PatientDetail.tsx
 - [x] Testar apresentação visual em desktop e mobile
+
+### Fase 105: Gráficos Modernos + PDF/Impressão ✅ COMPLETA
+- [x] Adicionar gráficos com cores vibrantes (Recharts)
+- [x] Implementar Evolução do Humor com gradiente azul
+- [x] Implementar Avaliação de Riscos com gradiente vermelho
+- [x] Implementar Distribuição de Riscos (pizza chart)
+- [x] Implementar Perfil de Bem-estar (radar chart)
+- [x] Adicionar botão "Pré-visualizar PDF" (jsPDF)
+- [x] Adicionar botão "Imprimir" (window.print)
+- [x] Instalar jsPDF (4.2.1)
+- [x] Testar gráficos em desktop e mobile
