@@ -606,18 +606,18 @@
 - [x] Testar em viewport 375px
 - [x] Criar 5 testes Vitest para botões responsivos
 
-### Fase 116: Stack Vertical de Tabelas em Mobile
-- [ ] Analisar layout de pacientes em Patients.tsx
-- [ ] Implementar stack vertical em mobile (flex-col)
-- [ ] Ocultar colunas secundárias em mobile
-- [ ] Adicionar "Mostrar Mais" para detalhes
-- [ ] Testar em viewport 375px
-- [ ] Criar 5 testes Vitest para tabelas responsivas
+### Fase 116: Stack Vertical de Tabelas em Mobile ✅ COMPLETA
+- [x] Analisar layout de pacientes em Patients.tsx
+- [x] Implementar stack vertical em mobile (flex-col)
+- [x] Ocultar colunas secundárias em mobile
+- [x] Adicionar "Mostrar Mais" para detalhes
+- [x] Testar em viewport 375px
+- [x] Criar 5 testes Vitest para tabelas responsivas
 
-### Fase 117: Full-Screen Modais em Mobile
-- [ ] Analisar modais em PatientDetail.tsx
-- [ ] Implementar full-screen em mobile
-- [ ] Adicionar botão de fechar no topo
-- [ ] Implementar scroll interno se necessário
-- [ ] Testar em viewport 375px
-- [ ] Criar 5 testes Vitest para modais responsivos
+### Fase 117: Full-Screen Modais em Mobile ✅ COMPLETA
+- [x] Analisar modais em PatientDetail.tsx
+- [x] Implementar full-screen em mobile
+- [x] Adicionar botão de fechar no topo
+- [x] Implementar scroll interno se necessário
+- [x] Testar em viewport 375px
+- [x] Criar 5 testes Vitest para modais responsivos

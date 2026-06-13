@@ -124,51 +124,53 @@ export default function Patients() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold">Pacientes</h1>
-            <p className="text-muted-foreground text-sm mt-1">
+      <div className="p-3 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto">
+        {/* Header - Responsive */}
+        <div className="flex items-start md:items-center justify-between gap-3 md:gap-4 flex-col md:flex-row">
+          <div className="min-w-0">
+            <h1 className="text-xl md:text-2xl font-bold">Pacientes</h1>
+            <p className="text-muted-foreground text-xs md:text-sm mt-1">
               {isLoading ? "Carregando..." : `${patients?.length ?? 0} paciente(s) encontrado(s)`}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap w-full md:w-auto">
             <PDFExportButton
-              label={selectedPatients.size > 0 ? `Exportar PDF (${selectedPatients.size})` : "Exportar PDF"}
+              label={selectedPatients.size > 0 ? `PDF (${selectedPatients.size})` : "PDF"}
               onExportPDF={handleExportPDF}
             />
             {selectedPatients.size > 0 && (
               <Button 
                 onClick={handleDeleteSelected}
                 variant="destructive"
-                className="gap-2"
+                className="gap-2 text-xs md:text-sm"
                 disabled={deleteMultipleMutation.isPending}
               >
-                <Trash2 className="h-4 w-4" />
-                Deletar {selectedPatients.size}
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Deletar {selectedPatients.size}</span>
+                <span className="sm:hidden">Del</span>
               </Button>
             )}
-            <Button onClick={() => setShowCreate(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Novo Paciente
+            <Button onClick={() => setShowCreate(true)} className="gap-2 text-xs md:text-sm">
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Novo Paciente</span>
+              <span className="sm:hidden">Novo</span>
             </Button>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
+        {/* Filters - Responsive */}
+        <div className="flex gap-2 md:gap-3 flex-col sm:flex-row">
+          <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome, e-mail, telefone ou CPF..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              className="pl-9 text-xs md:text-sm"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full sm:w-[140px] text-xs md:text-sm">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -183,17 +185,17 @@ export default function Patients() {
 
         {/* Patient List */}
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-2 md:space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />
+              <div key={i} className="h-16 md:h-20 bg-muted rounded-xl animate-pulse" />
             ))}
           </div>
         ) : !patients?.length ? (
           <Card>
-            <CardContent className="py-16 text-center">
-              <User className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-30" />
-              <p className="text-muted-foreground font-medium">Nenhum paciente encontrado</p>
-              <p className="text-sm text-muted-foreground mt-1">
+            <CardContent className="py-12 md:py-16 text-center">
+              <User className="h-10 md:h-12 w-10 md:w-12 mx-auto mb-2 md:mb-3 text-muted-foreground opacity-30" />
+              <p className="text-muted-foreground font-medium text-sm md:text-base">Nenhum paciente encontrado</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
                 {search ? "Tente ajustar os filtros de busca." : "Clique em 'Novo Paciente' para começar."}
               </p>
             </CardContent>
@@ -201,14 +203,14 @@ export default function Patients() {
         ) : (
           <div className="space-y-2">
             {patients && patients.length > 0 && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
+              <div className="flex items-center gap-2 px-3 md:px-4 py-2 bg-muted rounded-lg">
                 <input
                   type="checkbox"
                   checked={selectedPatients.size === patients.length && patients.length > 0}
                   onChange={toggleSelectAll}
                   className="w-4 h-4 cursor-pointer"
                 />
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs md:text-sm text-muted-foreground">
                   {selectedPatients.size > 0 ? `${selectedPatients.size} selecionado(s)` : 'Selecionar todos'}
                 </span>
               </div>
@@ -222,9 +224,11 @@ export default function Patients() {
                     : 'cursor-pointer hover:shadow-md hover:border-primary/30'
                 }`}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
+                <CardContent className="p-3 md:p-4">
+                  {/* Mobile: Stack vertical, Desktop: Horizontal */}
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+                    {/* Left section: Checkbox + Avatar + Info */}
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
                       <input
                         type="checkbox"
                         checked={selectedPatients.has(patient.id)}
@@ -235,47 +239,50 @@ export default function Patients() {
                         className="w-4 h-4 cursor-pointer shrink-0"
                       />
                       <div
-                        className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 cursor-pointer"
+                        className="w-9 md:w-10 h-9 md:h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 cursor-pointer"
                         onClick={() => navigate(`/patients/${patient.id}`)}
                       >
-                        <span className="text-primary font-semibold text-sm">
+                        <span className="text-primary font-semibold text-xs md:text-sm">
                           {patient.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
-                      <div className="min-w-0 cursor-pointer" onClick={() => navigate(`/patients/${patient.id}`)}>
-                        <p className="font-semibold text-sm truncate">{patient.name}</p>
-                        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                      <div className="min-w-0 cursor-pointer flex-1" onClick={() => navigate(`/patients/${patient.id}`)}>
+                        <p className="font-semibold text-xs md:text-sm truncate">{patient.name}</p>
+                        {/* Mobile: Show only essential info */}
+                        <div className="flex items-center gap-1.5 md:gap-3 mt-0.5 flex-wrap text-xs">
                           {patient.email && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
-                              {patient.email}
+                            <span className="text-muted-foreground flex items-center gap-1 truncate">
+                              <Mail className="h-3 w-3 shrink-0" />
+                              <span className="hidden md:inline truncate">{patient.email}</span>
+                              <span className="md:hidden">Email</span>
                             </span>
                           )}
                           {patient.phone && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
+                            <span className="text-muted-foreground flex items-center gap-1 hidden sm:flex">
+                              <Phone className="h-3 w-3 shrink-0" />
                               {patient.phone}
                             </span>
                           )}
                           {patient.birthDate && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
+                            <span className="text-muted-foreground flex items-center gap-1 hidden md:flex">
+                              <Calendar className="h-3 w-3 shrink-0" />
                               {patient.birthDate}
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    {/* Right section: Actions */}
+                    <div className="flex items-center gap-1.5 md:gap-3 shrink-0 justify-end">
                       {patient.sessionValue && (
-                        <span className="text-xs text-muted-foreground hidden sm:block">
+                        <span className="text-xs text-muted-foreground hidden md:block whitespace-nowrap">
                           {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
                             Number(patient.sessionValue)
                           )}/sessão
                         </span>
                       )}
                       {getInvitationStatus(patient.id)?.status === "completed" && (
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium hidden md:inline whitespace-nowrap">
                           ✓ Preenchido
                         </span>
                       )}
@@ -286,8 +293,9 @@ export default function Patients() {
                           e.stopPropagation();
                           handleGenerateInviteLink(patient.id);
                         }}
+                        className="h-8 w-8 p-0 shrink-0"
                       >
-                        <LinkIcon className="h-4 w-4" />
+                        <LinkIcon className="h-3.5 w-3.5" />
                       </Button>
                       <div onClick={() => navigate(`/patients/${patient.id}`)}>
                         <StatusBadge status={patient.status} />
@@ -363,106 +371,98 @@ export default function Patients() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <CreatePatientDialog
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        onSuccess={() => { setShowCreate(false); refetch(); }}
+      />
     </DashboardLayout>
   );
 }
 
-function CreatePatientDialog({
-  open,
-  onClose,
-  onSuccess,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [form, setForm] = useState(() => ({
+function CreatePatientDialog({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    birthDate: "",
     cpf: "",
-    occupation: "",
-    mainComplaint: "",
-    sessionValue: "",
-  }));
-
-  const createMutation = trpc.patients.create.useMutation({
-    onSuccess: () => {
-      toast.success("Paciente cadastrado com sucesso!");
-      onSuccess();
-      setForm({ name: "", email: "", phone: "", birthDate: "", cpf: "", occupation: "", mainComplaint: "", sessionValue: "" });
-    },
-    onError: (e) => toast.error(`Erro: ${e.message}`),
+    birthDate: "",
+    status: "active",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const createMutation = trpc.patients.create.useMutation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    createMutation.mutate(form);
+    createMutation.mutate(formData, {
+      onSuccess: () => {
+        toast.success("Paciente criado com sucesso!");
+        setFormData({ name: "", email: "", phone: "", cpf: "", birthDate: "", status: "active" });
+        onSuccess();
+      },
+      onError: (error) => {
+        toast.error(`Erro ao criar paciente: ${error.message}`);
+      },
+    });
   };
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-
   return (
-    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Novo Paciente</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          <div className="grid grid-cols-1 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="name">Nome completo *</Label>
-              <Input id="name" value={form.name} onChange={set("name")} required placeholder="Nome do paciente" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="email">E-mail</Label>
-                <Input id="email" type="email" value={form.email} onChange={set("email")} placeholder="email@exemplo.com" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="phone">Telefone</Label>
-                <Input id="phone" value={form.phone} onChange={set("phone")} placeholder="(11) 99999-9999" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="birthDate">Data de nascimento</Label>
-                <Input id="birthDate" type="date" value={form.birthDate} onChange={set("birthDate")} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="cpf">CPF</Label>
-                <Input id="cpf" value={form.cpf} onChange={set("cpf")} placeholder="000.000.000-00" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="occupation">Profissão</Label>
-                <Input id="occupation" value={form.occupation} onChange={set("occupation")} placeholder="Profissão" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="sessionValue">Valor da sessão (R$)</Label>
-                <Input id="sessionValue" value={form.sessionValue} onChange={set("sessionValue")} placeholder="200.00" />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="mainComplaint">Queixa principal</Label>
-              <textarea
-                id="mainComplaint"
-                value={form.mainComplaint}
-                onChange={set("mainComplaint")}
-                placeholder="Descreva a queixa principal do paciente..."
-                className="w-full min-h-[80px] px-3 py-2 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Nome Completo</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
           </div>
-          <div className="flex gap-3 pt-2">
+          <div>
+            <Label htmlFor="email">E-mail</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">Telefone</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="cpf">CPF</Label>
+            <Input
+              id="cpf"
+              value={formData.cpf}
+              onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="birthDate">Data de Nascimento</Label>
+            <Input
+              id="birthDate"
+              type="date"
+              value={formData.birthDate}
+              onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+            />
+          </div>
+          <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Salvando..." : "Cadastrar"}
+            <Button type="submit" disabled={createMutation.isPending} className="flex-1">
+              {createMutation.isPending ? "Criando..." : "Criar"}
             </Button>
           </div>
         </form>
