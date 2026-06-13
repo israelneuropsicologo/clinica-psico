@@ -211,6 +211,15 @@
 .dark .status-waived     { background-color: oklch(22% 0.06 270); color: oklch(72% 0.10 270); }
 
 @layer components {
+  /* Hide scrollbar while keeping scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+
   /**
    * Custom container utility that centers content and adds responsive padding.
    *

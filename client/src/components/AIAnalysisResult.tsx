@@ -40,6 +40,7 @@ import {
   Radar,
 } from "recharts";
 import { toast } from "sonner";
+import { useState } from "react";
 
 interface AIAnalysisResultProps {
   content: string;
@@ -198,47 +199,63 @@ const generatePDF = async (content: string, patientName?: string) => {
 };
 
 export function AIAnalysisResult({ content, patientHistory, patientName }: AIAnalysisResultProps) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
   const handlePrint = () => {
     window.print();
   };
 
+  // Altura responsiva dos gráficos
+  const chartHeight = isMobile ? 200 : 250;
+  const chartMargin = isMobile ? { top: 5, right: 5, left: -15, bottom: 5 } : { top: 10, right: 10, left: 0, bottom: 10 };
+  const pieRadius = isMobile ? 45 : 60;
+
   return (
     <div className="space-y-6">
-      {/* Botões de ação */}
-      <div className="flex gap-2 justify-end">
+      {/* Botões de ação - responsivos */}
+      <div className="flex gap-2 justify-end flex-wrap">
         <Button
           onClick={() => generatePDF(content, patientName)}
           variant="outline"
           size="sm"
-          className="gap-2"
+          className="gap-2 text-xs md:text-sm"
         >
-          <Download className="h-4 w-4" />
-          Pré-visualizar PDF
+          <Download className="h-3 w-3 md:h-4 md:w-4" />
+          <span className="hidden sm:inline">Pré-visualizar PDF</span>
+          <span className="sm:hidden">PDF</span>
         </Button>
-        <Button onClick={handlePrint} variant="outline" size="sm" className="gap-2">
-          <Printer className="h-4 w-4" />
-          Imprimir
+        <Button onClick={handlePrint} variant="outline" size="sm" className="gap-2 text-xs md:text-sm">
+          <Printer className="h-3 w-3 md:h-4 md:w-4" />
+          <span className="hidden sm:inline">Imprimir</span>
+          <span className="sm:hidden">Print</span>
         </Button>
       </div>
 
-      {/* Gráficos */}
+      {/* Gráficos - responsivos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Evolução do Humor */}
         <Card className="border-l-4" style={{ borderLeftColor: "#0284c7" }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Activity className="h-4 w-4 text-blue-600" />
-              Evolução do Humor
+            <CardTitle className="text-xs md:text-sm flex items-center gap-2">
+              <Activity className="h-4 w-4 text-blue-600 shrink-0" />
+              <span className="truncate">Evolução do Humor</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={moodData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, 5]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#0284c7" strokeWidth={2} dot={{ fill: "#0284c7" }} />
+            <ResponsiveContainer width="100%" height={chartHeight}>
+              <LineChart data={moodData} margin={chartMargin}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} width={isMobile ? 25 : 35} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: "6px" }} />
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="#0284c7" 
+                  strokeWidth={2} 
+                  dot={{ fill: "#0284c7", r: isMobile ? 3 : 4 }}
+                  activeDot={{ r: isMobile ? 5 : 6 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -247,19 +264,19 @@ export function AIAnalysisResult({ content, patientHistory, patientName }: AIAna
         {/* Avaliação de Riscos */}
         <Card className="border-l-4" style={{ borderLeftColor: "#dc2626" }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              Avaliação de Riscos
+            <CardTitle className="text-xs md:text-sm flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
+              <span className="truncate">Avaliação de Riscos</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={riskData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#dc2626" />
+            <ResponsiveContainer width="100%" height={chartHeight}>
+              <BarChart data={riskData} margin={chartMargin}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={isMobile ? -45 : 0} textAnchor={isMobile ? "end" : "middle"} height={isMobile ? 60 : 40} />
+                <YAxis tick={{ fontSize: 11 }} width={isMobile ? 25 : 35} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: "6px" }} />
+                <Bar dataKey="value" fill="#dc2626" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -268,20 +285,29 @@ export function AIAnalysisResult({ content, patientHistory, patientName }: AIAna
         {/* Distribuição de Riscos */}
         <Card className="border-l-4" style={{ borderLeftColor: "#f59e0b" }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-amber-600" />
-              Distribuição de Riscos
+            <CardTitle className="text-xs md:text-sm flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-amber-600 shrink-0" />
+              <span className="truncate">Distribuição de Riscos</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie data={riskDistribution} cx="50%" cy="50%" labelLine={false} outerRadius={60} fill="#8884d8" dataKey="value">
+            <ResponsiveContainer width="100%" height={chartHeight}>
+              <PieChart margin={chartMargin}>
+                <Pie 
+                  data={riskDistribution} 
+                  cx="50%" 
+                  cy="50%" 
+                  labelLine={false} 
+                  outerRadius={pieRadius} 
+                  fill="#8884d8" 
+                  dataKey="value"
+                  label={isMobile ? false : { fontSize: 11 }}
+                >
                   {riskDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: "6px" }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -290,18 +316,19 @@ export function AIAnalysisResult({ content, patientHistory, patientName }: AIAna
         {/* Perfil de Bem-estar */}
         <Card className="border-l-4" style={{ borderLeftColor: "#9333ea" }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Smile className="h-4 w-4 text-purple-600" />
-              Perfil de Bem-estar
+            <CardTitle className="text-xs md:text-sm flex items-center gap-2">
+              <Smile className="h-4 w-4 text-purple-600 shrink-0" />
+              <span className="truncate">Perfil de Bem-estar</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <RadarChart data={wellbeingData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="subject" />
-                <PolarRadiusAxis />
+            <ResponsiveContainer width="100%" height={chartHeight}>
+              <RadarChart data={wellbeingData} margin={chartMargin}>
+                <PolarGrid stroke="#e5e7eb" />
+                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
+                <PolarRadiusAxis tick={{ fontSize: 10 }} />
                 <Radar dataKey="A" stroke="#9333ea" fill="#9333ea" fillOpacity={0.6} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: "6px" }} />
               </RadarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -311,16 +338,16 @@ export function AIAnalysisResult({ content, patientHistory, patientName }: AIAna
       {/* Conteúdo da análise */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-primary" />
-            Análise Detalhada
+          <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+            <Brain className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
+            <span>Análise Detalhada</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="prose prose-sm max-w-none dark:prose-invert">
             {content.split("\n\n").map((section, idx) => (
-              <div key={idx} className="mb-4 p-4 rounded-lg bg-muted/50">
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+              <div key={idx} className="mb-4 p-3 md:p-4 rounded-lg bg-muted/50">
+                <p className="whitespace-pre-wrap text-xs md:text-sm leading-relaxed">
                   {section.split(/(\*\*.*?\*\*)/g).map((part, i) =>
                     part.startsWith("**") && part.endsWith("**") ? (
                       <strong key={i}>{part.slice(2, -2)}</strong>

@@ -578,3 +578,46 @@
 - [ ] Implementar cálculo de diferenças percentuais
 - [ ] Testar comparação com múltiplas análises
 - [ ] Criar 8 testes Vitest para comparação de análises
+
+
+---
+
+## 🚀 FASES 113-117: Otimizações de Responsividade Mobile
+
+### Fase 113: Otimizar Responsividade de Tabs em Mobile ✅ COMPLETA
+- [x] Analisar layout de tabs em PatientDetail.tsx (8 abas)
+- [x] Implementar scroll horizontal em mobile para tabs
+- [x] Adicionar indicador visual de aba ativa
+- [x] Testar em viewport 375px
+- [x] Criar 5 testes Vitest para tabs responsivos
+
+### Fase 114: Implementar Gráficos Responsivos (Recharts Mobile) ✅ COMPLETA
+- [x] Analisar gráficos em AIAnalysisResult.tsx
+- [x] Adicionar responsiveContainer com aspect ratio
+- [x] Implementar escala adaptativa para eixos
+- [x] Remover legendas em mobile (usar tooltip)
+- [x] Testar em viewport 375px
+- [x] Criar 5 testes Vitest para gráficos responsivos
+
+### Fase 115: Melhorar Botões de Ação com Drawer/Menu em Mobile ✅ COMPLETA
+- [x] Analisar botões em PatientDetail.tsx (Pré-visualizar PDF, Imprimir, Apagar)
+- [x] Implementar DropdownMenu em mobile
+- [x] Adicionar ícones e labels claros
+- [x] Testar em viewport 375px
+- [x] Criar 5 testes Vitest para botões responsivos
+
+### Fase 116: Stack Vertical de Tabelas em Mobile
+- [ ] Analisar layout de pacientes em Patients.tsx
+- [ ] Implementar stack vertical em mobile (flex-col)
+- [ ] Ocultar colunas secundárias em mobile
+- [ ] Adicionar "Mostrar Mais" para detalhes
+- [ ] Testar em viewport 375px
+- [ ] Criar 5 testes Vitest para tabelas responsivas
+
+### Fase 117: Full-Screen Modais em Mobile
+- [ ] Analisar modais em PatientDetail.tsx
+- [ ] Implementar full-screen em mobile
+- [ ] Adicionar botão de fechar no topo
+- [ ] Implementar scroll interno se necessário
+- [ ] Testar em viewport 375px
+- [ ] Criar 5 testes Vitest para modais responsivos

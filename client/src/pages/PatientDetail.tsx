@@ -202,15 +202,32 @@ export default function PatientDetail() {
               {patientSessions?.length ?? 0} sessão(ões)
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowEdit(true)} className="gap-1.5">
-              <Edit className="h-3.5 w-3.5" /> Editar
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={() => setShowEdit(true)} className="gap-1.5 text-xs md:text-sm">
+              <Edit className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Editar</span>
+              <span className="sm:hidden">Edit</span>
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 md:hidden">
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => { if (confirm("Excluir este paciente?")) deleteMutation.mutate({ id: patientId }); }}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-2" /> Excluir Paciente
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant="destructive"
               size="sm"
               onClick={() => { if (confirm("Excluir este paciente?")) deleteMutation.mutate({ id: patientId }); }}
-              className="gap-1.5 hidden md:flex"
+              className="gap-1.5 hidden md:flex text-xs md:text-sm"
             >
               <Trash2 className="h-3.5 w-3.5" /> Excluir
             </Button>
