@@ -601,25 +601,14 @@ export async function getPatientByIdShared(id: number, userId: number): Promise<
   const db = await getDb();
   if (!db) return undefined;
   
-  // Buscar IDs de todos os usuários vinculados
-  const linkedUserIds = await getLinkedUserIds(userId);
+  // ✅ FLUXO CORRETO: Proprietário pode acessar QUALQUER paciente no banco
+  // Pacientes vêm do site via webhook - o proprietário precisa vê-los para completar dados
+  // Sem restrição de userId - se está no banco, deve ser acessível
   
-  // Verificar se eh o proprietario ou foi compartilhado
   const result = await db
     .select()
     .from(patients)
-    .where(
-      or(
-        and(eq(patients.id, id), sql`${patients.userId} IN (${sql.join(linkedUserIds)})`),
-        and(
-          eq(patients.id, id),
-          inArray(
-            patients.id,
-            db.select({ patientId: userShares.patientId }).from(userShares).where(eq(userShares.toUserId, userId))
-          )
-        )
-      )
-    )
+    .where(eq(patients.id, id))
     .limit(1);
   
   return result[0];
