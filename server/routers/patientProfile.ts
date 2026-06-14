@@ -193,35 +193,52 @@ export const recordingsRouter = router({
         sessionId: z.number().optional(),
         fileName: z.string(),
         mimeType: z.string(),
-        audioUrl: z.string(),
+        fileBase64: z.string(),
+        fileSize: z.number(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
+      // Converter base64 para Buffer
+      const buffer = Buffer.from(input.fileBase64, 'base64');
+      
+      // Upload para S3
+      const { storagePut } = await import('../storage.js');
+      const fileKey = `recordings/${ctx.user.id}/${Date.now()}-${input.fileName}`;
+      const { url: audioUrl } = await storagePut(fileKey, buffer, input.mimeType);
+
+      // Transcrever áudio
       const transcription = await transcribeAudio({
-        audioUrl: input.audioUrl,
+        audioUrl: audioUrl,
       });
 
       const transcriptionText = 'text' in transcription ? transcription.text : "";
 
-      const recording = await db
+      const result = await db
         .insert(sessionRecordings)
         .values({
           patientId: input.patientId,
           sessionId: input.sessionId || null,
           userId: ctx.user.id,
           fileName: input.fileName,
-          fileKey: `recordings/${ctx.user.id}/${Date.now()}`,
-          fileUrl: input.audioUrl,
+          fileKey: fileKey,
+          fileUrl: audioUrl,
           mimeType: input.mimeType,
           transcription: transcriptionText,
           transcriptionStatus: "done",
           createdAt: new Date(),
         });
 
-      return { id: 0, patientId: input.patientId, fileName: input.fileName };
+      // Buscar o registro criado para obter o ID
+      const recording = await db
+        .select()
+        .from(sessionRecordings)
+        .where(eq(sessionRecordings.fileKey, fileKey))
+        .limit(1);
+
+      return { id: recording[0]?.id || 0, patientId: input.patientId, fileName: input.fileName, fileUrl: audioUrl };
     }),
 
   delete: protectedProcedure

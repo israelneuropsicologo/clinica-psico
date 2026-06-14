@@ -2294,7 +2294,7 @@ function UploadDocumentDialog({ patientId, open, onClose, onSuccess }: { patient
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 16 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 16MB)"); return; }
+    if (file.size > 500 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 500MB)"); return; }
     setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -2311,7 +2311,7 @@ function UploadDocumentDialog({ patientId, open, onClose, onSuccess }: { patient
         <form onSubmit={(e) => { e.preventDefault(); if (!fileData || !fileName) { toast.error("Selecione um arquivo"); return; } uploadMutation.mutate({ patientId, fileName, mimeType: fileData.mimeType, fileSize: fileData.size, category, description, fileBase64: fileData.base64 }); }} className="space-y-4 pt-2">
           <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors" onClick={() => fileRef.current?.click()}>
             <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            {fileName ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Clique para selecionar</p><p className="text-xs text-muted-foreground mt-1">PDF, imagens, Word — máx. 16MB</p></>}
+            {fileName ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Clique para selecionar</p><p className="text-xs text-muted-foreground mt-1">PDF, imagens, Word — máx. 500MB</p></>}
             <input ref={fileRef} type="file" className="hidden" onChange={handleFile} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
           </div>
           <div className="space-y-1.5">
@@ -2420,7 +2420,7 @@ function UploadRecordingDialog({ patientId, open, onClose, onSuccess }: { patien
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 16 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 16MB)"); return; }
+    if (file.size > 500 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 500MB)"); return; }
     setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -2481,7 +2481,7 @@ function UploadRecordingDialog({ patientId, open, onClose, onSuccess }: { patien
           {/* Upload de arquivo */}
           <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors" onClick={() => fileRef.current?.click()}>
             <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            {fileName && !recordedAudioUrl ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Ou selecione um arquivo</p><p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A, OGG — máx. 16MB</p></>}
+            {fileName && !recordedAudioUrl ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Ou selecione um arquivo</p><p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A, OGG — máx. 500MB</p></>}
             <input ref={fileRef} type="file" className="hidden" onChange={handleFile} accept=".mp3,.wav,.m4a,.ogg,.webm" />
           </div>
 
