@@ -4,6 +4,7 @@ import { getDb } from "../db";
 import { transactions } from "../../drizzle/schema";
 import { and, eq, gte, lte, desc, sql } from "drizzle-orm";
 import { notifyOwner } from "../_core/notification";
+import { getBillingMetrics, getMonthlyRevenueWithForecast, getTopPatientsByRevenue } from "../db";
 
 function getPeriodRange(period: string): { from: Date; to: Date } {
   const now = new Date();
@@ -256,5 +257,24 @@ export const financialRouter = router({
         )
       );
       return { success: true, deletedCount: input.ids.length };
+    }),
+
+  // Billing Dashboard
+  billingMetrics: protectedProcedure
+    .input(z.object({ period: z.enum(["week", "month", "quarter", "year"]).default("month") }))
+    .query(async ({ ctx, input }) => {
+      return getBillingMetrics(ctx.user.id, input.period);
+    }),
+
+  monthlyRevenueWithForecast: protectedProcedure
+    .input(z.object({ months: z.number().optional().default(12) }))
+    .query(async ({ ctx, input }) => {
+      return getMonthlyRevenueWithForecast(ctx.user.id, input.months);
+    }),
+
+  topPatientsByRevenue: protectedProcedure
+    .input(z.object({ limit: z.number().optional().default(10) }))
+    .query(async ({ ctx, input }) => {
+      return getTopPatientsByRevenue(ctx.user.id, input.limit);
     }),
 });

@@ -1156,3 +1156,163 @@ export async function getAnalysisHistoryBetweenDates(
     )
     .orderBy(desc(analysisHistory.createdAt));
 }
+
+
+// ─── Billing Dashboard ─────────────────────────────────────────────────────
+
+export async function getBillingMetrics(userId: number, period: "week" | "month" | "quarter" | "year") {
+  const db = await getDb();
+  if (!db) return { totalRevenue: 0, averageTicket: 0, defaultersCount: 0, conversionRate: 0 };
+
+  const now = new Date();
+  let startDate = new Date();
+
+  if (period === "week") {
+    startDate.setDate(now.getDate() - 7);
+  } else if (period === "month") {
+    startDate.setMonth(now.getMonth() - 1);
+  } else if (period === "quarter") {
+    startDate.setMonth(now.getMonth() - 3);
+  } else if (period === "year") {
+    startDate.setFullYear(now.getFullYear() - 1);
+  }
+
+  // Total Revenue (paid transactions)
+  const revenueResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
+    .from(transactions)
+    .innerJoin(patients, eq(transactions.patientId, patients.id))
+    .where(
+      and(
+        eq(patients.userId, userId),
+        eq(transactions.type, "income"),
+        eq(transactions.status, "paid"),
+        gte(transactions.createdAt, startDate),
+        lte(transactions.createdAt, now)
+      )
+    );
+
+  const totalRevenue = Number(revenueResult[0]?.total ?? 0);
+
+  // Average Ticket (total revenue / number of paid transactions)
+  const ticketResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(transactions)
+    .innerJoin(patients, eq(transactions.patientId, patients.id))
+    .where(
+      and(
+        eq(patients.userId, userId),
+        eq(transactions.type, "income"),
+        eq(transactions.status, "paid"),
+        gte(transactions.createdAt, startDate),
+        lte(transactions.createdAt, now)
+      )
+    );
+
+  const paidTransactionCount = Number(ticketResult[0]?.count ?? 0);
+  const averageTicket = paidTransactionCount > 0 ? totalRevenue / paidTransactionCount : 0;
+
+  // Defaulters (patients with pending payments)
+  const defaultersResult = await db
+    .select({ count: sql<number>`count(distinct patientId)` })
+    .from(transactions)
+    .innerJoin(patients, eq(transactions.patientId, patients.id))
+    .where(
+      and(
+        eq(patients.userId, userId),
+        eq(transactions.type, "income"),
+        eq(transactions.status, "pending"),
+        gte(transactions.createdAt, startDate),
+        lte(transactions.createdAt, now)
+      )
+    );
+
+  const defaultersCount = Number(defaultersResult[0]?.count ?? 0);
+
+  // Conversion Rate (patients with at least one paid transaction / total patients)
+  const totalPatientsResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(patients)
+    .where(eq(patients.userId, userId));
+
+  const totalPatients = Number(totalPatientsResult[0]?.count ?? 0);
+
+  const paidPatientsResult = await db
+    .select({ count: sql<number>`count(distinct patientId)` })
+    .from(transactions)
+    .innerJoin(patients, eq(transactions.patientId, patients.id))
+    .where(
+      and(
+        eq(patients.userId, userId),
+        eq(transactions.type, "income"),
+        eq(transactions.status, "paid")
+      )
+    );
+
+  const paidPatients = Number(paidPatientsResult[0]?.count ?? 0);
+  const conversionRate = totalPatients > 0 ? (paidPatients / totalPatients) * 100 : 0;
+
+  return {
+    totalRevenue,
+    averageTicket,
+    defaultersCount,
+    conversionRate,
+  };
+}
+
+export async function getMonthlyRevenueWithForecast(userId: number, months: number = 12) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select({
+      month: sql<string>`CONCAT(YEAR(createdAt), '-', MONTH(createdAt))`,
+      revenue: sql<number>`COALESCE(SUM(CASE WHEN type = 'income' AND status = 'paid' THEN amount ELSE 0 END), 0)`,
+    })
+    .from(transactions)
+    .innerJoin(patients, eq(transactions.patientId, patients.id))
+    .where(eq(patients.userId, userId))
+    .groupBy(sql`YEAR(createdAt), MONTH(createdAt)`)
+    .orderBy(sql`YEAR(createdAt), MONTH(createdAt)`);
+
+  // Calculate forecast based on average of last 3 months
+  const monthlyData = result.map((r) => ({
+    month: r.month,
+    revenue: Number(r.revenue),
+    forecast: 0,
+  }));
+
+  if (monthlyData.length >= 3) {
+    const last3Months = monthlyData.slice(-3);
+    const average = last3Months.reduce((sum, m) => sum + m.revenue, 0) / 3;
+
+    // Apply forecast to all months
+    monthlyData.forEach((m) => {
+      m.forecast = Math.round(average);
+    });
+  }
+
+  return monthlyData;
+}
+
+export async function getTopPatientsByRevenue(userId: number, limit: number = 10) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select({
+      name: patients.name,
+      revenue: sql<number>`COALESCE(SUM(CASE WHEN transactions.type = 'income' AND transactions.status = 'paid' THEN transactions.amount ELSE 0 END), 0)`,
+    })
+    .from(patients)
+    .leftJoin(transactions, eq(patients.id, transactions.patientId))
+    .where(eq(patients.userId, userId))
+    .groupBy(patients.id)
+    .orderBy(sql`COALESCE(SUM(CASE WHEN transactions.type = 'income' AND transactions.status = 'paid' THEN transactions.amount ELSE 0 END), 0) DESC`)
+    .limit(limit);
+
+  return result.map((r) => ({
+    name: r.name,
+    revenue: Number(r.revenue),
+  }));
+}

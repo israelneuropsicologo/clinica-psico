@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ExportButton from "@/components/ExportButton";
 import PDFExportButton from "@/components/PDFExportButton";
 import DashboardLayout from "@/components/DashboardLayout";
+import BillingDashboard from "@/components/BillingDashboard";
 import { trpc } from "@/lib/trpc";
 import {
   AlertCircle,
@@ -55,6 +56,12 @@ export default function Financial() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedTransactions, setSelectedTransactions] = useState<Set<number>>(new Set());
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<string>("dashboard");
+
+  // Billing Dashboard queries
+  const { data: billingMetrics } = trpc.financial.billingMetrics.useQuery({ period: "month" });
+  const { data: monthlyRevenue } = trpc.financial.monthlyRevenueWithForecast.useQuery({ months: 12 });
+  const { data: topPatients } = trpc.financial.topPatientsByRevenue.useQuery({ limit: 10 });
 
   const { data: transactions, isLoading, refetch } = trpc.financial.list.useQuery({
     period,
@@ -149,27 +156,56 @@ export default function Financial() {
            </div>
         </div>
 
-        {/* Period Filter */}
-        <div className="flex gap-2">
-          {[
-            { value: "week", label: "Semana" },
-            { value: "month", label: "Mês" },
-            { value: "quarter", label: "Trimestre" },
-            { value: "year", label: "Ano" },
-          ].map((p) => (
-            <Button
-              key={p.value}
-              variant={period === p.value ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPeriod(p.value)}
-            >
-              {p.label}
-            </Button>
-          ))}
-        </div>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="transactions">Transações</TabsTrigger>
+          </TabsList>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Dashboard Tab - Temporarily disabled */}
+          {/* <TabsContent value="dashboard" className="space-y-4">
+            {billingMetrics && monthlyRevenue && topPatients ? (
+              <BillingDashboard
+                totalRevenue={billingMetrics.totalRevenue}
+                averageTicket={billingMetrics.averageTicket}
+                defaultersCount={billingMetrics.defaultersCount}
+                conversionRate={billingMetrics.conversionRate}
+                monthlyData={monthlyRevenue}
+                patientsData={topPatients}
+              />
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground">Carregando dados de faturamento...</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent> */}
+
+          {/* Transactions Tab */}
+          <TabsContent value="transactions" className="space-y-4">
+            {/* Period Filter */}
+            <div className="flex gap-2">
+              {[
+                { value: "week", label: "Semana" },
+                { value: "month", label: "Mês" },
+                { value: "quarter", label: "Trimestre" },
+                { value: "year", label: "Ano" },
+              ].map((p) => (
+                <Button
+                  key={p.value}
+                  variant={period === p.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setPeriod(p.value)}
+                >
+                  {p.label}
+                </Button>
+              ))}
+            </div>
+
+                {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-5">
               <div className="flex items-start justify-between">
@@ -211,10 +247,10 @@ export default function Financial() {
               </div>
             </CardContent>
           </Card>
-        </div>
+            </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {monthlyData.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
@@ -395,8 +431,10 @@ export default function Financial() {
           </CardContent>
         </Card>
 
-        {/* Overdue Sessions */}
-        <OverdueSessions />
+            {/* Overdue Sessions */}
+            <OverdueSessions />
+          </TabsContent>
+        </Tabs>
       </div>
 
       <CreateTransactionDialog

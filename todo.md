@@ -704,3 +704,13 @@
 - [x] Testar mudança de status com autosave - FUNCIONANDO PERFEITAMENTE
 - [x] Validar que dados foram salvos no banco de dados
 - [x] Criar checkpoint final
+
+
+### Fase 124: Dashboard de Faturamento no Módulo Financeiro
+- [ ] Investigar estrutura atual do módulo Financeiro
+- [ ] Criar componente BillingDashboard com gráficos e indicadores
+- [ ] Implementar queries de faturamento em db.ts
+- [ ] Criar procedures tRPC para faturamento
+- [ ] Integrar Dashboard no módulo Financeiro
+- [ ] Testar e validar Dashboard
+- [ ] Criar checkpoint final
