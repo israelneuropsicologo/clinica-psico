@@ -97,8 +97,7 @@ export default function PatientDetail() {
   const [activeTab, setActiveTab] = useState("profile");
   const [selectedNote, setSelectedNote] = useState<number | null>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
-  const [showSupervisionPanel, setShowSupervisionPanel] = useState(false);
-  const [selectedRecordingForSupervision, setSelectedRecordingForSupervision] = useState<number | null>(null);
+
   const [referralForm, setReferralForm] = useState({
     recipientTitle: "Ao Médico Psiquiatra",
     recipientName: "",
@@ -641,17 +640,10 @@ export default function PatientDetail() {
                               variant="outline"
                               className="gap-1.5"
                               onClick={() => {
-                                setSelectedRecordingForSupervision(rec.id);
-                                setShowSupervisionPanel(true);
-                                if (!rec.supervision) {
-                                  supervisionMutation.mutate({ recordingId: rec.id });
-                                }
+                                toast.info('Supervisão IA será implementada em breve');
                               }}
-                              disabled={supervisionMutation.isPending}
                             >
-                              {supervisionMutation.isPending
-                                ? <><Loader2 className="h-3 w-3 animate-spin" /> Gerando...</>
-                                : <><Brain className="h-3 w-3" /> Supervisão IA</>}
+                              <><Brain className="h-3 w-3" /> Supervisão IA</>
                             </Button>
                           </div>
                           <p className="text-xs leading-relaxed text-foreground/90 whitespace-pre-wrap">{rec.transcription}</p>
@@ -1867,48 +1859,6 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
         </CardContent>
       </Card>
 
-      {/* Painel Lateral de Supervisão IA */}
-      {showSupervisionPanel && selectedRecordingForSupervision && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center">
-          <Card className="w-full sm:w-[90%] md:w-[70%] lg:w-[60%] max-h-[90vh] overflow-y-auto rounded-t-lg sm:rounded-lg">
-            <CardHeader className="sticky top-0 bg-background border-b flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-primary" />
-                Supervisão Clínica por IA
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSupervisionPanel(false)}
-              >
-                ×
-              </Button>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {recordings?.find(r => r.id === selectedRecordingForSupervision)?.supervision ? (
-                <div className="space-y-4">
-                  <AIAnalysisResult
-                    content={recordings.find(r => r.id === selectedRecordingForSupervision)?.supervision || ""}
-                    patientHistory={{
-                      previousMood: undefined,
-                      previousSufferingLevel: undefined,
-                      sessionCount: 1,
-                    }}
-                  />
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="py-10 text-center text-muted-foreground">
-                    <Brain className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">Nenhuma supervisão gerada ainda.</p>
-                    <p className="text-xs mt-1">Clique no botão para gerar a supervisão clínica.</p>
-                  </CardContent>
-                </Card>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }
