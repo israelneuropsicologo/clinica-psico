@@ -73,38 +73,47 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
   // Buscar dados de configurações da clínica
   const clinicSettings = await getClinicSettings(filters.userId);
 
-  // Construir query com filtros
-  const conditions: ReturnType<typeof eq>[] = [eq(patients.userId, filters.userId)];
+  // Se há patientIds específicos, buscar apenas esses pacientes
+  let patientList: typeof patients.$inferSelect[] = [];
+  
+  if (filters.patientIds && filters.patientIds.length > 0) {
+    // Buscar apenas os pacientes selecionados
+    const conditions: ReturnType<typeof eq>[] = [eq(patients.userId, filters.userId)];
+    const query = db.select().from(patients).where(and(...conditions));
+    const allPatients = await query.limit(1000);
+    patientList = allPatients.filter(p => filters.patientIds!.includes(p.id));
+  } else {
+    // Construir query com filtros normais
+    const conditions: ReturnType<typeof eq>[] = [eq(patients.userId, filters.userId)];
 
-  if (filters.status && filters.status !== "all") {
-    conditions.push(eq(patients.status, filters.status));
+    if (filters.status && filters.status !== "all") {
+      conditions.push(eq(patients.status, filters.status));
+    }
+
+    if (filters.leadSource && filters.leadSource !== "all") {
+      conditions.push(eq(patients.leadSource, filters.leadSource as "manual" | "chatbot" | "website"));
+    }
+
+    if (filters.leadStatus && filters.leadStatus !== "all") {
+      conditions.push(eq(patients.leadStatus, filters.leadStatus as "lead" | "prospect" | "customer"));
+    }
+
+    const query = db.select().from(patients).where(and(...conditions));
+    patientList = await query.limit(1000);
   }
 
-  if (filters.leadSource && filters.leadSource !== "all") {
-    conditions.push(eq(patients.leadSource, filters.leadSource as "manual" | "chatbot" | "website"));
-  }
+  const filteredList = patientList;
 
-  if (filters.leadStatus && filters.leadStatus !== "all") {
-    conditions.push(eq(patients.leadStatus, filters.leadStatus as "lead" | "prospect" | "customer"));
-  }
-
-  let query = db.select().from(patients).where(and(...conditions));
-
-  const patientList = await query.limit(1000);
-
-  // Filter by specific patient IDs if provided
-  const filteredList = filters.patientIds && filters.patientIds.length > 0
-    ? patientList.filter(p => filters.patientIds!.includes(p.id))
-    : patientList;
-
-  // Criar PDF
+  // Criar PDF - usar landscape se houver muitos pacientes
   const pdfDoc = await PDFDocument.create();
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  const PAGE_W = 612;
-  const PAGE_H = 792;
-  const MARGIN = 60; // Aumentado de 50 para 60 (margens maiores)
+  // Usar landscape se houver mais de 10 pacientes
+  const useLandscape = filteredList.length > 10;
+  const PAGE_W = useLandscape ? 792 : 612;
+  const PAGE_H = useLandscape ? 612 : 792;
+  const MARGIN = 40; // Margens menores em landscape
   const CONTENT_W = PAGE_W - MARGIN * 2;
 
   let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
@@ -155,13 +164,23 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
 
   // ─── Cabeçalho da tabela ─────────────────────────────────────────────────────
   const headers = ["Nome", "E-mail", "Telefone", "Status", "Cadastro"];
-  const colWidths = [140, 155, 95, 60, 62];
+  // Calcular largura de colunas dinamicamente
+  const baseColWidths = [140, 155, 95, 60, 62];
+  const totalBaseWidth = baseColWidths.reduce((a, b) => a + b, 0);
+  const scaleFactor = CONTENT_W / totalBaseWidth;
+  const colWidths = baseColWidths.map(w => w * scaleFactor);
   let x = MARGIN;
 
   page.drawRectangle({ x: MARGIN, y: y - 5, width: CONTENT_W, height: 20, color: rgb(0.2, 0.2, 0.2) });
 
   headers.forEach((header, i) => {
-    page.drawText(header, { x: x + 4, y: y + 2, size: 9, font: fontBold, color: rgb(1, 1, 1) });
+    const headerWidth = colWidths[i] - 8;
+    let headerSize = 9;
+    const headerTextWidth = fontBold.widthOfTextAtSize(header, 9);
+    if (headerTextWidth > headerWidth) {
+      headerSize = Math.max(7, (headerWidth / headerTextWidth) * 9);
+    }
+    page.drawText(header, { x: x + 4, y: y + 2, size: headerSize, font: fontBold, color: rgb(1, 1, 1) });
     x += colWidths[i];
   });
   y -= 20;
@@ -183,7 +202,13 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
       x = MARGIN;
       page.drawRectangle({ x: MARGIN, y: y - 5, width: CONTENT_W, height: 20, color: DARK_GRAY });
       headers.forEach((header, i) => {
-        page.drawText(header, { x: x + 4, y: y + 2, size: 9, font: fontBold, color: rgb(1, 1, 1) });
+        const headerWidth = colWidths[i] - 8;
+        let headerSize = 9;
+        const headerTextWidth = fontBold.widthOfTextAtSize(header, 9);
+        if (headerTextWidth > headerWidth) {
+          headerSize = Math.max(7, (headerWidth / headerTextWidth) * 9);
+        }
+        page.drawText(header, { x: x + 4, y: y + 2, size: headerSize, font: fontBold, color: rgb(1, 1, 1) });
         x += colWidths[i];
       });
       y -= 20;
@@ -206,12 +231,29 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
     ];
 
     row.forEach((cell, i) => {
-      const maxLen = i === 1 ? 20 : i === 0 ? 16 : 10; // Reduzido para evitar corte
-      const truncated = cell.length > maxLen ? cell.substring(0, maxLen - 2) + ".." : cell;
-      page.drawText(truncated, {
+      // Não truncar - deixar o texto completo e ajustar tamanho da fonte
+      const cellWidth = colWidths[i] - 8; // Espaço para padding
+      const textWidth = fontRegular.widthOfTextAtSize(cell, 7);
+      let fontSize = 7;
+      
+      // Reduzir tamanho da fonte se o texto não cabe
+      if (textWidth > cellWidth) {
+        fontSize = Math.max(5, (cellWidth / textWidth) * 7);
+      }
+      
+      // Se ainda não cabe, truncar
+      let displayText = cell;
+      if (fontRegular.widthOfTextAtSize(displayText, fontSize) > cellWidth) {
+        while (displayText.length > 0 && fontRegular.widthOfTextAtSize(displayText + "..", fontSize) > cellWidth) {
+          displayText = displayText.slice(0, -1);
+        }
+        displayText += "..";
+      }
+      
+      page.drawText(displayText, {
         x: x + 4,
         y: y + 2,
-        size: 7, // Reduzido de 8 para 7
+        size: fontSize,
         font: fontRegular,
         color: DARK_GRAY,
       });

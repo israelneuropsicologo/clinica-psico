@@ -699,3 +699,13 @@
 - [x] Testar exportação de Relatórios (com gráficos) - Erro de procedure (não relacionado ao PDF)
 - [x] Validar que nenhum dado é cortado - Confirmado
 - [x] Criar 5 testes Vitest para exportação de PDF
+
+
+### Fase 121: Corrigir Colunas Cortadas e Selecao Ignorada - COMPLETA
+- [x] Corrigir filtro de selecao de pacientes (patientIds agora funciona corretamente)
+- [x] Aumentar largura das colunas dinamicamente (scaleFactor baseado em CONTENT_W)
+- [x] Implementar ajuste automatico de fonte (reduz tamanho se texto nao cabe)
+- [x] Usar landscape automatico para tabelas com >10 pacientes
+- [x] Testar com 8 pacientes selecionados - Todos incluidos no PDF
+- [x] Validar que nenhuma coluna esta cortada - Confirmado
+- [x] Testar com diferentes quantidades de dados - Funcionando
