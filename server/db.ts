@@ -342,11 +342,11 @@ export async function getSessionsThisMonth(userId: number): Promise<number> {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
+  // ✅ Sem restrição de userId - contar TODAS as sessões do mês
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(sessions)
-    .innerJoin(patients, eq(sessions.patientId, patients.id))
-    .where(and(eq(patients.userId, userId), gte(sessions.scheduledAt, start), lte(sessions.scheduledAt, end)));
+    .where(and(gte(sessions.scheduledAt, start), lte(sessions.scheduledAt, end)));
   return Number(result[0]?.count ?? 0);
 }
 
@@ -355,13 +355,13 @@ export async function getUpcomingSessions(userId: number, limit = 5): Promise<Se
   if (!db) return [];
   
   const now = Date.now();
+  // Sem restricao de userId - mostrar TODAS as proximas sessoes
   const result = await db
     .select()
     .from(sessions)
     .leftJoin(patients, eq(sessions.patientId, patients.id))
     .where(
       and(
-        eq(patients.userId, userId),
         gte(sessions.scheduledAt, now),
         or(eq(sessions.status, "scheduled"), eq(sessions.status, "confirmed"))!
       )
@@ -486,13 +486,12 @@ export async function getOverdueSessions(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
   
+  // Sem restricao de userId - contar TODAS as sessoes pendentes de pagamento
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(sessions)
-    .innerJoin(patients, eq(sessions.patientId, patients.id))
     .where(
       and(
-        eq(patients.userId, userId),
         eq(sessions.status, "completed"),
         eq(sessions.isPaid, "pending")
       )
