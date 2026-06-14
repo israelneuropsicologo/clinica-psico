@@ -336,7 +336,9 @@ export async function updateSession(id: number, userId: number, data: Partial<In
 export async function deleteSession(id: number, userId: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  await db.delete(sessions).where(and(eq(sessions.id, id), eq(sessions.userId, userId)));
+  // ✅ Sem restrição de userId - proprietário pode deletar qualquer sessão
+  // Sessões vêm de pacientes do webhook, proprietário precisa poder deletá-las
+  await db.delete(sessions).where(eq(sessions.id, id));
 }
 
 export async function getSessionsThisMonth(userId: number): Promise<number> {
