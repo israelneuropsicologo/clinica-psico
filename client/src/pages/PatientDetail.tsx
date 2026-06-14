@@ -577,14 +577,25 @@ export default function PatientDetail() {
                                     Baixar Transcrição (TXT)
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => {
+                                    toast.loading('Gerando PDF...');
                                     trpc.recordings.generateTranscriptionPdf.mutate({ recordingId: rec.id }, {
                                       onSuccess: (data) => {
+                                        console.log('PDF gerado com sucesso:', data);
+                                        toast.dismiss();
                                         const link = document.createElement('a');
                                         link.href = data.pdfUrl;
                                         link.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.pdf`;
+                                        link.style.display = 'none';
+                                        document.body.appendChild(link);
                                         link.click();
+                                        document.body.removeChild(link);
+                                        toast.success('PDF baixado com sucesso!');
                                       },
-                                      onError: () => toast.error('Erro ao gerar PDF')
+                                      onError: (error) => {
+                                        console.error('Erro ao gerar PDF:', error);
+                                        toast.dismiss();
+                                        toast.error('Erro ao gerar PDF: ' + (error?.message || 'Desconhecido'));
+                                      }
                                     });
                                   }} className="gap-2">
                                     <FileDown className="h-4 w-4" />
