@@ -260,6 +260,20 @@
       "when": 1781383238722,
       "tag": "0036_easy_domino",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "5",
+      "when": 1781457281098,
+      "tag": "0037_fat_jean_grey",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1781458707951,
+      "tag": "0038_vengeful_vapor",
+      "breakpoints": true
     }
   ]
 }

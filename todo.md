@@ -757,3 +757,26 @@
 - ✅ Sem bugs (usa o layout que funciona)
 - ✅ Interface consistente
 - ✅ Experiência de usuário melhorada
+
+
+### Fase 127: Simplificar Salvamento de Anamnese (EM PROGRESSO)
+- [x] Remover botão "Preencher com IA" temporariamente
+- [x] Testar salvamento básico da Anamnese (editar e salvar)
+- [x] Identificar problema: anamneseData não estava sendo salvo
+- [ ] Remover campo anamneseData da tabela patients
+- [ ] Voltar a usar tabela anamnese separada
+- [ ] Corrigir problema de autorização na procedure upsert
+- [ ] Testar salvamento com a tabela anamnese
+- [ ] Adicionar "Preencher com IA" de volta
+
+
+### Fase 127: Simplificar Salvamento de Anamnese (PAUSADO)
+- [x] Remover botão "Preencher com IA" temporariamente
+- [x] Testar salvamento básico da Anamnese (editar e salvar)
+- [x] Identificar problema: anamneseData não estava sendo salvo
+- [x] Remover campo anamneseData da tabela patients
+- [x] Voltar a usar tabela anamnese separada
+- [x] Corrigir problema de autorização na procedure upsert
+- [ ] Testar salvamento com a tabela anamnese - PROBLEMA PERSISTE
+- [ ] Adicionar "Preencher com IA" de volta - PENDENTE
+- **NOTA:** A Anamnese ainda não salva corretamente. Requer debug adicional da procedure upsert

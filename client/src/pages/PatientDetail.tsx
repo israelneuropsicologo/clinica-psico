@@ -113,6 +113,8 @@ export default function PatientDetail() {
   const { data: patientSessions } = trpc.sessions.list.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: documents, refetch: refetchDocs } = trpc.documents.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: clinicalNotes, refetch: refetchNotes } = trpc.clinicalNotes.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
+  
+  // Carregar anamneseData da tabela anamnese
   const { data: anamneseData, refetch: refetchAnamnese } = trpc.anamnese.get.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: recordings, refetch: refetchRecordings } = trpc.recordings.list.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: timelineList, refetch: refetchTimeline } = trpc.timeline.list.useQuery({ patientId }, { enabled: patientId > 0 });
@@ -999,7 +1001,7 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
 
   // Atualizar form apenas quando sair do modo de edição
   useEffect(() => {
-    if (!editing && anamneseData) {
+    if (anamneseData) {
       setForm({
         mainComplaintDetail: (anamneseData.mainComplaintDetail as string) ?? "",
         therapeuticGoals: (anamneseData.therapeuticGoals as string) ?? "",
@@ -1022,11 +1024,47 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
         additionalNotes: (anamneseData.additionalNotes as string) ?? "",
       });
     }
-  }, [anamneseData, editing])
+  }, [anamneseData])
 
   const upsertMutation = trpc.anamnese.upsert.useMutation({
     onSuccess: () => { toast.success("Anamnese salva!"); setEditing(false); refetch(); },
     onError: (e) => toast.error(e.message),
+  });
+
+  const updateMutation = trpc.patients.update.useMutation({
+    onSuccess: () => { toast.success("Anamnese salva!"); setEditing(false); refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const autoFillMutation = trpc.anamnese.autoFill.useMutation({
+    onSuccess: (data) => {
+      // Preencher apenas campos vazios
+      setForm((prev) => ({
+        ...prev,
+        mainComplaintDetail: prev.mainComplaintDetail || (data.mainComplaintDetail as string) || "",
+        therapeuticGoals: prev.therapeuticGoals || (data.therapeuticGoals as string) || "",
+        cidCode: prev.cidCode || (data.cidCode as string) || "",
+        cidDescription: prev.cidDescription || (data.cidDescription as string) || "",
+        therapeuticApproach: prev.therapeuticApproach || (data.therapeuticApproach as string) || "",
+        familyHistory: prev.familyHistory || (data.familyHistory as string) || "",
+        personalHistory: prev.personalHistory || (data.personalHistory as string) || "",
+        previousTreatments: prev.previousTreatments || (data.previousTreatments as string) || "",
+        currentDiseaseHistory: prev.currentDiseaseHistory || (data.currentDiseaseHistory as string) || "",
+        psychiatricHistory: prev.psychiatricHistory || (data.psychiatricHistory as string) || "",
+        childhoodHistory: prev.childhoodHistory || (data.childhoodHistory as string) || "",
+        relationshipHistory: prev.relationshipHistory || (data.relationshipHistory as string) || "",
+        professionalHistory: prev.professionalHistory || (data.professionalHistory as string) || "",
+        substanceUse: prev.substanceUse || (data.substanceUse as string) || "",
+        sleepAndEating: prev.sleepAndEating || (data.sleepAndEating as string) || "",
+        sexualAffectiveLife: prev.sexualAffectiveLife || (data.sexualAffectiveLife as string) || "",
+        riskFactors: prev.riskFactors || (data.riskFactors as string) || "",
+        protectiveFactors: prev.protectiveFactors || (data.protectiveFactors as string) || "",
+        additionalNotes: prev.additionalNotes || (data.additionalNotes as string) || "",
+      }));
+      toast.success("Anamnese preenchida com IA!");
+      setEditing(true);
+    },
+    onError: (e) => toast.error(`Erro na IA: ${e.message}`),
   });
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -1034,11 +1072,14 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-2">
         <h3 className="text-sm font-semibold">Ficha de Anamnese</h3>
-        <Button size="sm" variant="outline" onClick={() => setEditing(!editing)} className="gap-1.5">
-          <Edit className="h-3.5 w-3.5" /> {editing ? "Cancelar" : "Editar"}
-        </Button>
+        <div className="flex gap-2">
+          {/* Botão Preencher com IA removido temporariamente para debug */}
+          <Button size="sm" variant="outline" onClick={() => setEditing(!editing)} className="gap-1.5">
+            <Edit className="h-3.5 w-3.5" /> {editing ? "Cancelar" : "Editar"}
+          </Button>
+        </div>
       </div>
 
       {/* Queixa e Objetivos */}
