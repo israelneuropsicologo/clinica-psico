@@ -2,7 +2,7 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { getDb } from "../db";
 import { patients, sessions, transactions, settings } from "../../drizzle/schema";
-import { eq, and, gte, lte } from "drizzle-orm";
+import { eq, and, gte, lte, inArray } from "drizzle-orm";
 
 export interface ReportFilters {
   userId: number;
@@ -77,11 +77,9 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
   let patientList: typeof patients.$inferSelect[] = [];
   
   if (filters.patientIds && filters.patientIds.length > 0) {
-    // Buscar apenas os pacientes selecionados
-    const conditions: ReturnType<typeof eq>[] = [eq(patients.userId, filters.userId)];
-    const query = db.select().from(patients).where(and(...conditions));
-    const allPatients = await query.limit(1000);
-    patientList = allPatients.filter(p => filters.patientIds!.includes(p.id));
+    // Buscar apenas os pacientes selecionados (sem filtrar por userId, pois podem ser compartilhados)
+    const query = db.select().from(patients).where(inArray(patients.id, filters.patientIds));
+    patientList = await query.limit(1000);
   } else {
     // Construir query com filtros normais
     const conditions: ReturnType<typeof eq>[] = [eq(patients.userId, filters.userId)];
