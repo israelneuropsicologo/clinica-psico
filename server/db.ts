@@ -290,18 +290,12 @@ export async function checkDuplicateSession(
 export async function getSessionById(id: number, userId: number): Promise<Session | undefined> {
   const db = await getDb();
   if (!db) return undefined;
-  // Buscar sessão através do paciente (não apenas sessions.userId)
-  // Isso permite acesso em sistema multi-conta
-  const patientIds = db.select({ id: patients.id }).from(patients).where(eq(patients.userId, userId));
+  // ✅ Sem restrição de userId - proprietário pode ver qualquer sessão
+  // Sessões vêm de pacientes do webhook, proprietário precisa poder vê-las
   const result = await db
     .select()
     .from(sessions)
-    .where(
-      and(
-        eq(sessions.id, id),
-        inArray(sessions.patientId, patientIds)
-      )
-    )
+    .where(eq(sessions.id, id))
     .limit(1);
   return result[0];
 }
