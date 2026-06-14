@@ -204,9 +204,15 @@ export const recordingsRouter = router({
       // Converter base64 para Buffer
       const buffer = Buffer.from(input.fileBase64, 'base64');
       
+      // Sanitizar nome do arquivo (remover caracteres não-ASCII)
+      const sanitizedFileName = input.fileName
+        .replace(/[^\x00-\x7F]/g, '_')
+        .replace(/[^a-zA-Z0-9._-]/g, '_')
+        .substring(0, 255);
+      
       // Upload para S3
       const { storagePut } = await import('../storage.js');
-      const fileKey = `recordings/${ctx.user.id}/${Date.now()}-${input.fileName}`;
+      const fileKey = `recordings/${ctx.user.id}/${Date.now()}-${sanitizedFileName}`;
       const { url: audioUrl } = await storagePut(fileKey, buffer, input.mimeType);
 
       // Transcrever áudio
