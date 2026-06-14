@@ -147,12 +147,18 @@ export default function PatientDetail() {
     onSuccess: () => { toast.success("Análise gerada com sucesso!"); refetchTimeline(); },
     onError: (e) => toast.error(e.message),
   });
+<<<<<<< Updated upstream
   const patientUpdateMutation = trpc.patients.update.useMutation({
     onSuccess: () => {
       toast.success("Status atualizado com sucesso!");
       refetch();
     },
     onError: (e) => toast.error("Erro ao atualizar status: " + e.message),
+=======
+  const updateMutation = trpc.patients.update.useMutation({
+    onSuccess: () => { toast.success("Paciente atualizado."); refetch(); },
+    onError: (e) => toast.error(e.message),
+>>>>>>> Stashed changes
   });
   const generateReferralMutation = trpc.reports.generateReferralLetterPDF.useMutation({
     onSuccess: (result) => {
@@ -999,9 +1005,13 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
     additionalNotes: (anamneseData?.additionalNotes as string) ?? "",
   }));
 
-  // Atualizar form apenas quando sair do modo de edição
+  // Atualizar form quando entrar em modo de edição ou quando anamneseData mudar
   useEffect(() => {
+<<<<<<< Updated upstream
     if (anamneseData) {
+=======
+    if (editing && anamneseData) {
+>>>>>>> Stashed changes
       setForm({
         mainComplaintDetail: (anamneseData.mainComplaintDetail as string) ?? "",
         therapeuticGoals: (anamneseData.therapeuticGoals as string) ?? "",
@@ -1027,8 +1037,16 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
   }, [anamneseData])
 
   const upsertMutation = trpc.anamnese.upsert.useMutation({
-    onSuccess: () => { toast.success("Anamnese salva!"); setEditing(false); refetch(); },
-    onError: (e) => toast.error(e.message),
+    onSuccess: () => { 
+      console.log('✅ Anamnese salva com sucesso!');
+      toast.success("Anamnese salva!"); 
+      setEditing(false); 
+      refetch(); 
+    },
+    onError: (e) => {
+      console.error('❌ Erro ao salvar anamnese:', e);
+      toast.error(e.message);
+    },
   });
 
   const updateMutation = trpc.patients.update.useMutation({
@@ -1141,7 +1159,12 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
       {editing && (
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
-          <Button onClick={() => upsertMutation.mutate({ patientId, ...form })} disabled={upsertMutation.isPending}>
+          <Button onClick={() => {
+            console.log('Botao Salvar Anamnese clicado!');
+            console.log('Dados do formulario:', form);
+            console.log('Patient ID:', patientId);
+            upsertMutation.mutate({ patientId, ...form });
+          }} disabled={upsertMutation.isPending}>
             {upsertMutation.isPending ? "Salvando..." : "Salvar Anamnese"}
           </Button>
         </div>
