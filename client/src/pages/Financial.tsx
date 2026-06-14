@@ -158,30 +158,9 @@ export default function Financial() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="transactions">Transações</TabsTrigger>
           </TabsList>
-
-          {/* Dashboard Tab - Temporarily disabled */}
-          {/* <TabsContent value="dashboard" className="space-y-4">
-            {billingMetrics && monthlyRevenue && topPatients ? (
-              <BillingDashboard
-                totalRevenue={billingMetrics.totalRevenue}
-                averageTicket={billingMetrics.averageTicket}
-                defaultersCount={billingMetrics.defaultersCount}
-                conversionRate={billingMetrics.conversionRate}
-                monthlyData={monthlyRevenue}
-                patientsData={topPatients}
-              />
-            ) : (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground">Carregando dados de faturamento...</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent> */}
 
           {/* Transactions Tab */}
           <TabsContent value="transactions" className="space-y-4">

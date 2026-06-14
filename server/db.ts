@@ -1266,7 +1266,7 @@ export async function getMonthlyRevenueWithForecast(userId: number, months: numb
 
   const result = await db
     .select({
-      month: sql<string>`CONCAT(YEAR(createdAt), '-', MONTH(createdAt))`,
+      month: sql<string>`CONCAT(YEAR(createdAt), '-', LPAD(MONTH(createdAt), 2, '0'))`,
       revenue: sql<number>`COALESCE(SUM(CASE WHEN type = 'income' AND status = 'paid' THEN amount ELSE 0 END), 0)`,
     })
     .from(transactions)
