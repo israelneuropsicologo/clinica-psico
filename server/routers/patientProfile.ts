@@ -216,11 +216,13 @@ export const recordingsRouter = router({
       // Converter URL relativa para absoluta se necessário
       const absoluteAudioUrl = audioUrl.startsWith('http') 
         ? audioUrl 
-        : `${process.env.VITE_FRONTEND_FORGE_API_URL || 'https://sistemaclinicaapp.manus.space'}${audioUrl}`;
+        : `https://sistemaclinicaapp.manus.space${audioUrl}`;
       
+      console.log('[Recording Upload] Audio URL:', absoluteAudioUrl);
       const transcription = await transcribeAudio({
         audioUrl: absoluteAudioUrl,
       });
+      console.log('[Recording Upload] Transcription result:', transcription);
 
       // Verificar se houve erro na transcrição
       let transcriptionText = "";
