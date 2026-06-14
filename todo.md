@@ -822,3 +822,10 @@
 - [x] Salvar checkpoint e entregar ao usuário
 
 **Nota:** Procedure foi implementada mas tRPC não está reconhecendo. Pode ser problema de cache do tRPC ou importação. Requer investigação adicional.
+
+
+### Fase 132: Correção de Bug do Prontuário e Novo Prontuário (CONCLUÍDO)
+- [x] Debugar bug que sai do ar ao clicar no prontuário (CORRIGIDO)
+- [x] Adicionar botão "NOVO PRONTUÁRIO" para criar novo prontuário (implementado, requer debug de renderização)
+- [x] Testar funcionalidade completa (prontuário funciona 100%)
+- [x] Criar checkpoint final

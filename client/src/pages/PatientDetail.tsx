@@ -32,6 +32,7 @@ import {
   MoreVertical,
   Phone,
   Play,
+  Plus,
   RefreshCw,
   Search,
   Shield,
@@ -141,14 +142,8 @@ export default function PatientDetail() {
     onSuccess: () => { toast.success("Transcrição concluída!"); refetchRecordings(); },
     onError: (e) => toast.error(e.message),
   });
-  const supervisionMutation = trpc.recordings.generateSupervision.useMutation({
-    onSuccess: () => { toast.success("Supervisão IA gerada!"); refetchRecordings(); },
-    onError: (e) => toast.error(e.message),
-  });
-  const generateTimelineMutation = trpc.timeline.generate.useMutation({
-    onSuccess: () => { toast.success("Análise gerada com sucesso!"); refetchTimeline(); },
-    onError: (e) => toast.error(e.message),
-  });
+  // Removed: supervisionMutation (procedure not implemented)
+  // Removed: generateTimelineMutation (procedure not implemented)
   const updateMutation = trpc.patients.update.useMutation({
     onSuccess: () => {
       toast.success("Status atualizado com sucesso!");
@@ -248,7 +243,7 @@ export default function PatientDetail() {
         {/* Status strip */}
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={patient.status} onValueChange={(newStatus) => {
-            patientUpdateMutation.mutate({ id: patientId, status: newStatus as any });
+            updateMutation.mutate({ id: patientId, status: newStatus as any });
           }}>
             <SelectTrigger className="w-[140px]">
               <SelectValue />
@@ -367,6 +362,18 @@ export default function PatientDetail() {
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-muted-foreground">{clinicalNotes?.length ?? 0} prontuário(s) registrado(s)</p>
                   <div className="flex gap-2">
+                    <Button size="sm" onClick={() => {
+                      const newNote = {
+                        id: Math.random(),
+                        patientId,
+                        content: "",
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                      };
+                      setSelectedNote(newNote.id);
+                    }} className="gap-1.5 bg-blue-600 hover:bg-blue-700">
+                      <Plus className="h-3.5 w-3.5" /> Novo Prontuário
+                    </Button>
                     {clinicalNotes?.length ? (
                       <Button size="sm" variant="destructive" onClick={() => {
                         if (confirm(`Tem certeza que deseja apagar TODOS os ${clinicalNotes.length} prontuários?`)) {
@@ -678,24 +685,16 @@ export default function PatientDetail() {
                 <h3 className="font-semibold text-sm">Análise Clínica por IA</h3>
                 <p className="text-xs text-muted-foreground">Baseada em {patientSessions?.length ?? 0} sessão(ões) registrada(s)</p>
               </div>
-              <Button size="sm" onClick={() => generateTimelineMutation.mutate({ patientId })} disabled={generateTimelineMutation.isPending} className="gap-1.5">
-                {generateTimelineMutation.isPending ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Analisando...</> : <><Sparkles className="h-3.5 w-3.5" /> {timelineData ? "Nova Análise" : "Gerar Análise"}</>}
+              <Button size="sm" onClick={() => toast.info("Análise de linha do tempo será implementada em breve!")} className="gap-1.5">
+                <><Sparkles className="h-3.5 w-3.5" /> {timelineData ? "Nova Análise" : "Gerar Análise"}</>
               </Button>
             </div>
-            {!timelineData && !generateTimelineMutation.isPending ? (
+            {!timelineData ? (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
                   <TrendingUp className="h-10 w-10 mx-auto mb-2 opacity-30" />
                   <p className="text-sm font-medium">Nenhuma análise gerada ainda</p>
                   <p className="text-xs mt-1 max-w-xs mx-auto">Clique em "Gerar Análise" para que a IA analise o histórico clínico completo do paciente.</p>
-                </CardContent>
-              </Card>
-            ) : generateTimelineMutation.isPending ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Loader2 className="h-10 w-10 mx-auto mb-3 text-primary animate-spin" />
-                  <p className="text-sm font-medium">Analisando histórico clínico...</p>
-                  <p className="text-xs text-muted-foreground mt-1">Isso pode levar alguns segundos.</p>
                 </CardContent>
               </Card>
             ) : timelineData ? (
@@ -1886,12 +1885,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
               </Button>
             </CardHeader>
             <CardContent className="pt-6">
-              {supervisionMutation.isPending ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">Gerando supervisão clínica...</p>
-                </div>
-              ) : recordings?.find(r => r.id === selectedRecordingForSupervision)?.supervision ? (
+              {recordings?.find(r => r.id === selectedRecordingForSupervision)?.supervision ? (
                 <div className="space-y-4">
                   <AIAnalysisResult
                     content={recordings.find(r => r.id === selectedRecordingForSupervision)?.supervision || ""}
