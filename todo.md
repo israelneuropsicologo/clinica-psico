@@ -780,3 +780,17 @@
 - [ ] Testar salvamento com a tabela anamnese - PROBLEMA PERSISTE
 - [ ] Adicionar "Preencher com IA" de volta - PENDENTE
 - **NOTA:** A Anamnese ainda não salva corretamente. Requer debug adicional da procedure upsert
+
+---
+
+## 🚀 Fase 128: Preencher Anamnese com IA (CONCLUÍDO)
+
+- [x] Criar procedure tRPC `anamnese.fillWithAI` que busca dados do paciente e gera preenchimento com IA
+- [x] Adicionar botão "Preencher com IA" na seção de Anamnese (próximo ao botão "Editar")
+- [x] Integrar mutação tRPC com o formulário de Anamnese
+- [x] Adicionar loading state enquanto a IA processa
+- [x] Testar preenchimento com IA (validar que não sobrescreve campos já preenchidos)
+- [x] Criar testes Vitest para a procedure `anamnese.fillWithAI`
+- [x] Salvar checkpoint e entregar ao usuário
+
+**Resultado:** ✅ Funcionalidade 100% implementada e testada com sucesso!

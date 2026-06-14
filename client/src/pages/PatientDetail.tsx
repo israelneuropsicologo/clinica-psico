@@ -1083,7 +1083,25 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
       <div className="flex justify-between items-center gap-2">
         <h3 className="text-sm font-semibold">Ficha de Anamnese</h3>
         <div className="flex gap-2">
-          {/* Botão Preencher com IA removido temporariamente para debug */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => autoFillMutation.mutate({ patientId })}
+            disabled={autoFillMutation.isPending || editing}
+            className="gap-1.5"
+          >
+            {autoFillMutation.isPending ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Preenchendo...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3.5 w-3.5" />
+                Preencher com IA
+              </>
+            )}
+          </Button>
           <Button size="sm" variant="outline" onClick={() => setEditing(!editing)} className="gap-1.5">
             <Edit className="h-3.5 w-3.5" /> {editing ? "Cancelar" : "Editar"}
           </Button>
