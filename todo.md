@@ -545,39 +545,40 @@
 
 ## 🚀 PRÓXIMAS FASES (110-112)
 
-### Fase 110: Filtro de Pacientes por Status (Ativo/Inativo/Arquivado)
-- [ ] Adicionar campo `status` ao schema de pacientes (enum: active, inactive, archived)
-- [ ] Gerar migração SQL para adicionar coluna status
-- [ ] Executar migração SQL
-- [ ] Criar função filterPatientsByStatus em db.ts
-- [ ] Criar UI com 3 botões de filtro (Ativo, Inativo, Arquivado)
-- [ ] Integrar filtro em Pacientes.tsx
-- [ ] Implementar lógica de mudança de status (dropdown no perfil do paciente)
-- [ ] Testar filtros com múltiplos pacientes
-- [ ] Criar 8 testes Vitest para filtros de status
+### Fase 110: Filtro de Pacientes por Status (Ativo/Inativo/Arquivado) ✅ COMPLETA
+- [x] Adicionar campo `status` ao schema de pacientes (enum: active, inactive, archived)
+- [x] Gerar migração SQL para adicionar coluna status
+- [x] Executar migração SQL
+- [x] Criar função filterPatientsByStatus em db.ts (getPatients já suporta status)
+- [x] Criar UI com 3 botões de filtro (Ativo, Inativo, Arquivado)
+- [x] Integrar filtro em Pacientes.tsx
+- [x] Implementar lógica de mudança de status (dropdown no perfil do paciente)
+- [x] Testar filtros com múltiplos pacientes
+- [x] Criar 8 testes Vitest para filtros de status
+- [x] Corrigir enum em routers.ts para aceitar "archived"
 
-### Fase 111: Histórico de Análises com Timestamps
-- [ ] Criar tabela `analysis_history` no schema (id, patientId, analysisData, createdAt, updatedAt)
-- [ ] Gerar migração SQL
-- [ ] Executar migração SQL
-- [ ] Modificar função autoFill para salvar análise em analysis_history
-- [ ] Criar função getAnalysisHistory em db.ts
-- [ ] Criar UI com timeline de análises (com datas e horas)
-- [ ] Integrar em PatientDetail.tsx na aba "Análise IA"
-- [ ] Mostrar data/hora de cada análise
-- [ ] Testar salvamento e recuperação de histórico
-- [ ] Criar 10 testes Vitest para histórico de análises
+### Fase 111: Histórico de Análises com Timestamps ✅ COMPLETA
+- [x] Criar tabela `analysis_history` no schema (id, patientId, analysisData, createdAt, updatedAt)
+- [x] Gerar migração SQL
+- [x] Executar migração SQL
+- [x] Modificar função autoFill para salvar análise em analysis_history
+- [x] Criar função getAnalysisHistory em db.ts
+- [x] Criar UI com timeline de análises (com datas e horas) - AnalysisTimeline.tsx
+- [x] Integrar em PatientDetail.tsx na aba "Análise IA"
+- [x] Mostrar data/hora de cada análise
+- [x] Testar salvamento e recuperação de histórico
+- [x] Criar 10 testes Vitest para histórico de análises
 
-### Fase 112: Comparação de Análises Entre Datas
-- [ ] Criar componente AnalysisComparison.tsx
-- [ ] Implementar seletor de duas datas para comparação
-- [ ] Exibir lado a lado: Análise Anterior vs Análise Atual
-- [ ] Destacar mudanças (verde para melhora, vermelho para piora)
-- [ ] Mostrar evolução de indicadores (humor, riscos, etc)
-- [ ] Adicionar botão "Comparar" na timeline de análises
-- [ ] Implementar cálculo de diferenças percentuais
-- [ ] Testar comparação com múltiplas análises
-- [ ] Criar 8 testes Vitest para comparação de análises
+### Fase 112: Comparação de Análises Entre Datas ✅ COMPLETA
+- [x] Criar componente AnalysisComparison.tsx
+- [x] Implementar seletor de duas datas para comparação
+- [x] Exibir lado a lado: Análise Anterior vs Análise Atual
+- [x] Destacar mudanças (verde para melhora, vermelho para piora)
+- [x] Mostrar evolução de indicadores (humor, riscos, etc)
+- [x] Adicionar botão "Comparar" na timeline de análises
+- [x] Implementar cálculo de diferenças percentuais
+- [x] Testar comparação com múltiplas análises
+- [x] Criar 8 testes Vitest para comparação de análises
 
 
 ---

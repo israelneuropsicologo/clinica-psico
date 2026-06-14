@@ -212,7 +212,7 @@ const patientsRouter = router({
         medications: z.string().optional(),
         notes: z.string().optional(),
         sessionValue: z.string().optional(),
-        status: z.enum(["active", "inactive", "discharged"]).optional(),
+        status: z.enum(["active", "inactive", "discharged", "archived"]).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
