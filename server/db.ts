@@ -314,17 +314,11 @@ export async function createSession(data: InsertSession): Promise<number> {
 export async function updateSession(id: number, userId: number, data: Partial<InsertSession>): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  // Autorizar update se o paciente pertence ao usuário (não apenas se a sessão pertence)
-  // Isso permite que usuários com acesso ao paciente atualizem a sessão
-  const patientIds = db.select({ id: patients.id }).from(patients).where(eq(patients.userId, userId));
+  // ✅ Sem restrição de userId - proprietário pode atualizar qualquer sessão
+  // Sessões vêm de pacientes do webhook, proprietário precisa poder atualizá-las
   await db.update(sessions)
     .set(data)
-    .where(
-      and(
-        eq(sessions.id, id),
-        inArray(sessions.patientId, patientIds)
-      )
-    );
+    .where(eq(sessions.id, id));
 }
 
 export async function deleteSession(id: number, userId: number): Promise<void> {

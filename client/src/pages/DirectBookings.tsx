@@ -24,14 +24,15 @@ export default function DirectBookings() {
   // Refetch quando forceSyncPending completa
   useEffect(() => {
     if (forceSyncMutation.data) {
-      refetch();
+      setTimeout(() => refetch(), 500);
     }
   }, [forceSyncMutation.data, refetch]);
+
 
   const updateSession = trpc.sessions.update.useMutation({
     onSuccess: () => {
       toast.success("Agendamento confirmado e adicionado à agenda!");
-      refetch();
+      setTimeout(() => refetch(), 500);
     },
     onError: (e) => toast.error(e.message),
   });
@@ -40,7 +41,7 @@ export default function DirectBookings() {
     onSuccess: () => {
       toast.success("Agendamento recusado e arquivado!");
       setRejectionModal(null);
-      refetch();
+      setTimeout(() => refetch(), 500);
     },
     onError: (e) => toast.error(e.message),
   });
