@@ -272,6 +272,63 @@ export const recordingsRouter = router({
 
       return { success: true };
     }),
+  transcribe: protectedProcedure
+    .input(z.object({ recordingId: z.number() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const recording = await db
+        .select()
+        .from(sessionRecordings)
+        .where(eq(sessionRecordings.id, input.recordingId))
+        .limit(1);
+
+      if (!recording || recording.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Recording not found" });
+      }
+
+      const rec = recording[0];
+      if (!rec.fileUrl) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Recording has no file URL" });
+      }
+
+      // Converter URL relativa para absoluta se necessário
+      const absoluteAudioUrl = rec.fileUrl.startsWith('http')
+        ? rec.fileUrl
+        : `${process.env.VITE_FRONTEND_FORGE_API_URL || 'https://sistemaclinicaapp.manus.space'}${rec.fileUrl}`;
+
+      const { transcribeAudio } = await import('../_core/voiceTranscription');
+      const transcription = await transcribeAudio({
+        audioUrl: absoluteAudioUrl,
+      });
+
+      let transcriptionText = "";
+      let transcriptionStatus: "done" | "error" | "pending" | "processing" = "done";
+
+      if ('error' in transcription) {
+        transcriptionStatus = "error";
+        console.error(`[Transcription Error] ${transcription.error}:`, transcription.details);
+      } else {
+        transcriptionText = transcription.text || "";
+      }
+
+      // Atualizar o registro com a transcrição
+      await db
+        .update(sessionRecordings)
+        .set({
+          transcription: transcriptionText,
+          transcriptionStatus: transcriptionStatus,
+        })
+        .where(eq(sessionRecordings.id, input.recordingId));
+
+      return {
+        success: true,
+        transcription: transcriptionText,
+        status: transcriptionStatus,
+      };
+    }),
+
   generateTranscriptionPdf: protectedProcedure
     .input(z.object({ recordingId: z.number() }))
     .mutation(async ({ input }) => {
