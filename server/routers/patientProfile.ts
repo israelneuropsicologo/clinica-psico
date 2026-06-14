@@ -373,9 +373,6 @@ export const recordingsRouter = router({
       return { pdfUrl: url };
     }),
 
-  // TODO: generateSupervision - Implementado mas requer debug de cache tRPC
-  // Procedure existe no servidor mas tRPC client não reconhece
-  // Será ativado após resolver problema de cache
 });
 
 // ─── Timeline Router ────────────────────────────────────────────────────────
