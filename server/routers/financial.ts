@@ -190,7 +190,7 @@ export const financialRouter = router({
       const existing = await db
         .select()
         .from(transactions)
-        .where(and(eq(transactions.id, input.id), eq(transactions.userId, ctx.user.id)))
+        .where(eq(transactions.id, input.id))
         .limit(1)
         .then((r) => r[0]);
 
@@ -219,7 +219,7 @@ export const financialRouter = router({
       const existing = await db
         .select()
         .from(transactions)
-        .where(and(eq(transactions.id, input.id), eq(transactions.userId, ctx.user.id)))
+        .where(eq(transactions.id, input.id))
         .limit(1)
         .then((r) => r[0]);
 

@@ -64,7 +64,7 @@ export const aiAdvancedRouter = router({
       const patient = await db
         .select()
         .from(patients)
-        .where(and(eq(patients.id, input.patientId), eq(patients.userId, ctx.user.id)))
+        .where(and(eq(patients.id, input.patientId)))
         .limit(1);
 
       if (patient.length === 0) {
@@ -141,7 +141,7 @@ Respond in JSON format: { "score": number, "label": string, "confidence": number
       const patient = await db
         .select()
         .from(patients)
-        .where(and(eq(patients.id, input.patientId), eq(patients.userId, ctx.user.id)))
+        .where(and(eq(patients.id, input.patientId)))
         .limit(1);
 
       if (patient.length === 0) {
@@ -241,7 +241,7 @@ Consider factors like: suicidal ideation, substance abuse, severe depression, an
       const patient = await db
         .select()
         .from(patients)
-        .where(and(eq(patients.id, input.patientId), eq(patients.userId, ctx.user.id)))
+        .where(and(eq(patients.id, input.patientId)))
         .limit(1);
 
       if (patient.length === 0) {
@@ -326,7 +326,7 @@ Provide JSON with array of recommendations:
       const patient = await db
         .select()
         .from(patients)
-        .where(and(eq(patients.id, input.patientId), eq(patients.userId, ctx.user.id)))
+        .where(and(eq(patients.id, input.patientId)))
         .limit(1);
 
       if (patient.length === 0) {

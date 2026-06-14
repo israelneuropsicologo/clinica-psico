@@ -215,7 +215,7 @@ export const aiAnalyticsOptimizedRouter = router({
       const patient = await db
         .select()
         .from(patients)
-        .where(and(eq(patients.id, patientId), eq(patients.userId, ctx.user.id)))
+        .where(and(eq(patients.id, patientId)))
         .limit(1);
 
       if (patient.length === 0) {

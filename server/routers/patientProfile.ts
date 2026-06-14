@@ -25,9 +25,7 @@ export const anamneseRouter = router({
       const result = await db
         .select()
         .from(anamnese)
-        .where(
-          and(eq(anamnese.patientId, input.patientId), eq(anamnese.userId, ctx.user.id))
-        )
+        .where(eq(anamnese.patientId, input.patientId))
         .limit(1);
       return result[0] ?? null;
     }),
@@ -177,12 +175,11 @@ export const recordingsRouter = router({
     .query(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) return [];
+      // Retornar TODAS as gravacoes do paciente
       return db
         .select()
         .from(sessionRecordings)
-        .where(
-          and(eq(sessionRecordings.patientId, input.patientId), eq(sessionRecordings.userId, ctx.user.id))
-        )
+        .where(eq(sessionRecordings.patientId, input.patientId))
         .orderBy(desc(sessionRecordings.createdAt));
     }),
 
@@ -216,11 +213,27 @@ export const recordingsRouter = router({
       const { url: audioUrl } = await storagePut(fileKey, buffer, input.mimeType);
 
       // Transcrever áudio
+      // Converter URL relativa para absoluta se necessário
+      const absoluteAudioUrl = audioUrl.startsWith('http') 
+        ? audioUrl 
+        : `${process.env.VITE_FRONTEND_FORGE_API_URL || 'https://sistemaclinicaapp.manus.space'}${audioUrl}`;
+      
       const transcription = await transcribeAudio({
-        audioUrl: audioUrl,
+        audioUrl: absoluteAudioUrl,
       });
 
-      const transcriptionText = 'text' in transcription ? transcription.text : "";
+      // Verificar se houve erro na transcrição
+      let transcriptionText = "";
+      let transcriptionStatus: "done" | "error" | "pending" | "processing" = "done";
+      
+      if ('error' in transcription) {
+        // Houve erro na transcrição
+        transcriptionStatus = "error";
+        console.error(`[Transcription Error] ${transcription.error}:`, transcription.details);
+      } else {
+        // Sucesso na transcrição
+        transcriptionText = transcription.text || "";
+      }
 
       const result = await db
         .insert(sessionRecordings)
@@ -233,7 +246,7 @@ export const recordingsRouter = router({
           fileUrl: audioUrl,
           mimeType: input.mimeType,
           transcription: transcriptionText,
-          transcriptionStatus: "done",
+          transcriptionStatus: transcriptionStatus,
           createdAt: new Date(),
         });
 
@@ -255,7 +268,7 @@ export const recordingsRouter = router({
 
       await db
         .delete(sessionRecordings)
-        .where(and(eq(sessionRecordings.id, input.id), eq(sessionRecordings.userId, ctx.user.id)));
+        .where(eq(sessionRecordings.id, input.id));
 
       return { success: true };
     }),
@@ -271,9 +284,7 @@ export const timelineRouter = router({
       return db
         .select()
         .from(timelineAnalyses)
-        .where(
-          and(eq(timelineAnalyses.patientId, input.patientId), eq(timelineAnalyses.userId, ctx.user.id))
-        )
+        .where(eq(timelineAnalyses.patientId, input.patientId))
         .orderBy(desc(timelineAnalyses.createdAt));
     }),
 });

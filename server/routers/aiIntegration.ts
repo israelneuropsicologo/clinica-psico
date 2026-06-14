@@ -26,7 +26,7 @@ export const aiIntegrationRouter = router({
       const patient = await db
         .select()
         .from(patients)
-        .where(and(eq(patients.id, input.patientId), eq(patients.userId, ctx.user.id)))
+        .where(and(eq(patients.id, input.patientId)))
         .limit(1);
 
       if (patient.length === 0) {
@@ -98,7 +98,7 @@ export const aiIntegrationRouter = router({
       const patient = await db
         .select()
         .from(patients)
-        .where(and(eq(patients.id, input.patientId), eq(patients.userId, ctx.user.id)))
+        .where(and(eq(patients.id, input.patientId)))
         .limit(1);
 
       if (patient.length === 0) {
@@ -239,7 +239,7 @@ Forneça recomendações em formato estruturado:
       const patient = await db
         .select()
         .from(patients)
-        .where(and(eq(patients.id, input.patientId), eq(patients.userId, ctx.user.id)))
+        .where(and(eq(patients.id, input.patientId)))
         .limit(1);
 
       if (patient.length === 0) {
