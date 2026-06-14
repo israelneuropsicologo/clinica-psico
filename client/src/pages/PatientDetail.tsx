@@ -515,7 +515,7 @@ export default function PatientDetail() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {recordings.map((rec) => (
+                {recordings.filter(rec => rec.transcriptionStatus === "done" && rec.transcription).map((rec) => (
                   <Card key={rec.id}>
                     <CardContent className="p-4 space-y-3">
                       {/* Header da gravação */}
@@ -528,23 +528,11 @@ export default function PatientDetail() {
                             <p className="text-sm font-medium truncate">{rec.fileName}</p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(rec.createdAt).toLocaleDateString("pt-BR")} {"•"}{" "}
-                              {rec.transcriptionStatus === "done" ? <span className="text-green-600 font-medium">Transcrito</span>
-                                : rec.transcriptionStatus === "processing" ? <span className="text-yellow-600">Transcrevendo...</span>
-                                : rec.transcriptionStatus === "error" ? <span className="text-red-600">Erro na transcrição</span>
-                                : <span className="text-muted-foreground">Aguardando transcrição</span>}
+                              <span className="text-green-600 font-medium">Transcrito</span>
                             </p>
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0">
-                          {rec.transcriptionStatus !== "done" && rec.transcriptionStatus !== "processing" && (
-                            <Button variant="outline" size="sm"
-                              onClick={() => transcribeMutation.mutate({ recordingId: rec.id })}
-                              disabled={transcribeMutation.isPending}
-                              className="gap-1.5">
-                              {transcribeMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                              Transcrever
-                            </Button>
-                          )}
                           {/* Menu de ações */}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
