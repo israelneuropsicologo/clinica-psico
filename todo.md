@@ -710,3 +710,15 @@
 - [x] Testar com 8 pacientes selecionados - Todos incluidos no PDF
 - [x] Validar que nenhuma coluna esta cortada - Confirmado
 - [x] Testar com diferentes quantidades de dados - Funcionando
+
+
+### Fase 123: Implementar Autosave para Mudança de Status de Pacientes ✅ COMPLETA
+- [x] Investigar por que o dropdown de status não salvava automaticamente
+- [x] Encontrar problema: updateMutation era para clinicalNotes, não para patients
+- [x] Criar patientUpdateMutation para salvar status do paciente
+- [x] Implementar autosave ao mudar status no dropdown
+- [x] Adicionar toast de sucesso quando status é atualizado
+- [x] Adicionar refetch automático para atualizar a página
+- [x] Testar mudança de status com autosave - FUNCIONANDO PERFEITAMENTE
+- [x] Validar que dados foram salvos no banco de dados
+- [x] Criar checkpoint final

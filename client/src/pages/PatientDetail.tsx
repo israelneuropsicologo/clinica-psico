@@ -145,6 +145,13 @@ export default function PatientDetail() {
     onSuccess: () => { toast.success("Análise gerada com sucesso!"); refetchTimeline(); },
     onError: (e) => toast.error(e.message),
   });
+  const patientUpdateMutation = trpc.patients.update.useMutation({
+    onSuccess: () => {
+      toast.success("Status atualizado com sucesso!");
+      refetch();
+    },
+    onError: (e) => toast.error("Erro ao atualizar status: " + e.message),
+  });
   const generateReferralMutation = trpc.reports.generateReferralLetterPDF.useMutation({
     onSuccess: (result) => {
       const blob = new Blob([Uint8Array.from(atob(result.data), c => c.charCodeAt(0))], { type: result.mimeType });
@@ -237,7 +244,7 @@ export default function PatientDetail() {
         {/* Status strip */}
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={patient.status} onValueChange={(newStatus) => {
-            updateMutation.mutate({ id: patientId, status: newStatus as any });
+            patientUpdateMutation.mutate({ id: patientId, status: newStatus as any });
           }}>
             <SelectTrigger className="w-[140px]">
               <SelectValue />
