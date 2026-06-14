@@ -794,3 +794,18 @@
 - [x] Salvar checkpoint e entregar ao usuário
 
 **Resultado:** ✅ Funcionalidade 100% implementada e testada com sucesso!
+
+
+### Fase 129: Protocolo de Conferência de Conta Logada (EM PROGRESSO)
+- [ ] Implementar banner de aviso quando usuário está logado
+- [ ] Mostrar email do usuário logado de forma proeminente
+- [ ] Adicionar botão de logout rápido no banner
+- [ ] Adicionar confirmação antes de ações críticas
+- [ ] Criar log de auditoria para mudanças de conta
+
+### Fase 130: Download de Transcrição nas Gravações (EM PROGRESSO)
+- [ ] Adicionar ícone de download nos 3 pontinhos do menu de gravação
+- [ ] Implementar função para gerar arquivo .txt com transcrição
+- [ ] Implementar função para gerar arquivo .pdf com transcrição
+- [ ] Testar download de transcrição
+- [ ] Validar que arquivo contém transcrição completa

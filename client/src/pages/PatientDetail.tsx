@@ -574,7 +574,37 @@ export default function PatientDetail() {
                                 <Download className="h-4 w-4" />
                                 Baixar Áudio
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator />
+                              {rec.transcription && (
+                                <>
+                                  <DropdownMenuItem onClick={() => {
+                                    const element = document.createElement('a');
+                                    const file = new Blob([rec.transcription], {type: 'text/plain'});
+                                    element.href = URL.createObjectURL(file);
+                                    element.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.txt`;
+                                    document.body.appendChild(element);
+                                    element.click();
+                                    document.body.removeChild(element);
+                                  }} className="gap-2">
+                                    <FileDown className="h-4 w-4" />
+                                    Baixar Transcrição (TXT)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => {
+                                    trpc.recordings.generateTranscriptionPdf.mutate({ recordingId: rec.id }, {
+                                      onSuccess: (data) => {
+                                        const link = document.createElement('a');
+                                        link.href = data.pdfUrl;
+                                        link.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.pdf`;
+                                        link.click();
+                                      },
+                                      onError: () => toast.error('Erro ao gerar PDF')
+                                    });
+                                  }} className="gap-2">
+                                    <FileDown className="h-4 w-4" />
+                                    Baixar Transcrição (PDF)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </>
+                              )}
                               <DropdownMenuItem onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ recordingId: rec.id }); }} className="gap-2 text-destructive">
                                 <Trash2 className="h-4 w-4" />
                                 Excluir

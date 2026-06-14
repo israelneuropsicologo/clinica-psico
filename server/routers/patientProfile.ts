@@ -272,6 +272,47 @@ export const recordingsRouter = router({
 
       return { success: true };
     }),
+  generateTranscriptionPdf: protectedProcedure
+    .input(z.object({ recordingId: z.number() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+      
+      const recording = await db.select().from(sessionRecordings).where(eq(sessionRecordings.id, input.recordingId)).limit(1);
+      if (!recording || recording.length === 0) throw new Error('Recording not found');
+      
+      const rec = recording[0];
+      if (!rec.transcription) throw new Error('No transcription available');
+      
+      const PDFKit = require('pdfkit');
+      
+      const doc = new PDFKit();
+      const chunks: Buffer[] = [];
+      
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      
+      doc.fontSize(16).text('Transcrição da Gravação', { align: 'center' });
+      doc.fontSize(11).text(`Arquivo: ${rec.fileName}`, { align: 'left' });
+      doc.text(`Data: ${new Date(rec.createdAt).toLocaleDateString('pt-BR')}`, { align: 'left' });
+      doc.moveDown();
+      
+      doc.fontSize(11).text(rec.transcription, { align: 'justify' });
+      
+      doc.end();
+      
+      const pdfBuffer = await new Promise<Buffer>((resolve) => {
+        doc.on('finish', () => resolve(Buffer.concat(chunks)));
+      });
+      
+      const { storagePut } = await import('../storage');
+      const { url } = await storagePut(
+        `transcriptions/${rec.id}_${Date.now()}.pdf`,
+        pdfBuffer,
+        'application/pdf'
+      );
+      
+      return { pdfUrl: url };
+    }),
 });
 
 // ─── Timeline Router ────────────────────────────────────────────────────────
