@@ -104,7 +104,7 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
 
   const PAGE_W = 612;
   const PAGE_H = 792;
-  const MARGIN = 50;
+  const MARGIN = 60; // Aumentado de 50 para 60 (margens maiores)
   const CONTENT_W = PAGE_W - MARGIN * 2;
 
   let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
@@ -206,12 +206,12 @@ export async function generatePatientReport(filters: ReportFilters): Promise<Buf
     ];
 
     row.forEach((cell, i) => {
-      const maxLen = i === 1 ? 22 : i === 0 ? 18 : 12;
+      const maxLen = i === 1 ? 20 : i === 0 ? 16 : 10; // Reduzido para evitar corte
       const truncated = cell.length > maxLen ? cell.substring(0, maxLen - 2) + ".." : cell;
       page.drawText(truncated, {
         x: x + 4,
         y: y + 2,
-        size: 8,
+        size: 7, // Reduzido de 8 para 7
         font: fontRegular,
         color: DARK_GRAY,
       });
@@ -285,7 +285,7 @@ export async function generateFinancialReport(filters: ReportFilters): Promise<B
 
   const PAGE_W = 612;
   const PAGE_H = 792;
-  const MARGIN = 50;
+  const MARGIN = 60; // Aumentado de 50 para 60 (margens maiores)
   const CONTENT_W = PAGE_W - MARGIN * 2;
 
   const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
@@ -357,9 +357,9 @@ export async function generateFinancialReport(filters: ReportFilters): Promise<B
     ];
 
     row.forEach((cell, i) => {
-      const maxLen = i === 1 ? 35 : 14;
+      const maxLen = i === 1 ? 30 : 12; // Reduzido para evitar corte
       const truncated = cell.length > maxLen ? cell.substring(0, maxLen - 2) + ".." : cell;
-      page.drawText(truncated, { x: x + 4, y: y + 2, size: 8, font: fontRegular, color: DARK_GRAY });
+      page.drawText(truncated, { x: x + 4, y: y + 2, size: 7, font: fontRegular, color: DARK_GRAY }); // Reduzido de 8 para 7
       x += colWidths[i];
     });
 

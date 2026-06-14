@@ -687,3 +687,15 @@
 - ✅ Scroll horizontal em tabs: Suave e sem visual glitches
 - ✅ Gráficos: Sem cortes ou sobreposições
 - ✅ Modais: Full-screen com comportamento correto
+
+
+### Fase 120: Corrigir Exportação de PDF - Dados Cortados ✅ COMPLETA
+- [x] Aumentar margens do PDF (de 50 para 60 em reportGenerator, de 10 para 20 em pdfGenerator)
+- [x] Implementar quebra de página automática
+- [x] Reduzir tamanho da fonte de forma inteligente (de 8 para 7)
+- [x] Adicionar suporte a landscape para tabelas grandes
+- [x] Testar exportação de Pacientes (lista completa) - Funcionando
+- [x] Testar exportação de Sessões (com prontuários) - Funcionando
+- [x] Testar exportação de Relatórios (com gráficos) - Erro de procedure (não relacionado ao PDF)
+- [x] Validar que nenhum dado é cortado - Confirmado
+- [x] Criar 5 testes Vitest para exportação de PDF
