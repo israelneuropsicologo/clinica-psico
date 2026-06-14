@@ -740,3 +740,20 @@
 - Fase 123: Autosave para mudança de status de pacientes
 - Fase 124: Dashboard de Faturamento no Módulo Financeiro
 - Fase 125: Confirmação de Agendamentos Diretos funcionando perfeitamente
+
+
+### Fase 126: Remover Duplicação de Layout de Sessão (CONCLUÍDO)
+- [x] Identificar problema: Dois layouts diferentes para sessões (um bugado, outro funcionando)
+- [x] Remover rota `/sessions/:id` do App.tsx
+- [x] Remover import de SessionDetail.tsx
+- [x] Modificar navegação em Sessions.tsx para redirecionar via Paciente
+- [x] Testar redirecionamento: Clique em sessão → `/patients/{patientId}?tab=sessions&sessionId={sessionId}`
+- [x] Validar que todos os campos estão preenchidos e funcionando
+- [x] Validar que gráficos e análise de IA aparecem normalmente
+- [x] Criar checkpoint final
+
+**Benefícios:**
+- ✅ Sem duplicação de código
+- ✅ Sem bugs (usa o layout que funciona)
+- ✅ Interface consistente
+- ✅ Experiência de usuário melhorada
