@@ -372,6 +372,74 @@ export const recordingsRouter = router({
       
       return { pdfUrl: url };
     }),
+
+  generateSupervision: protectedProcedure
+    .input(z.object({ recordingId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      // Buscar a gravacao
+      const recording = await db
+        .select()
+        .from(sessionRecordings)
+        .where(eq(sessionRecordings.id, input.recordingId))
+        .limit(1);
+
+      if (!recording || recording.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Recording not found" });
+      }
+
+      const rec = recording[0];
+      if (!rec.transcription) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No transcription available" });
+      }
+
+      // Buscar dados do paciente para contexto
+      const patient = await db
+        .select()
+        .from(patients)
+        .where(eq(patients.id, rec.patientId))
+        .limit(1);
+
+      const patientData = patient?.[0];
+
+      // Gerar supervisao com IA
+      const supervision = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `Voce e um supervisor clinico experiente em psicologia. Analise a transcricao de uma sessao de terapia e forneca uma supervisao clinica detalhada. Considere: qualidade da escuta terapeutica, tecnicas utilizadas, engajamento do paciente, pontos de melhoria, e recomendacoes para proximas sessoes. Forneca a resposta em formato estruturado com secoes claras.`,
+          },
+          {
+            role: "user",
+            content: `Paciente: ${patientData?.name || "Nao identificado"}
+Data da sessao: ${new Date(rec.createdAt).toLocaleDateString("pt-BR")}
+Transcricao da sessao:
+
+${rec.transcription}`,
+          },
+        ],
+      });
+
+      const supervisionContent = supervision.choices?.[0]?.message?.content;
+      const supervisionText = typeof supervisionContent === 'string' 
+        ? supervisionContent 
+        : "Nao foi possivel gerar supervisao";
+
+      // Salvar supervisao no banco de dados
+      await db
+        .update(sessionRecordings)
+        .set({ supervision: supervisionText })
+        .where(eq(sessionRecordings.id, rec.id));
+
+      return {
+        recordingId: rec.id,
+        fileName: rec.fileName,
+        createdAt: rec.createdAt,
+        supervision: supervisionText,
+      };
+    }),
 });
 
 // ─── Timeline Router ────────────────────────────────────────────────────────
