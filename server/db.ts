@@ -223,8 +223,9 @@ export async function getSessions(
 ): Promise<SessionWithPatient[]> {
   const db = await getDb();
   if (!db) return [];
-  // Buscar sessões dos pacientes do usuário
-  const conditions = [eq(patients.userId, userId)];
+  // ✅ Sem restrição de userId - proprietário pode ver todas as sessões
+  // Sessões vêm de pacientes do webhook, proprietário precisa vê-las todas
+  const conditions: any[] = [];
   if (opts?.patientId) conditions.push(eq(sessions.patientId, opts.patientId));
   if (opts?.status && opts.status !== "all") {
     conditions.push(eq(sessions.status, opts.status as Session["status"]));
@@ -239,7 +240,7 @@ export async function getSessions(
     .select()
     .from(sessions)
     .leftJoin(patients, eq(sessions.patientId, patients.id))
-    .where(and(...conditions))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(desc(sessions.scheduledAt));
   
   return result.map(row => ({
@@ -615,16 +616,20 @@ export async function getSessionsShared(userId: number, patientId?: number, stat
   const db = await getDb();
   if (!db) return [];
   
-  // Buscar IDs de todos os usuários vinculados
-  const linkedUserIds = await getLinkedUserIds(userId);
+  // ✅ Sem restrição de userId - proprietário pode ver todas as sessões
+  // Sessões vêm de pacientes do webhook, proprietário precisa vê-las todas
   
-  const conditions = [sql`${sessions.userId} IN (${sql.join(linkedUserIds)})`];
+  const conditions: any[] = [];
   
   if (patientId) {
     conditions.push(eq(sessions.patientId, patientId));
   }
   if (status && status !== "all") {
     conditions.push(eq(sessions.status, status as Session["status"]));
+  }
+  
+  if (conditions.length === 0) {
+    return db.select().from(sessions).orderBy(desc(sessions.scheduledAt));
   }
   
   return db.select().from(sessions).where(and(...conditions)).orderBy(desc(sessions.scheduledAt));
