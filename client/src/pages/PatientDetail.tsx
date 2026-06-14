@@ -147,18 +147,12 @@ export default function PatientDetail() {
     onSuccess: () => { toast.success("Análise gerada com sucesso!"); refetchTimeline(); },
     onError: (e) => toast.error(e.message),
   });
-<<<<<<< Updated upstream
-  const patientUpdateMutation = trpc.patients.update.useMutation({
+  const updateMutation = trpc.patients.update.useMutation({
     onSuccess: () => {
       toast.success("Status atualizado com sucesso!");
       refetch();
     },
     onError: (e) => toast.error("Erro ao atualizar status: " + e.message),
-=======
-  const updateMutation = trpc.patients.update.useMutation({
-    onSuccess: () => { toast.success("Paciente atualizado."); refetch(); },
-    onError: (e) => toast.error(e.message),
->>>>>>> Stashed changes
   });
   const generateReferralMutation = trpc.reports.generateReferralLetterPDF.useMutation({
     onSuccess: (result) => {
@@ -1007,11 +1001,7 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
 
   // Atualizar form quando entrar em modo de edição ou quando anamneseData mudar
   useEffect(() => {
-<<<<<<< Updated upstream
-    if (anamneseData) {
-=======
     if (editing && anamneseData) {
->>>>>>> Stashed changes
       setForm({
         mainComplaintDetail: (anamneseData.mainComplaintDetail as string) ?? "",
         therapeuticGoals: (anamneseData.therapeuticGoals as string) ?? "",
