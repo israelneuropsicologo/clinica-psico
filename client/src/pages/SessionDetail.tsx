@@ -234,7 +234,7 @@ export default function SessionDetail() {
         });
       }
       
-      return prevTabsData;
+      return dataToSave;
     });
   };
 
