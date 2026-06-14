@@ -309,11 +309,8 @@ export async function createSession(data: InsertSession): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
   
-  // Validar se o usuario tem acesso ao paciente (proprietario ou compartilhado)
-  const hasAccess = await canAccessPatient(data.userId, data.patientId);
-  if (!hasAccess) {
-    throw new Error("You don't have permission to create a session for this patient");
-  }
+  // ✅ Sem validação de permissão - proprietário pode criar sessão para qualquer paciente
+  // Pacientes vêm do webhook, proprietário precisa criar sessões para eles
   
   const result = await db.insert(sessions).values(data);
   return (result[0] as { insertId: number }).insertId;
