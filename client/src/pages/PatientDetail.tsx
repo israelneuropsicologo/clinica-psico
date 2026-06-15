@@ -1849,14 +1849,6 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   {aiFeedbackMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                   {aiFeedback ? "Solicitar Nova Análise" : "Solicitar Análise"}
                 </Button>
-                <Button
-                  onClick={() => supervisionMutation.mutate({ patientId: patient.id as number })}
-                  disabled={supervisionMutation.isPending}
-                  className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {supervisionMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="h-3.5 w-3.5" />}
-                  Gerar Supervisão
-                </Button>
                 {aiFeedbackAt && (
                   <p className="text-xs text-muted-foreground">
                     Última análise: {new Date(aiFeedbackAt).toLocaleDateString("pt-BR")} às {new Date(aiFeedbackAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
