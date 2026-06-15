@@ -373,22 +373,6 @@ export const recordingsRouter = router({
       return { pdfUrl: url };
     }),
 
-});
-
-// ─── Timeline Router ────────────────────────────────────────────────────────
-export const timelineRouter = router({
-  list: protectedProcedure
-    .input(z.object({ patientId: z.number() }))
-    .query(async ({ ctx, input }) => {
-      const db = await getDb();
-      if (!db) return [];
-      return db
-        .select()
-        .from(timelineAnalyses)
-        .where(eq(timelineAnalyses.patientId, input.patientId))
-        .orderBy(desc(timelineAnalyses.createdAt));
-    }),
-
   generateSupervision: protectedProcedure
     .input(z.object({ patientId: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -465,6 +449,22 @@ Seja conciso, prático e orientado para o desenvolvimento profissional.`,
         recordingId: recording.id,
         transcriptionDate: recording.createdAt,
       };
+    }),
+
+});
+
+// ─── Timeline Router ────────────────────────────────────────────────────────
+export const timelineRouter = router({
+  list: protectedProcedure
+    .input(z.object({ patientId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return db
+        .select()
+        .from(timelineAnalyses)
+        .where(eq(timelineAnalyses.patientId, input.patientId))
+        .orderBy(desc(timelineAnalyses.createdAt));
     }),
 
 });
