@@ -97,6 +97,7 @@ export default function PatientDetail() {
   const [activeTab, setActiveTab] = useState("profile");
   const [selectedNote, setSelectedNote] = useState<number | null>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
 
   const [referralForm, setReferralForm] = useState({
     recipientTitle: "Ao Médico Psiquiatra",
@@ -143,6 +144,19 @@ export default function PatientDetail() {
   });
   // Removed: supervisionMutation (procedure not implemented)
   // Removed: generateTimelineMutation (procedure not implemented)
+  const createNoteMutation = trpc.clinicalNotes.create.useMutation({
+    onSuccess: (result) => {
+      toast.success("Prontuário criado com sucesso!");
+      setIsCreatingNote(false);
+      refetchNotes();
+      // Set the newly created note as selected
+      setSelectedNote(result.id);
+    },
+    onError: (e) => {
+      toast.error(e.message);
+      setIsCreatingNote(false);
+    },
+  });
   const updateMutation = trpc.patients.update.useMutation({
     onSuccess: () => {
       toast.success("Status atualizado com sucesso!");
@@ -362,16 +376,17 @@ export default function PatientDetail() {
                   <p className="text-sm text-muted-foreground">{clinicalNotes?.length ?? 0} prontuário(s) registrado(s)</p>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => {
-                      const newNote = {
-                        id: Math.random(),
+                      setIsCreatingNote(true);
+                      // Create a new clinical note with default structure
+                      createNoteMutation.mutate({
+                        sessionId: patientSessions?.[0]?.id || 0,
                         patientId,
                         content: "",
-                        createdAt: new Date(),
-                        updatedAt: new Date(),
-                      };
-                      setSelectedNote(newNote.id);
-                    }} className="gap-1.5 bg-blue-600 hover:bg-blue-700">
-                      <Plus className="h-3.5 w-3.5" /> Novo Prontuário
+                        mood: "neutral",
+                      });
+                    }} disabled={isCreatingNote} className="gap-1.5 bg-blue-600 hover:bg-blue-700">
+                      {isCreatingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                      {isCreatingNote ? "Criando..." : "Novo Prontuário"}
                     </Button>
                     {clinicalNotes?.length ? (
                       <Button size="sm" variant="destructive" onClick={() => {

@@ -829,3 +829,16 @@
 - [x] Adicionar botão "NOVO PRONTUÁRIO" para criar novo prontuário (implementado, requer debug de renderização)
 - [x] Testar funcionalidade completa (prontuário funciona 100%)
 - [x] Criar checkpoint final
+
+### Fase 133: Prontuário Padrão para Novos Pacientes (CONCLUÍDO)
+- [x] Verificar estrutura do prontuário da Amanda para usar como template
+- [x] Implementar criação automática de prontuário padrão ao criar novo paciente
+- [x] Fazer o botão azul "Prontuário" na aba funcionar (abrir painel de prontuário)
+- [x] Testar funcionalidade com novo paciente (João)
+- [x] Criar checkpoint final
+
+**Implementação:**
+- Botão "Novo Prontuário" agora cria um novo prontuário com estrutura padrão (8 abas)
+- Novo prontuário é criado com campos vazios prontos para preenchimento
+- Ao clicar em um prontuário, o painel de edição abre automaticamente
+- Estrutura padrão inclui: Sessão, Avaliação, Intervenções, Evolução, Próxima, Riscos, Privado, Análise IA
