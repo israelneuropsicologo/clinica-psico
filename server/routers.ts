@@ -426,7 +426,7 @@ const clinicalNotesRouter = router({
       z.object({
         sessionId: z.coerce.number(),
         patientId: z.coerce.number(),
-        content: z.string(),
+        content: z.string().optional(),
         mood: z.enum(["very_bad", "bad", "neutral", "good", "very_good"]).optional(),
         progressRating: z.number().min(1).max(10).optional(),
         goals: z.string().optional(),
