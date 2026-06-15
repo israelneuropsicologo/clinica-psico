@@ -388,4 +388,83 @@ export const timelineRouter = router({
         .where(eq(timelineAnalyses.patientId, input.patientId))
         .orderBy(desc(timelineAnalyses.createdAt));
     }),
+
+  generateSupervision: protectedProcedure
+    .input(z.object({ patientId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      // Buscar a transcrição mais recente do paciente com status "done"
+      const latestRecording = await db
+        .select()
+        .from(sessionRecordings)
+        .where(
+          and(
+            eq(sessionRecordings.patientId, input.patientId),
+            eq(sessionRecordings.userId, ctx.user.id),
+            eq(sessionRecordings.transcriptionStatus, "done")
+          )
+        )
+        .orderBy(desc(sessionRecordings.createdAt))
+        .limit(1);
+
+      if (!latestRecording || latestRecording.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma transcrição disponível" });
+      }
+
+      const recording = latestRecording[0];
+      if (!recording.transcription) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Transcrição vazia" });
+      }
+
+      // Buscar dados do paciente para contexto
+      const [patient] = await db
+        .select()
+        .from(patients)
+        .where(eq(patients.id, input.patientId))
+        .limit(1);
+
+      // Gerar supervisão com IA baseada na transcrição
+      const { invokeLLM } = await import("../_core/llm");
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `Você é um supervisor clínico experiente em psicologia. Sua tarefa é analisar uma transcrição de sessão e fornecer feedback técnico e supervisão clínica.
+
+Forneça:
+1. **Observações Técnicas**: Qualidade da intervenção, técnicas utilizadas
+2. **Pontos Positivos**: O que foi bem executado
+3. **Pontos de Melhoria**: Sugestões para aprimoramento
+4. **Questões para Reflexão**: Perguntas que promovam reflexão clínica
+5. **Recomendações**: Próximos passos sugeridos
+
+Seja conciso, prático e orientado para o desenvolvimento profissional.`,
+          },
+          {
+            role: "user",
+            content: `Paciente: ${patient?.name || "Sem nome"}\n\nTranscrição da Sessão:\n${recording.transcription}\n\nForneça supervisão clínica baseada nesta transcrição.`,
+          },
+        ],
+      });
+
+      const supervisionText = response.choices[0]?.message?.content;
+      if (!supervisionText) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "IA não retornou supervisão" });
+      }
+
+      // Salvar supervisão no registro de gravação
+      await db
+        .update(sessionRecordings)
+        .set({ supervision: String(supervisionText) })
+        .where(eq(sessionRecordings.id, recording.id));
+
+      return {
+        supervisionText: String(supervisionText),
+        recordingId: recording.id,
+        transcriptionDate: recording.createdAt,
+      };
+    }),
+
 });

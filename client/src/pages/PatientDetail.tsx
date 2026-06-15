@@ -1438,6 +1438,23 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
   });
 
   // @ts-ignore
+  const [supervision, setSupervision] = useState<string>("");
+  // @ts-ignore
+  const supervisionMutation = trpc.recordings.generateSupervision.useMutation({
+  // @ts-ignore
+    onSuccess: (data) => {
+  // @ts-ignore
+      setSupervision(data.supervisionText);
+  // @ts-ignore
+      toast.success("Supervisão gerada a partir da transcrição!");
+  // @ts-ignore
+    },
+  // @ts-ignore
+    onError: (e) => toast.error(e.message || "Erro ao gerar supervisão"),
+  // @ts-ignore
+  });
+
+  // @ts-ignore
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
   // @ts-ignore
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -1823,7 +1840,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <Button
                   onClick={() => aiFeedbackMutation.mutate({ noteId: note.id as number })}
                   disabled={aiFeedbackMutation.isPending}
@@ -1831,6 +1848,14 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                 >
                   {aiFeedbackMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                   {aiFeedback ? "Solicitar Nova Análise" : "Solicitar Análise"}
+                </Button>
+                <Button
+                  onClick={() => supervisionMutation.mutate({ patientId: patient.id as number })}
+                  disabled={supervisionMutation.isPending}
+                  className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {supervisionMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="h-3.5 w-3.5" />}
+                  Gerar Supervisão
                 </Button>
                 {aiFeedbackAt && (
                   <p className="text-xs text-muted-foreground">
@@ -1868,6 +1893,31 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                     <p className="text-xs mt-1">Clique em "Solicitar Análise" para gerar o feedback técnico.</p>
                   </CardContent>
                 </Card>
+              )}
+              
+              {/* Supervisão */}
+              {supervisionMutation.isPending && (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <Loader2 className="h-8 w-8 mx-auto mb-2 text-blue-500 animate-spin" />
+                    <p className="text-sm font-medium">Gerando supervisão a partir da transcrição...</p>
+                    <p className="text-xs text-muted-foreground mt-1">Isso pode levar alguns segundos.</p>
+                  </CardContent>
+                </Card>
+              )}
+              {supervision && !supervisionMutation.isPending && (
+                <div className="space-y-4 mt-6 pt-6 border-t">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-blue-500" /> Supervisão
+                  </h3>
+                  <Card className="border-l-4 border-l-blue-500">
+                    <CardContent className="pt-6 prose prose-sm dark:prose-invert max-w-none">
+                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
+                        {supervision}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               )}
             </>
           )}
