@@ -333,14 +333,22 @@ export async function getSessionsThisMonth(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
   
+  const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+  if (!user?.clinicId) return 0;
+  
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
-  // ✅ Sem restrição de userId - contar TODAS as sessões do mês
+  
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(sessions)
-    .where(and(gte(sessions.scheduledAt, start), lte(sessions.scheduledAt, end)));
+    .innerJoin(patients, eq(sessions.patientId, patients.id))
+    .where(and(
+      eq(patients.clinicId, user.clinicId),
+      gte(sessions.scheduledAt, start),
+      lte(sessions.scheduledAt, end)
+    ));
   return Number(result[0]?.count ?? 0);
 }
 
