@@ -333,9 +333,6 @@ export async function getSessionsThisMonth(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
   
-  const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
-  if (!user?.clinicId) return 0;
-  
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
@@ -345,7 +342,7 @@ export async function getSessionsThisMonth(userId: number): Promise<number> {
     .from(sessions)
     .innerJoin(patients, eq(sessions.patientId, patients.id))
     .where(and(
-      eq(patients.clinicId, user.clinicId),
+      eq(patients.userId, userId),
       gte(sessions.scheduledAt, start),
       lte(sessions.scheduledAt, end)
     ));
