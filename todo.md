@@ -850,3 +850,22 @@
 - [x] Adicionar subtítulo "Supervisão" na análise
 - [x] Testar funcionalidade completa
 - [x] Criar checkpoint final
+
+### Fase 135: Download Direto de Áudio em MP3 (CONCLUÍDO)
+- [x] Adicionar função para converter CloudFront link para arquivo MP3
+- [x] Implementar botão "Baixar Áudio" no menu de gravações
+- [x] Testar download direto em desktop e mobile
+- [x] Validar que arquivo é salvo com nome correto
+- [x] Criar testes Vitest para download de áudio
+- [ ] Criar checkpoint final
+
+**Objetivo:** Permitir download direto do arquivo de áudio (MP3/WebM) em vez de apenas abrir o link CloudFront no navegador.
+
+**Implementação:**
+- ✅ Botão "Baixar Áudio" agora faz fetch do arquivo CloudFront
+- ✅ Converte para Blob e cria URL local
+- ✅ Faz download direto como arquivo
+- ✅ Mostra toast de progresso e sucesso
+- ✅ Suporta todos os formatos de áudio (MP3, WebM, WAV, OGG)
+- ✅ Trata erros com mensagens claras
+- ✅ Funciona em desktop e mobile

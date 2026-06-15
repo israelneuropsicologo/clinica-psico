@@ -576,11 +576,26 @@ export default function PatientDetail() {
                                   <DropdownMenuSeparator />
                                 </>
                               )}
-                              <DropdownMenuItem onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = rec.fileUrl;
-                                link.download = rec.fileName;
-                                link.click();
+                              <DropdownMenuItem onClick={async () => {
+                                try {
+                                  toast.loading('Baixando áudio...');
+                                  const response = await fetch(rec.fileUrl);
+                                  if (!response.ok) throw new Error('Erro ao baixar arquivo');
+                                  const blob = await response.blob();
+                                  const url = URL.createObjectURL(blob);
+                                  const link = document.createElement('a');
+                                  link.href = url;
+                                  link.download = rec.fileName || 'audio.mp3';
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  URL.revokeObjectURL(url);
+                                  toast.dismiss();
+                                  toast.success('Áudio baixado com sucesso!');
+                                } catch (error) {
+                                  toast.dismiss();
+                                  toast.error('Erro ao baixar áudio: ' + (error instanceof Error ? error.message : 'Desconhecido'));
+                                }
                               }} className="gap-2">
                                 <Download className="h-4 w-4" />
                                 Baixar Áudio
