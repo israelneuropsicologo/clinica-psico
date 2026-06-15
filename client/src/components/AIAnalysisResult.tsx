@@ -347,7 +347,7 @@ export function AIAnalysisResult({ content, patientHistory, patientName }: AIAna
           <div className="prose prose-sm max-w-none dark:prose-invert">
             {content.split("\n\n").map((section, idx) => (
               <div key={idx} className="mb-4 p-3 md:p-4 rounded-lg bg-muted/50">
-                <p className="whitespace-pre-wrap text-xs md:text-sm leading-relaxed">
+                <p className="whitespace-pre-wrap text-xs md:text-sm leading-relaxed text-justify">
                   {section.split(/(\*\*.*?\*\*)/g).map((part, i) =>
                     part.startsWith("**") && part.endsWith("**") ? (
                       <strong key={i}>{part.slice(2, -2)}</strong>

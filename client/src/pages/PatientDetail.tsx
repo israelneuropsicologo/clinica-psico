@@ -1904,7 +1904,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   </h3>
                   <Card className="border-l-4 border-l-blue-500">
                     <CardContent className="pt-6 prose prose-sm dark:prose-invert max-w-none">
-                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
+                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify">
                         {supervision}
                       </div>
                     </CardContent>
