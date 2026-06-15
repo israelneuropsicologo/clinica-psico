@@ -710,6 +710,7 @@ Responda em português brasileiro profissional.`,
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "IA não retornou resposta" });
       }
       console.log("[autoFill] Resposta da IA recebida, tamanho:", String(rawContent).length);
+      console.log("[autoFill] Raw content:", typeof rawContent === "string" ? rawContent.substring(0, 500) : rawContent);
 
       let filled: Record<string, unknown>;
       try {
@@ -788,6 +789,16 @@ Responda em português brasileiro profissional.`,
       if (filled.selfHarmRisk) cleanedFilled.selfHarmRisk = safeRisk(filled.selfHarmRisk);
       if (filled.thirdPartyRisk) cleanedFilled.thirdPartyRisk = safeRisk(filled.thirdPartyRisk);
       if (filled.suicideRisk) cleanedFilled.suicideRisk = safeRisk(filled.suicideRisk);
+
+      console.log("[autoFill] Parsed filled object:", filled);
+      console.log("[autoFill] Cleaned filled object:", cleanedFilled);
+      console.log("[autoFill] Cleaned filled keys:", Object.keys(cleanedFilled));
+
+      // Validar se há campos preenchidos
+      if (Object.keys(cleanedFilled).length === 0) {
+        console.warn("[autoFill] Nenhum campo foi preenchido pela IA");
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "IA não retornou campos válidos" });
+      }
 
       return cleanedFilled;
     }),
