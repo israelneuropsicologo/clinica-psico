@@ -627,7 +627,7 @@ export default function PatientDetail() {
                                   <DropdownMenuSeparator />
                                 </>
                               )}
-                              <DropdownMenuItem onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ recordingId: rec.id }); }} className="gap-2 text-destructive">
+                              <DropdownMenuItem onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ id: rec.id }); }} className="gap-2 text-destructive">
                                 <Trash2 className="h-4 w-4" />
                                 Excluir
                               </DropdownMenuItem>
