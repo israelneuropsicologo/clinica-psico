@@ -1979,7 +1979,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                 <div className="space-y-4">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resultado da Análise</h3>
                   <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify">
+                    <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify break-words overflow-wrap-break-word">
                       {aiFeedback}
                     </div>
                   </div>
@@ -2012,7 +2012,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   </h3>
                   <Card className="border-l-4 border-l-blue-500">
                     <CardContent className="pt-6 prose prose-sm dark:prose-invert max-w-none">
-                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify">
+                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify break-words overflow-wrap-break-word">
                         {supervision}
                       </div>
                     </CardContent>
