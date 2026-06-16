@@ -944,13 +944,13 @@
 - Download da análise em TXT
 - Loading state com spinner
 
-### Fase 140: Melhorar Download de Transcrição (DOCX com Formatação) (EM PROGRESSO)
-- [ ] Implementar geração de DOCX em vez de TXT
-- [ ] Adicionar formatação justificada
-- [ ] Adicionar títulos em negrito sem asteriscos
-- [ ] Adicionar ícones intuitivos para cada seção
-- [ ] Remover asteriscos do texto
-- [ ] Testar download em mobile e desktop
+### Fase 140: Melhorar Download de Transcrição (DOCX com Formatação) (CONCLUÍDO)
+- [x] Implementar geração de DOCX em vez de TXT
+- [x] Adicionar formatação justificada
+- [x] Adicionar títulos em negrito sem asteriscos
+- [x] Adicionar ícones intuitivos para cada seção
+- [x] Remover asteriscos do texto
+- [x] Testar download em mobile e desktop
 - [ ] Criar testes Vitest
 - [ ] Criar checkpoint final
 

@@ -626,29 +626,33 @@ export default function PatientDetail() {
                                     Baixar Transcrição (TXT)
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => {
-                                    toast.loading('Gerando PDF...');
+                                    const toastId = toast.loading('Gerando documento Word...');
                                     trpc.recordings.generateTranscriptionPdf.mutate({ recordingId: rec.id }, {
                                       onSuccess: (data) => {
-                                        console.log('PDF gerado com sucesso:', data);
-                                        toast.dismiss();
-                                        const link = document.createElement('a');
-                                        link.href = data.pdfUrl;
-                                        link.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.pdf`;
-                                        link.style.display = 'none';
-                                        document.body.appendChild(link);
-                                        link.click();
-                                        document.body.removeChild(link);
-                                        toast.success('PDF baixado com sucesso!');
+                                        console.log('DOCX gerado com sucesso:', data);
+                                        toast.dismiss(toastId);
+                                        setTimeout(() => {
+                                          const link = document.createElement('a');
+                                          link.href = data.pdfUrl;
+                                          link.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.docx`;
+                                          link.style.display = 'none';
+                                          document.body.appendChild(link);
+                                          link.click();
+                                          setTimeout(() => {
+                                            document.body.removeChild(link);
+                                            toast.success('Documento baixado com sucesso!');
+                                          }, 100);
+                                        }, 500);
                                       },
                                       onError: (error) => {
-                                        console.error('Erro ao gerar PDF:', error);
-                                        toast.dismiss();
-                                        toast.error('Erro ao gerar PDF: ' + (error?.message || 'Desconhecido'));
+                                        console.error('Erro ao gerar documento:', error);
+                                        toast.dismiss(toastId);
+                                        toast.error('Erro ao gerar documento: ' + (error?.message || 'Desconhecido'));
                                       }
                                     });
                                   }} className="gap-2">
                                     <FileDown className="h-4 w-4" />
-                                    Baixar Transcrição (PDF)
+                                    Baixar Transcrição (WORD)
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                 </>
@@ -1918,7 +1922,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
               </h4>
               <div className="space-y-2">
                 <div className="p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
-                  <p className="text-xs text-purple-700 dark:text-purple-300">
+                  <p className="text-xs text-purple-700 dark:text-purple-300 leading-relaxed text-justify">
                     A análise é gerada por Inteligência Artificial e serve como ferramenta de apoio para aprimoramento técnico do prontuário.{" "}
                     <span className="font-semibold">Não substitui o julgamento clínico do profissional.</span>
                   </p>
