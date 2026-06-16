@@ -54,6 +54,8 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { AIAnalysisResult } from "@/components/AIAnalysisResult";
 import { AnalysisTimeline } from "@/components/AnalysisTimeline";
 import { AnalysisComparison } from "@/components/AnalysisComparison";
+import { ClinicalAnalysisVisual } from "@/components/ClinicalAnalysisVisual";
+import { AnalysisChartsDisplay } from "@/components/AnalysisChartsDisplay";
 import { useSafeDOM } from "@/hooks/useSelectDebounce";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -745,28 +747,9 @@ export default function PatientDetail() {
             )}
           </TabsContent>
 
-          {/* ── LINHA DO TEMPO ── */}
+          {/* ── ANÁLISE CLÍNICA VISUAL ── */}
           <TabsContent value="timeline" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-semibold text-sm">Análise Clínica por IA</h3>
-                <p className="text-xs text-muted-foreground">Baseada em {patientSessions?.length ?? 0} sessão(ões) registrada(s)</p>
-              </div>
-              <Button size="sm" onClick={() => toast.info("Análise de linha do tempo será implementada em breve!")} className="gap-1.5">
-                <><Sparkles className="h-3.5 w-3.5" /> {timelineData ? "Nova Análise" : "Gerar Análise"}</>
-              </Button>
-            </div>
-            {!timelineData ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
-                  <TrendingUp className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm font-medium">Nenhuma análise gerada ainda</p>
-                  <p className="text-xs mt-1 max-w-xs mx-auto">Clique em "Gerar Análise" para que a IA analise o histórico clínico completo do paciente.</p>
-                </CardContent>
-              </Card>
-            ) : timelineData ? (
-              <TimelineDisplay data={timelineData} sessionCount={latestTimeline?.sessionCount ?? 0} createdAt={latestTimeline?.createdAt} />
-            ) : null}
+            <AnalysisClinicalTab patientId={patientId} />
           </TabsContent>
         </Tabs>
       </div>
@@ -1977,10 +1960,13 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
               )}
               {aiFeedback && !aiFeedbackMutation.isPending && (
                 <div className="space-y-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resultado da Análise</h3>
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify break-words overflow-wrap-break-word">
-                      {aiFeedback}
+                  <AnalysisChartsDisplay />
+                  <div className="border-t pt-4 mt-4">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Análise Completa</h3>
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify break-words overflow-wrap-break-word">
+                        {aiFeedback}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2758,5 +2744,31 @@ function AnalysisHistoryTab({ patientId }: { patientId: number }) {
         </Card>
       )}
     </div>
+  );
+}
+
+// ── Clinical Analysis Tab ────────────────────────────────────────────────────
+function AnalysisClinicalTab({ patientId }: { patientId: number }) {
+  const { data: chartData, isLoading } = trpc.clinicalAnalysis.getAnalysisCharts.useQuery({
+    patientId,
+  });
+
+  if (!chartData) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center text-muted-foreground">
+          <TrendingUp className="h-10 w-10 mx-auto mb-2 opacity-30" />
+          <p className="text-sm font-medium">Nenhuma análise gerada ainda</p>
+          <p className="text-xs mt-1 max-w-xs mx-auto">Clique em "Gerar Análise" para que a IA analise o histórico clínico completo do paciente.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <ClinicalAnalysisVisual
+      data={chartData}
+      isLoading={isLoading}
+    />
   );
 }

@@ -82,6 +82,7 @@ import { autonomousAgentsRouter } from "./routers/autonomous-agents";
 import { supervisionRouter } from "./routers/supervision";
 import { virtualCreditsRouter } from "./routers/virtual-credits";
 import { agentCommunicationRouter } from "./routers/agent-communication";
+import { clinicalAnalysisRouter } from "./routers/clinicalAnalysis";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 // ─── Admin guard ────────────────────────────────────────────────────────────
@@ -1101,6 +1102,7 @@ export const appRouter = router({
   agentCommunication: agentCommunicationRouter,
   audit: auditRouter,
   supervision: supervisionRouter,
+  clinicalAnalysis: clinicalAnalysisRouter,
   calendar: router({
     getEvents: protectedProcedure
       .input(z.object({
