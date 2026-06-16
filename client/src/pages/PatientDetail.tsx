@@ -1963,11 +1963,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   <AnalysisChartsDisplay />
                   <div className="border-t pt-4 mt-4">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Análise Completa</h3>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify break-words overflow-wrap-break-word">
-                        {aiFeedback}
-                      </div>
-                    </div>
+                    <MarkdownRenderer>{aiFeedback}</MarkdownRenderer>
                   </div>
                 </div>
               )}
