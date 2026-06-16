@@ -1409,7 +1409,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
     referrals: (note.referrals as string) ?? "",
     privateObservations: (note.privateObservations as string) ?? "",
   }));
-  const [aiFeedback, setAiFeedback] = useState((note.aiTechnicalFeedback as string) ?? "");
+  const aiFeedback = note?.aiTechnicalFeedback || "";
   const [aiFeedbackAt, setAiFeedbackAt] = useState((note.aiTechnicalFeedbackAt as number) ?? null);
 
   const utils = trpc.useUtils();
@@ -1964,6 +1964,51 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   <div className="border-t pt-4 mt-4">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Análise Completa</h3>
                     <MarkdownRenderer>{aiFeedback}</MarkdownRenderer>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap pt-4 border-t">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <FileText className="h-4 w-4" />
+                          Documento PDF
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => {
+                          const element = document.createElement("div");
+                          element.innerHTML = `<h2>${note.patientName || "Paciente"}</h2><p>${aiFeedback}</p>`;
+                          const printWindow = window.open("", "", "width=800,height=600");
+                          if (printWindow) {
+                            printWindow.document.write(element.innerHTML);
+                            printWindow.document.close();
+                          }
+                        }}>
+                          👁️ Visualizar PDF
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          const element = document.createElement("div");
+                          element.innerHTML = `<h2>${note.patientName || "Paciente"}</h2><p>${aiFeedback}</p>`;
+                          const printWindow = window.open("", "", "width=800,height=600");
+                          if (printWindow) {
+                            printWindow.document.write(element.innerHTML);
+                            printWindow.print();
+                          }
+                        }}>
+                          ⬇️ Baixar PDF
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          const element = document.createElement("div");
+                          element.innerHTML = `<h2>${note.patientName || "Paciente"}</h2><p>${aiFeedback}</p>`;
+                          const printWindow = window.open("", "", "width=800,height=600");
+                          if (printWindow) {
+                            printWindow.document.write(element.innerHTML);
+                            printWindow.print();
+                          }
+                        }}>
+                          🖨️ Imprimir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               )}
