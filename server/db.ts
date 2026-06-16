@@ -391,7 +391,7 @@ export async function getClinicalNotesByPatient(patientId: number, userId: numbe
   return db
     .select()
     .from(clinicalNotes)
-    .where(and(eq(clinicalNotes.patientId, patientId), eq(clinicalNotes.userId, userId)))
+    .where(eq(clinicalNotes.patientId, patientId))
     .orderBy(desc(clinicalNotes.createdAt));
 }
 
