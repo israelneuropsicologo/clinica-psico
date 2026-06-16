@@ -344,59 +344,114 @@ export const recordingsRouter = router({
         const rec = recording[0];
         if (!rec.transcription) throw new Error('No transcription available');
         
-        const PDFDocument = require('pdfkit');
-        const doc = new PDFDocument();
-        const chunks: Buffer[] = [];
+        const { Document, Packer, Paragraph, TextRun, AlignmentType } = require('docx');
         
-        doc.on('data', (chunk: Buffer) => {
-          chunks.push(chunk);
+        // Clean transcription text (remove asterisks and format)
+        const cleanTranscription = rec.transcription
+          .replace(/\*\*/g, '')
+          .replace(/\*/g, '')
+          .trim();
+        
+        // Create document with professional formatting
+        const doc = new Document({
+          sections: [
+            {
+              children: [
+                new Paragraph({
+                  text: 'Transcrição da Gravação',
+                  heading: 'Heading1',
+                  alignment: AlignmentType.CENTER,
+                  spacing: { after: 400 },
+                  run: new TextRun({
+                    bold: true,
+                    size: 28,
+                    color: '1F5A7A',
+                  }),
+                }),
+                
+                new Paragraph({
+                  text: 'Informações da Sessão',
+                  heading: 'Heading2',
+                  spacing: { before: 200, after: 200 },
+                  run: new TextRun({
+                    bold: true,
+                    size: 24,
+                    color: '2E7D9E',
+                  }),
+                }),
+                
+                new Paragraph({
+                  text: `Arquivo: ${rec.fileName}`,
+                  spacing: { after: 100 },
+                  alignment: AlignmentType.LEFT,
+                }),
+                
+                new Paragraph({
+                  text: `Data: ${new Date(rec.createdAt).toLocaleDateString('pt-BR')}`,
+                  spacing: { after: 100 },
+                  alignment: AlignmentType.LEFT,
+                }),
+                
+                ...(rec.durationSeconds ? [
+                  new Paragraph({
+                    text: `Duração: ${rec.durationSeconds} segundos`,
+                    spacing: { after: 300 },
+                    alignment: AlignmentType.LEFT,
+                  }),
+                ] : []),
+                
+                new Paragraph({
+                  text: 'Conteúdo da Transcrição',
+                  heading: 'Heading2',
+                  spacing: { before: 300, after: 200 },
+                  run: new TextRun({
+                    bold: true,
+                    size: 24,
+                    color: '2E7D9E',
+                  }),
+                }),
+                
+                new Paragraph({
+                  text: cleanTranscription || 'Sem transcrição disponível',
+                  alignment: AlignmentType.JUSTIFIED,
+                  spacing: { line: 360, after: 200 },
+                  run: new TextRun({
+                    size: 22,
+                  }),
+                }),
+                
+                new Paragraph({
+                  text: '---',
+                  spacing: { before: 300, after: 100 },
+                  alignment: AlignmentType.CENTER,
+                }),
+                
+                new Paragraph({
+                  text: 'Documento gerado automaticamente pelo sistema de gestão clínica',
+                  spacing: { after: 50 },
+                  alignment: AlignmentType.CENTER,
+                  run: new TextRun({
+                    size: 18,
+                    italics: true,
+                    color: '999999',
+                  }),
+                }),
+              ],
+            },
+          ],
         });
         
-        doc.on('error', (err: Error) => {
-          console.error('PDF generation error:', err);
-        });
+        const docxBuffer = await Packer.toBuffer(doc);
         
-        doc.fontSize(16).font('Helvetica-Bold').text('Transcrição da Gravação', { align: 'center' });
-        doc.fontSize(10).font('Helvetica');
-        doc.text(`Arquivo: ${rec.fileName}`);
-        doc.text(`Data: ${new Date(rec.createdAt).toLocaleDateString('pt-BR')}`);
-        if (rec.durationSeconds) doc.text(`Duração: ${rec.durationSeconds}s`);
-        doc.moveDown();
-        
-        doc.fontSize(11).text(rec.transcription || 'Sem transcrição disponível', { align: 'left' });
-        
-        doc.end();
-        
-        const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('PDF generation timeout'));
-          }, 30000);
-          
-          doc.on('finish', () => {
-            clearTimeout(timeout);
-            const buffer = Buffer.concat(chunks);
-            if (buffer.length === 0) {
-              reject(new Error('PDF buffer is empty'));
-            } else {
-              resolve(buffer);
-            }
-          });
-          
-          doc.on('error', (err: Error) => {
-            clearTimeout(timeout);
-            reject(err);
-          });
-        });
-        
-        if (!pdfBuffer || pdfBuffer.length === 0) {
-          throw new Error('Failed to generate PDF buffer');
+        if (!docxBuffer || docxBuffer.length === 0) {
+          throw new Error('Failed to generate DOCX buffer');
         }
         
         const { storagePut } = await import('../storage');
         const { url } = await storagePut(
-          `transcriptions/${rec.id}_${Date.now()}.pdf`,
-          pdfBuffer,
-          'application/pdf'
+          `transcriptions/${rec.id}_${Date.now()}.docx`,
+          docxBuffer,
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         );
         
         return { pdfUrl: url };

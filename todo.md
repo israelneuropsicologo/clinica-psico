@@ -909,3 +909,57 @@
 - Aumentado tamanho do botao de toggle (h-9 w-9 em mobile)
 - Adicionado header mobile com botao de menu visivel
 - Melhorada visibilidade do icone (cor primary em vez de muted-foreground)
+
+
+### Fase 138: Integrar Similarweb para Otimizar Dashboards de IA (PAUSADA)
+- [ ] Criar tabelas de métricas clínicas no banco de dados
+- [ ] Implementar helper functions em db.ts
+- [ ] Criar router de efetividade clínica
+- [ ] Adicionar router ao appRouter
+- [ ] Criar dashboard React com gráficos
+- [ ] Integrar dados do Similarweb
+- [ ] Adicionar recomendações de IA
+- [ ] Criar testes Vitest
+- [ ] Criar checkpoint final
+
+**Objetivo:** Integrar dados de Similarweb para otimizar estratégias internas da clínica, pensando na mente do psicólogo.
+
+**Status:** Pausada devido a resets do sandbox. Será retomada em próxima sessão com abordagem simplificada.
+
+### Fase 139: Implementar Botão "Supervisão I.A" em Gravações (CONCLUÍDO)
+- [x] Criar procedure tRPC para análise de supervisão de gravações
+- [x] Integrar com LLM para análise psicológica
+- [x] Implementar modal de supervisão com análise detalhada
+- [x] Adicionar recomendações de técnicas
+- [x] Criar testes Vitest para supervisão
+- [x] Criar checkpoint final
+
+**Objetivo:** Implementar análise de supervisão clínica via IA para gravações de sessões.
+
+**Implementação:**
+- Router tRPC com LLM integration
+- Modal mobile-optimized (responsivo para todos os tamanhos)
+- 8 seções de análise profunda
+- Botão "Supervisão I.A" funcional em gravações
+- Download da análise em TXT
+- Loading state com spinner
+
+### Fase 140: Melhorar Download de Transcrição (DOCX com Formatação) (EM PROGRESSO)
+- [ ] Implementar geração de DOCX em vez de TXT
+- [ ] Adicionar formatação justificada
+- [ ] Adicionar títulos em negrito sem asteriscos
+- [ ] Adicionar ícones intuitivos para cada seção
+- [ ] Remover asteriscos do texto
+- [ ] Testar download em mobile e desktop
+- [ ] Criar testes Vitest
+- [ ] Criar checkpoint final
+
+**Objetivo:** Melhorar a qualidade do download de transcrição com formatação profissional em Word.
+
+**Requisitos:**
+- Formato DOCX (Word) em vez de TXT
+- Texto justificado
+- Títulos em negrito sem asteriscos
+- Ícones intuitivos para cada seção
+- Remover asteriscos do texto
+- Mais intuitivo e profissional
