@@ -57,6 +57,7 @@ import { AnalysisComparison } from "@/components/AnalysisComparison";
 import { ClinicalAnalysisVisual } from "@/components/ClinicalAnalysisVisual";
 import { AnalysisChartsDisplay } from "@/components/AnalysisChartsDisplay";
 import { useSafeDOM } from "@/hooks/useSelectDebounce";
+import { generateABNTFormattedPDF } from "@/lib/abntPdfGenerator";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(ts: number | Date) {
@@ -1975,34 +1976,35 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => {
-                          const element = document.createElement("div");
-                          element.innerHTML = `<h2>${note.patientName || "Paciente"}</h2><p>${aiFeedback}</p>`;
-                          const printWindow = window.open("", "", "width=800,height=600");
+                          const htmlContent = generateABNTFormattedPDF(note, aiFeedback);
+                          const printWindow = window.open("", "", "width=900,height=1200");
                           if (printWindow) {
-                            printWindow.document.write(element.innerHTML);
+                            printWindow.document.write(htmlContent);
                             printWindow.document.close();
                           }
                         }}>
                           👁️ Visualizar PDF
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
-                          const element = document.createElement("div");
-                          element.innerHTML = `<h2>${note.patientName || "Paciente"}</h2><p>${aiFeedback}</p>`;
-                          const printWindow = window.open("", "", "width=800,height=600");
+                          const htmlContent = generateABNTFormattedPDF(note, aiFeedback);
+                          const printWindow = window.open("", "", "width=900,height=1200");
                           if (printWindow) {
-                            printWindow.document.write(element.innerHTML);
-                            printWindow.print();
+                            printWindow.document.write(htmlContent);
+                            setTimeout(() => {
+                              printWindow.print();
+                            }, 500);
                           }
                         }}>
                           ⬇️ Baixar PDF
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
-                          const element = document.createElement("div");
-                          element.innerHTML = `<h2>${note.patientName || "Paciente"}</h2><p>${aiFeedback}</p>`;
-                          const printWindow = window.open("", "", "width=800,height=600");
+                          const htmlContent = generateABNTFormattedPDF(note, aiFeedback);
+                          const printWindow = window.open("", "", "width=900,height=1200");
                           if (printWindow) {
-                            printWindow.document.write(element.innerHTML);
-                            printWindow.print();
+                            printWindow.document.write(htmlContent);
+                            setTimeout(() => {
+                              printWindow.print();
+                            }, 500);
                           }
                         }}>
                           🖨️ Imprimir
