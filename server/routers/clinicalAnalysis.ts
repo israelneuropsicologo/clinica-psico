@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
-import { clinicalNotes, sessions } from "../../drizzle/schema";
+import { clinicalNotes, sessions, patients } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { generateClinicalAnalysisDocx } from "../_core/clinicalAnalysisDocxGenerator";
 import { generateClinicalAnalysisPDF } from "../_core/clinicalAnalysisPDFGenerator";
@@ -282,17 +282,13 @@ export const clinicalAnalysisRouter = router({
           throw new Error("Clinical note not found");
         }
 
-        // Get patient info
-        const patients = await db
+        // Get patient info from patients table
+        const patientsData = await db
           .select()
-          .from(sessions)
-          .where(
-            and(
-              eq(sessions.patientId, input.patientId),
-              eq(sessions.userId, ctx.user.id)
-            )
-          )
+          .from(patients)
+          .where(eq(patients.id, input.patientId))
           .limit(1);
+        const patient = patientsData[0];
 
         const analysisDate = new Date(note.createdAt).toLocaleDateString("pt-BR");
         const feedback = note.aiTechnicalFeedback?.substring(0, 500) || "";
@@ -301,11 +297,17 @@ export const clinicalAnalysisRouter = router({
 
         if (input.format === "docx") {
           result = await generateClinicalAnalysisDocx({
-            patientName: "Paciente",
+            patientName: patient?.name || "Paciente",
             patientId: input.patientId.toString(),
+            patientEmail: patient?.email || undefined,
+            patientPhone: patient?.phone || undefined,
+            patientBirthDate: patient?.birthDate || undefined,
+            patientCPF: patient?.cpf || undefined,
+            patientAddress: patient?.address || undefined,
             clinicName: "E-Saúde",
             psychologistName: process.env.OWNER_NAME || "Profissional",
             psychologistCRP: "05/85230",
+            psychologistSpecialization: "Neuropsicologia",
             analysisDate,
             feedback,
           });
