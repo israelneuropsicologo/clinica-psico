@@ -54,6 +54,7 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { AIAnalysisResult } from "@/components/AIAnalysisResult";
 import { AnalysisTimeline } from "@/components/AnalysisTimeline";
 import { AnalysisComparison } from "@/components/AnalysisComparison";
+import { useSafeDOM } from "@/hooks/useSelectDebounce";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(ts: number | Date) {
@@ -113,6 +114,8 @@ export default function PatientDetail() {
     currentMedications: "",
     riskFactors: "",
   });
+
+  const { safeRemoveChild } = useSafeDOM();
 
   const { data: patient, isLoading, refetch } = trpc.patients.getById.useQuery({ id: patientId }, { enabled: patientId > 0 });
   const { data: patientSessions } = trpc.sessions.list.useQuery({ patientId }, { enabled: patientId > 0 });
@@ -599,8 +602,10 @@ export default function PatientDetail() {
                                   link.download = rec.fileName || 'audio.mp3';
                                   document.body.appendChild(link);
                                   link.click();
-                                  document.body.removeChild(link);
-                                  URL.revokeObjectURL(url);
+                                  setTimeout(() => {
+                                    safeRemoveChild(document.body, link);
+                                    URL.revokeObjectURL(url);
+                                  }, 100);
                                   toast.dismiss();
                                   toast.success('Áudio baixado com sucesso!');
                                 } catch (error) {
@@ -614,13 +619,21 @@ export default function PatientDetail() {
                               {rec.transcription && (
                                 <>
                                   <DropdownMenuItem onClick={() => {
-                                    const element = document.createElement('a');
-                                    const file = new Blob([rec.transcription], {type: 'text/plain'});
-                                    element.href = URL.createObjectURL(file);
-                                    element.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.txt`;
-                                    document.body.appendChild(element);
-                                    element.click();
-                                    document.body.removeChild(element);
+                                    try {
+                                      const element = document.createElement('a');
+                                      const file = new Blob([rec.transcription], {type: 'text/plain'});
+                                      element.href = URL.createObjectURL(file);
+                                      element.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.txt`;
+                                      document.body.appendChild(element);
+                                      element.click();
+                                      setTimeout(() => {
+                                        safeRemoveChild(document.body, element);
+                                        URL.revokeObjectURL(element.href);
+                                      }, 100);
+                                    } catch (error) {
+                                      console.error('Erro ao baixar transcrição:', error);
+                                      toast.error('Erro ao baixar transcrição');
+                                    }
                                   }} className="gap-2">
                                     <FileDown className="h-4 w-4" />
                                     Baixar Transcrição (TXT)
@@ -632,16 +645,21 @@ export default function PatientDetail() {
                                         console.log('DOCX gerado com sucesso:', data);
                                         toast.dismiss(toastId);
                                         setTimeout(() => {
-                                          const link = document.createElement('a');
-                                          link.href = data.pdfUrl;
-                                          link.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.docx`;
-                                          link.style.display = 'none';
-                                          document.body.appendChild(link);
-                                          link.click();
-                                          setTimeout(() => {
-                                            document.body.removeChild(link);
-                                            toast.success('Documento baixado com sucesso!');
-                                          }, 100);
+                                          try {
+                                            const link = document.createElement('a');
+                                            link.href = data.pdfUrl;
+                                            link.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.docx`;
+                                            link.style.display = 'none';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            setTimeout(() => {
+                                              safeRemoveChild(document.body, link);
+                                              toast.success('Documento baixado com sucesso!');
+                                            }, 100);
+                                          } catch (error) {
+                                            console.error('Erro ao fazer download:', error);
+                                            toast.error('Erro ao fazer download');
+                                          }
                                         }, 500);
                                       },
                                       onError: (error) => {
