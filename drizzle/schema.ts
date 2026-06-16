@@ -172,7 +172,6 @@ export const clinicalNotes = mysqlTable("clinical_notes", {
   // Sub-aba: Análise IA
   aiTechnicalFeedback: text("aiTechnicalFeedback"),
   aiTechnicalFeedbackAt: bigint("aiTechnicalFeedbackAt", { mode: "number" }),
-  aiAnalysisMetadata: text("aiAnalysisMetadata"), // JSON com dados do paciente usados na análise
   // Legacy fields
   mood: mysqlEnum("mood", ["very_bad", "bad", "neutral", "good", "very_good"]),
   progressRating: int("progressRating"), // 1-10

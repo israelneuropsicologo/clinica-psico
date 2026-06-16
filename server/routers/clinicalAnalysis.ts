@@ -343,7 +343,12 @@ export const clinicalAnalysisRouter = router({
           } as const;
         } else {
           const pdfData = {
-            patientName: "Paciente",
+            patientName: patientData.name || "Paciente",
+            patientEmail: patientData.email || undefined,
+            patientPhone: patientData.phone || undefined,
+            patientBirthDate: patientData.birthDate || undefined,
+            patientCPF: patientData.cpf || undefined,
+            patientAddress: patientData.address || undefined,
             analysisDate: new Date(note.createdAt),
             clinicName: "E-Saúde",
             professionalName: process.env.OWNER_NAME || "Profissional",

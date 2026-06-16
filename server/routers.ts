@@ -421,7 +421,10 @@ const clinicalNotesRouter = router({
 
   byPatient: protectedProcedure
     .input(z.object({ patientId: z.number() }))
-    .query(({ ctx, input }) => getClinicalNotesByPatient(input.patientId, ctx.user.id)),
+    .query(({ ctx, input }) => {
+      console.log(`[DEBUG ROUTER] byPatient called: patientId=${input.patientId}, userId=${ctx.user.id}`);
+      return getClinicalNotesByPatient(input.patientId, ctx.user.id);
+    }),
 
   create: protectedProcedure
     .input(

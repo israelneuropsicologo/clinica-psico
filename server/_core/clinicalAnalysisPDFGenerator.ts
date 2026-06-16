@@ -2,6 +2,11 @@ import { PDFDocument, rgb } from "pdf-lib";
 
 interface ClinicalAnalysisData {
   patientName: string;
+  patientEmail?: string;
+  patientPhone?: string;
+  patientBirthDate?: string | Date;
+  patientCPF?: string;
+  patientAddress?: string;
   analysisDate: Date;
   clinicName: string;
   professionalName: string;
@@ -111,7 +116,28 @@ export async function generateClinicalAnalysisPDF(
   addText(`Especialidade: ${data.specialization}`, 11, black);
   addText(`CRP-RJ: ${data.crp}`, 11, black);
   addText(`Data da Análise: ${data.analysisDate.toLocaleDateString("pt-BR")}`, 11, black);
+  yPosition -= 15;
+
+  // Patient information
   addText(`Paciente: ${data.patientName}`, 11, black);
+  if (data.patientEmail) {
+    addText(`Email: ${data.patientEmail}`, 11, black);
+  }
+  if (data.patientPhone) {
+    addText(`Telefone: ${data.patientPhone}`, 11, black);
+  }
+  if (data.patientCPF) {
+    addText(`CPF: ${data.patientCPF}`, 11, black);
+  }
+  if (data.patientBirthDate) {
+    const birthDate = typeof data.patientBirthDate === 'string' 
+      ? new Date(data.patientBirthDate).toLocaleDateString("pt-BR")
+      : data.patientBirthDate.toLocaleDateString("pt-BR");
+    addText(`Data de Nascimento: ${birthDate}`, 11, black);
+  }
+  if (data.patientAddress) {
+    addText(`Endereço: ${data.patientAddress}`, 11, black);
+  }
   yPosition -= 20;
 
   // Sections

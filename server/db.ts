@@ -386,20 +386,58 @@ export async function getClinicalNotesBySession(sessionId: number, userId: numbe
 }
 
 export async function getClinicalNotesByPatient(patientId: number, userId: number): Promise<ClinicalNote[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return db
-    .select()
-    .from(clinicalNotes)
-    .where(eq(clinicalNotes.patientId, patientId))
-    .orderBy(desc(clinicalNotes.createdAt));
+  try {
+    console.log(`[DEBUG DB] getClinicalNotesByPatient START: patientId=${patientId}, userId=${userId}`);
+    const db = await getDb();
+    if (!db) {
+      console.log(`[DEBUG DB] DB unavailable`);
+      return [];
+    }
+    const result = await db
+      .select()
+      .from(clinicalNotes)
+      .where(eq(clinicalNotes.patientId, patientId))
+      .orderBy(desc(clinicalNotes.createdAt));
+    console.log(`[DEBUG DB] getClinicalNotesByPatient SUCCESS: found=${result.length} notes`);
+    return result;
+  } catch (error) {
+    console.error(`[DEBUG DB] getClinicalNotesByPatient ERROR:`, error);
+    return [];
+  }
 }
 
 export async function createClinicalNote(data: InsertClinicalNote): Promise<number> {
   const db = await getDb();
-  if (!db) throw new Error("DB unavailable");
-  const result = await db.insert(clinicalNotes).values(data);
-  return (result[0] as { insertId: number }).insertId;
+  
+  if (!db) {
+    throw new Error("DB unavailable");
+  }
+
+  // 1. Definição estrita do SQL apenas com os campos fornecidos e necessários
+  const rawQuery = `
+    INSERT INTO clinical_notes (
+      sessionId, patientId, userId, content, mood
+    ) VALUES (?, ?, ?, ?, ?)
+  `;
+
+  // 2. Mapeamento seguro dos valores na mesma ordem da query
+  const values = [
+    data.sessionId || 0,
+    data.patientId,
+    data.userId,
+    data.content || "",
+    data.mood || "neutral"
+  ];
+
+  // 3. Execução direta bypassando o gerador de queries do Drizzle
+  const result = await db.execute(sql`
+    INSERT INTO clinical_notes (
+      sessionId, patientId, userId, content, mood
+    ) VALUES (${data.sessionId || 0}, ${data.patientId}, ${data.userId}, ${data.content || ""}, ${data.mood || "neutral"})
+  `);
+
+  // 4. Retorno do ID inserido mantendo a assinatura original da função
+  return (result[0] as any).insertId;
 }
 
 export async function updateClinicalNote(id: number, userId: number, data: Partial<InsertClinicalNote>): Promise<void> {
