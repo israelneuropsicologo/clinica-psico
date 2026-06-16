@@ -1963,37 +1963,78 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   </CardContent>
                 </Card>
               )}
-              <div className="space-y-4">
-                <div data-charts-container>
-                  <AnalysisChartsDisplay />
-                </div>
-                {aiFeedback && (
+              {aiFeedback && (
+                <div className="space-y-4">
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const chartsHTML = document.querySelector('[data-charts-container]')?.innerHTML || '';
+                          const pdf = await generateAnalysisPDF(patientName || 'Paciente', aiFeedback, chartsHTML);
+                          await viewPDFInBrowser(pdf);
+                        } catch (error) {
+                          console.error('Erro ao visualizar PDF:', error);
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Visualizar PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const chartsHTML = document.querySelector('[data-charts-container]')?.innerHTML || '';
+                          const pdf = await generateAnalysisPDF(patientName || 'Paciente', aiFeedback, chartsHTML);
+                          await downloadPDF(pdf, `analise-${new Date().toISOString().split('T')[0]}.pdf`);
+                        } catch (error) {
+                          console.error('Erro ao baixar PDF:', error);
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Baixar PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const chartsHTML = document.querySelector('[data-charts-container]')?.innerHTML || '';
+                          const pdf = await generateAnalysisPDF(patientName || 'Paciente', aiFeedback, chartsHTML);
+                          await printPDF(pdf);
+                        } catch (error) {
+                          console.error('Erro ao imprimir PDF:', error);
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Imprimir
+                    </Button>
+                  </div>
+                  <div data-charts-container>
+                    <AnalysisChartsDisplay />
+                  </div>
                   <div className="border-t pt-4 mt-4">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Análise Completa</h3>
                     <MarkdownRenderer>{aiFeedback}</MarkdownRenderer>
                   </div>
-                )}
-              </div>
-              {/* PDF Button with Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="gap-2 mt-4"><FileText className="h-4 w-4" />Documento PDF</Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={async () => { if (!aiFeedback) { toast.error('Nenhuma análise disponível'); return; } try { const chartsHTML = document.querySelector('[data-charts-container]')?.innerHTML || ''; const pdf = await generateAnalysisPDF(patientName || 'Paciente', aiFeedback, chartsHTML); const pdfBlob = new Blob([pdf], { type: 'application/pdf' }); const url = URL.createObjectURL(pdfBlob); window.open(url, '_blank'); toast.success('PDF aberto para visualizar'); } catch (error) { console.error('Erro ao gerar PDF:', error); toast.error('Erro ao gerar PDF'); } }} className="gap-2"><FileText className="h-4 w-4" />Visualizar</DropdownMenuItem>
-                  <DropdownMenuItem onClick={async () => { if (!aiFeedback) { toast.error('Nenhuma análise disponível'); return; } try { const chartsHTML = document.querySelector('[data-charts-container]')?.innerHTML || ''; const pdf = await generateAnalysisPDF(patientName || 'Paciente', aiFeedback, chartsHTML); await downloadPDF(pdf, `analise-${new Date().toISOString().split('T')[0]}.pdf`); toast.success('PDF baixado com sucesso!'); } catch (error) { console.error('Erro ao gerar PDF:', error); toast.error('Erro ao baixar PDF'); } }} className="gap-2"><FileDown className="h-4 w-4" />Baixar</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={async () => { if (!aiFeedback) { toast.error('Nenhuma análise disponível'); return; } try { const chartsHTML = document.querySelector('[data-charts-container]')?.innerHTML || ''; const pdf = await generateAnalysisPDF(patientName || 'Paciente', aiFeedback, chartsHTML); const pdfBlob = new Blob([pdf], { type: 'application/pdf' }); const url = URL.createObjectURL(pdfBlob); const printWindow = window.open(url, '_blank'); if (printWindow) { printWindow.onload = () => printWindow.print(); } toast.success('Abrindo para impressão'); } catch (error) { console.error('Erro ao gerar PDF:', error); toast.error('Erro ao imprimir PDF'); } }} className="gap-2"><Printer className="h-4 w-4" />Imprimir</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </div>
+              )}
               {!aiFeedback && !aiFeedbackMutation.isPending && (
                 <Card>
                   <CardContent className="py-10 text-center text-muted-foreground">
-                    <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">Nenhuma análise gerada ainda.</p>
-                    <p className="text-xs mt-1">Clique em "Solicitar Análise" para gerar o feedback técnico.</p>
-                  </CardContent>
-                </Card>
+                        <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">Nenhuma análise gerada ainda.</p>
+                        <p className="text-xs mt-1">Clique em "Solicitar Análise" para gerar o feedback técnico.</p>
+                      </CardContent>
+                    </Card>
               )}
               {aiFeedbackMutation.isPending && (
                 <Card>
@@ -2003,6 +2044,29 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                     <p className="text-xs mt-1">Isso pode levar alguns segundos.</p>
                   </CardContent>
                 </Card>
+              )}
+              
+              {/* Print Preview Button */}
+              <div className="flex gap-2 flex-wrap mb-4 mt-4">
+                <Button
+                  onClick={() => setPrintPreviewOpen(true)}
+                  className="gap-2 bg-blue-600 hover:bg-blue-700"
+                  disabled={!aiFeedback}
+                >
+                  <FileDown className="h-4 w-4" />
+                  Pré-visualizar PDF
+                </Button>
+              </div>
+              
+              {/* Print Preview Dialog */}
+              {aiFeedback && (
+                <AnalysisPrintPreview
+                  aiFeedback={aiFeedback}
+                  patientName={patientName}
+                  sessionDate={new Date(note.createdAt as number)}
+                  open={printPreviewOpen}
+                  onOpenChange={setPrintPreviewOpen}
+                />
               )}
               
               {/* Supervisão */}

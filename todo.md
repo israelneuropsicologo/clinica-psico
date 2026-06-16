@@ -963,3 +963,14 @@
 - Ícones intuitivos para cada seção
 - Remover asteriscos do texto
 - Mais intuitivo e profissional
+
+
+### Fase 133: Botão de Impressão e PDF para Análise IA (EM PROGRESSO)
+- [ ] Criar componente AnalysisPrintPreview.tsx com formatação ABNT
+- [ ] Implementar geração de PDF com html2canvas + jsPDF
+- [ ] Adicionar botão "Pré-visualizar PDF" na aba "Análise IA"
+- [ ] Adicionar botão "Imprimir" na aba "Análise IA"
+- [ ] Testar impressão com gráficos e texto
+- [ ] Validar margens e espaçamento ABNT
+- [ ] Criar testes Vitest para PDF generation
+- [ ] Criar checkpoint final
