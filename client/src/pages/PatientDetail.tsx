@@ -98,6 +98,8 @@ export default function PatientDetail() {
   const [selectedNote, setSelectedNote] = useState<number | null>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
+  const [supervisionModal, setSupervisionModal] = useState<{ open: boolean; recordingId?: number }>({ open: false });
+  const [supervisionAnalysis, setSupervisionAnalysis] = useState<string | null>(null);
 
   const [referralForm, setReferralForm] = useState({
     recipientTitle: "Ao Médico Psiquiatra",
@@ -142,7 +144,16 @@ export default function PatientDetail() {
     onSuccess: () => { toast.success("Transcrição concluída!"); refetchRecordings(); },
     onError: (e) => toast.error(e.message),
   });
-  // Removed: supervisionMutation (procedure not implemented)
+  const supervisionMutation = trpc.supervision.analyzeRecordingSupervision.useMutation({
+    onSuccess: (data) => {
+      setSupervisionAnalysis(data.analysis);
+      toast.success("Análise de supervisão concluída!");
+    },
+    onError: (e) => {
+      toast.error("Erro na análise: " + e.message);
+      setSupervisionAnalysis(null);
+    },
+  });
   // Removed: generateTimelineMutation (procedure not implemented)
   const createNoteMutation = trpc.clinicalNotes.create.useMutation({
     onSuccess: (result) => {
@@ -670,8 +681,20 @@ export default function PatientDetail() {
                               variant="outline"
                               className="gap-1.5"
                               onClick={() => {
-                                toast.info('Supervisão IA será implementada em breve');
+                                if (rec.transcription) {
+                                  supervisionMutation.mutate({
+                                    recordingId: rec.id,
+                                    transcription: rec.transcription,
+                                    patientName: patient?.name,
+                                    sessionDate: new Date(rec.createdAt),
+                                    chiefComplaint: patient?.chiefComplaint,
+                                  });
+                                  setSupervisionModal({ open: true, recordingId: rec.id });
+                                } else {
+                                  toast.error('Transcrição não disponível');
+                                }
                               }}
+                              disabled={supervisionMutation.isPending}
                             >
                               <><Brain className="h-3 w-3" /> Supervisão IA</>
                             </Button>
@@ -841,6 +864,57 @@ export default function PatientDetail() {
                 {generateReferralMutation.isPending ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Gerando PDF...</> : <><FileDown className="h-3.5 w-3.5" /> Gerar e Baixar PDF</>}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Supervision Modal - Mobile Optimized */}
+      <Dialog open={supervisionModal.open} onOpenChange={(open) => setSupervisionModal({ ...supervisionModal, open })}>
+        <DialogContent className="max-w-full sm:max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Brain className="h-5 w-5 text-primary" />
+              Analise de Supervisao I.A
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {supervisionMutation.isPending ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center space-y-3">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                  <p className="text-sm text-muted-foreground">Analisando sessao com I.A...</p>
+                </div>
+              </div>
+            ) : supervisionAnalysis ? (
+              <div className="space-y-4">
+                <div className="bg-muted/50 p-4 rounded-lg border border-border/50 overflow-x-auto">
+                  <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+                    <MarkdownRenderer content={supervisionAnalysis} />
+                  </div>
+                </div>
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const text = supervisionAnalysis;
+                    const element = document.createElement('a');
+                    const file = new Blob([text], {type: 'text/plain'});
+                    element.href = URL.createObjectURL(file);
+                    element.download = `supervisao_${supervisionModal.recordingId}.txt`;
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                  }} className="gap-1.5 w-full sm:w-auto">
+                    <Download className="h-3.5 w-3.5" /> Baixar
+                  </Button>
+                  <Button size="sm" onClick={() => setSupervisionModal({ ...supervisionModal, open: false })} className="w-full sm:w-auto">
+                    Fechar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p className="text-sm">Nenhuma analise disponivel</p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

@@ -79,6 +79,7 @@ import { rolesRouter } from "./routers/roles";
 import { patientSharingRouter } from "./routers/patient-sharing";
 import { emailAliasesRouter } from "./routers/email-aliases";
 import { autonomousAgentsRouter } from "./routers/autonomous-agents";
+import { supervisionRouter } from "./routers/supervision";
 import { virtualCreditsRouter } from "./routers/virtual-credits";
 import { agentCommunicationRouter } from "./routers/agent-communication";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
@@ -1099,6 +1100,7 @@ export const appRouter = router({
   virtualCredits: virtualCreditsRouter,
   agentCommunication: agentCommunicationRouter,
   audit: auditRouter,
+  supervision: supervisionRouter,
   calendar: router({
     getEvents: protectedProcedure
       .input(z.object({
