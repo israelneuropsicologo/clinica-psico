@@ -158,8 +158,6 @@ export function SessionDetailTabs({
                 const sessionIdNum = Number(sessionId);
                 const noteIdNum = noteId ? Number(noteId) : 0;
                 
-                console.log("[autoFill] IDs:", { patientIdNum, sessionIdNum, noteIdNum });
-                
                 if (isNaN(patientIdNum) || isNaN(sessionIdNum) || patientIdNum <= 0 || sessionIdNum <= 0) {
                   toast.error("IDs invalidos para preenchimento com IA");
                   return;
@@ -168,11 +166,15 @@ export function SessionDetailTabs({
                 // Se não tem noteId, usar 0 para indicar que a IA deve criar uma nova nota
                 const finalNoteId = noteIdNum && !isNaN(noteIdNum) ? noteIdNum : 0;
                 
+                // Não permitir autoFill na aba Análise IA (aba 7)
+                if (currentTabId === 7) {
+                  toast.error("Use o botão 'Análise IA' para gerar a análise completa");
+                  return;
+                }
                 autoFillMutation.mutate(
-                  { patientId: patientIdNum, sessionId: sessionIdNum, noteId: finalNoteId },
+                  { patientId: patientIdNum, sessionId: sessionIdNum, noteId: finalNoteId, selectedTab: currentTabId },
                   {
                     onSuccess: (data) => {
-                      console.log("[autoFill] Sucesso:", data);
                       // Preencher os campos com os dados da IA
                       const mergedData = { ...localData, ...data };
                       setLocalData(mergedData);
@@ -195,7 +197,6 @@ export function SessionDetailTabs({
                       utils.clinicalNotes.bySession.invalidate();
                     },
                     onError: (error) => {
-                      console.error("[autoFill] Erro:", error);
                       toast.error("Erro ao preencher com IA: " + error.message);
                     },
                   }

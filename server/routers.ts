@@ -598,6 +598,7 @@ Responda em português brasileiro profissional.`,
         patientId: z.coerce.number(),
         sessionId: z.coerce.number(),
         noteId: z.coerce.number().optional(),
+        selectedTab: z.coerce.number().optional().default(0), // 0-6 para abas, 7 para Análise IA
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -662,17 +663,52 @@ Responda em português brasileiro profissional.`,
       const sessionNumber = previousNotes.length + 1;
 
       console.log("[autoFill] Iniciando preenchimento automático...");
-      console.log("[autoFill] Paciente:", input.patientId, "Sessão:", input.sessionId);
+      console.log("[autoFill] Paciente:", input.patientId, "Sessão:", input.sessionId, "Tab:", input.selectedTab);
+
+      // Mapear aba para campos a gerar
+      const tabFieldsMap: Record<number, { fields: string[]; description: string }> = {
+        0: {
+          fields: ["content", "generalPresentation", "currentMedications", "emotionalState", "predominantMood", "mood", "sufferingLevel"],
+          description: "Sessão (apresentação geral, medicações, estado emocional, sofrimento)"
+        },
+        1: {
+          fields: ["mainDemand", "topicsAddressed", "relevantNarrative", "clinicalAssessment"],
+          description: "Avaliação (demanda principal, tópicos, narrativa, avaliação clínica)"
+        },
+        2: {
+          fields: ["technicalAnalysis", "techniquesUsed", "plannedInterventions", "therapeuticPlan"],
+          description: "Intervenções (análise técnica, técnicas, intervenções planejadas, plano terapêutico)"
+        },
+        3: {
+          fields: ["homework", "treatmentResponse", "goalsProgress", "observedInsights", "observedResistances"],
+          description: "Evolução (tarefas, resposta ao tratamento, progresso, insights, resistências)"
+        },
+        4: {
+          fields: ["nextSessionGoals", "treatmentPlanAdjustments"],
+          description: "Próxima (objetivos próxima sessão, ajustes ao plano)"
+        },
+        5: {
+          fields: ["selfHarmRisk", "thirdPartyRisk", "suicideRisk"],
+          description: "Riscos (automutilação, terceiros, suicídio)"
+        },
+        6: {
+          fields: ["countertransference", "clinicalHypotheses", "supervisionNotes", "referrals", "privateObservations"],
+          description: "Privado (contratransferência, hipóteses, notas supervisão, encaminhamentos, observações)"
+        },
+      };
+
+      const tabConfig = tabFieldsMap[input.selectedTab] || tabFieldsMap[0];
+      const requiredFields = tabConfig.fields.filter(f => ["content", "emotionalState", "mainDemand", "clinicalAssessment"].includes(f));
 
       const response = await invokeLLM({
         messages: [
           {
             role: "system",
-            content: `Você é um assistente de psicólogo clínico experiente. Sua tarefa é preencher COMPLETAMENTE um prontuário clínico com base nos dados do paciente, anamnese e histórico de sessões anteriores. Retorne um JSON estruturado com TODOS os campos preenchidos de forma realista, detalhada e clinicamente apropriada. Não deixe campos em branco ou com mensagens genéricas. Sempre forneça análises clínicas significativas, mesmo que os dados sejam limitados.`,
+            content: `Você é um assistente de psicólogo clínico experiente. Sua tarefa é preencher APENAS os campos da aba "${tabConfig.description}" de um prontuário clínico. Retorne um JSON estruturado com APENAS esses campos preenchidos de forma realista, detalhada e clinicamente apropriada. Não deixe campos em branco ou com mensagens genéricas.`,
           },
           {
             role: "user",
-            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}.\n\nPreencha TODOS os campos do prontuário com informações clínicas realistas e relevantes. Mesmo que não haja dados específicos da sessão, use o contexto do paciente para gerar uma avaliação apropriada. Inclua análises técnicas, hipóteses clínicas e planos de intervenção baseados no histórico disponível.`,
+            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}.\n\nPreencha APENAS os seguintes campos com informações clínicas realistas e relevantes: ${tabConfig.fields.join(", ")}. Use o contexto do paciente para gerar uma avaliação apropriada.`,
           },
         ],
         response_format: {
@@ -714,11 +750,11 @@ Responda em português brasileiro profissional.`,
                 referrals: { type: "string" },
                 privateObservations: { type: "string" },
               },
-              required: ["content", "emotionalState", "mainDemand", "clinicalAssessment"],
+              required: requiredFields.length > 0 ? requiredFields : ["content"],
               additionalProperties: false,
             },
           },
-        },
+        }
       });
 
       const rawContent = response.choices[0]?.message?.content;
@@ -726,8 +762,7 @@ Responda em português brasileiro profissional.`,
         console.error("[autoFill] IA não retornou resposta");
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "IA não retornou resposta" });
       }
-      console.log("[autoFill] Resposta da IA recebida, tamanho:", String(rawContent).length);
-      console.log("[autoFill] Raw content:", typeof rawContent === "string" ? rawContent.substring(0, 500) : rawContent);
+
 
       let filled: Record<string, unknown>;
       try {
@@ -783,33 +818,24 @@ Responda em português brasileiro profissional.`,
         return isNaN(n) ? min : Math.min(max, Math.max(min, n));
       };
 
-      const validFields = [
-        "content", "generalPresentation", "currentMedications", "emotionalState",
-        "predominantMood", "mainDemand", "topicsAddressed", "relevantNarrative",
-        "clinicalAssessment", "technicalAnalysis", "techniquesUsed", "plannedInterventions",
-        "therapeuticPlan", "homework", "treatmentResponse", "goalsProgress",
-        "observedInsights", "observedResistances", "nextSessionGoals", "treatmentPlanAdjustments",
-        "countertransference", "clinicalHypotheses", "supervisionNotes", "referrals",
-        "privateObservations", "mood", "sufferingLevel", "selfHarmRisk", "thirdPartyRisk", "suicideRisk"
-      ];
-
+      // Filtrar apenas os campos permitidos para a aba selecionada
+      const allowedFields = tabConfig.fields;
+      
       const cleanedFilled: Record<string, unknown> = {};
-      for (const field of validFields) {
+      for (const field of allowedFields) {
         if (field in filled) {
           cleanedFilled[field] = filled[field];
         }
       }
 
-      // Adicionar campos de risco e mood se estiverem presentes
-      if (filled.mood) cleanedFilled.mood = safeMood(filled.mood);
-      if (filled.sufferingLevel !== undefined) cleanedFilled.sufferingLevel = safeNum(filled.sufferingLevel, 0, 10);
-      if (filled.selfHarmRisk) cleanedFilled.selfHarmRisk = safeRisk(filled.selfHarmRisk);
-      if (filled.thirdPartyRisk) cleanedFilled.thirdPartyRisk = safeRisk(filled.thirdPartyRisk);
-      if (filled.suicideRisk) cleanedFilled.suicideRisk = safeRisk(filled.suicideRisk);
+      // Validar e normalizar campos específicos se presentes
+      if ("mood" in allowedFields && filled.mood) cleanedFilled.mood = safeMood(filled.mood);
+      if ("sufferingLevel" in allowedFields && filled.sufferingLevel !== undefined) cleanedFilled.sufferingLevel = safeNum(filled.sufferingLevel, 0, 10);
+      if ("selfHarmRisk" in allowedFields && filled.selfHarmRisk) cleanedFilled.selfHarmRisk = safeRisk(filled.selfHarmRisk);
+      if ("thirdPartyRisk" in allowedFields && filled.thirdPartyRisk) cleanedFilled.thirdPartyRisk = safeRisk(filled.thirdPartyRisk);
+      if ("suicideRisk" in allowedFields && filled.suicideRisk) cleanedFilled.suicideRisk = safeRisk(filled.suicideRisk);
 
-      console.log("[autoFill] Parsed filled object:", filled);
-      console.log("[autoFill] Cleaned filled object:", cleanedFilled);
-      console.log("[autoFill] Cleaned filled keys:", Object.keys(cleanedFilled));
+
 
       // Validar se há campos preenchidos
       if (Object.keys(cleanedFilled).length === 0) {

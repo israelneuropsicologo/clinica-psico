@@ -963,3 +963,13 @@
 - Ícones intuitivos para cada seção
 - Remover asteriscos do texto
 - Mais intuitivo e profissional
+
+
+### Fase 85: Otimização de Delay da IA - Gerar Apenas Aba Selecionada
+- [ ] Identificar qual aba está selecionada no componente de prontuário
+- [ ] Modificar router `clinicalNotes.fillWithAI` para aceitar parâmetro `selectedTab`
+- [ ] Atualizar função `invokeLLM` para gerar texto apenas para a aba selecionada
+- [ ] Passar `selectedTab` do frontend para o backend
+- [ ] Testar redução de delay (~1 minuto → poucos segundos)
+- [ ] Criar testes Vitest para validar geração por aba
+- [ ] Validar que apenas a aba selecionada recebe dados da IA
