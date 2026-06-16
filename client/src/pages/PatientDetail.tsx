@@ -1971,7 +1971,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="gap-2">
                           <FileText className="h-4 w-4" />
-                          Documento PDF
+                          Documento
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
@@ -1983,28 +1983,101 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                             printWindow.document.close();
                           }
                         }}>
+                          👁️ Visualizar HTML
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={async () => {
+                          try {
+                            const result = await trpc.clinicalAnalysis.generateAnalysisDocument.mutate({
+                              noteId: note.id,
+                              patientId: patient.id,
+                              format: 'docx'
+                            });
+                            if (result.success && result.url) {
+                              window.open(result.url, '_blank');
+                            }
+                          } catch (error) {
+                            toast.error('Erro ao gerar documento Word');
+                          }
+                        }}>
+                          👁️ Visualizar Word
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={async () => {
+                          try {
+                            const result = await trpc.clinicalAnalysis.generateAnalysisDocument.mutate({
+                              noteId: note.id,
+                              patientId: patient.id,
+                              format: 'pdf'
+                            });
+                            if (result.success && result.url) {
+                              window.open(result.url, '_blank');
+                            }
+                          } catch (error) {
+                            toast.error('Erro ao gerar documento PDF');
+                          }
+                        }}>
                           👁️ Visualizar PDF
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          const htmlContent = generateABNTFormattedPDF(note, aiFeedback);
-                          const printWindow = window.open("", "", "width=900,height=1200");
-                          if (printWindow) {
-                            printWindow.document.write(htmlContent);
-                            setTimeout(() => {
-                              printWindow.print();
-                            }, 500);
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={async () => {
+                          try {
+                            const result = await trpc.clinicalAnalysis.generateAnalysisDocument.mutate({
+                              noteId: note.id,
+                              patientId: patient.id,
+                              format: 'docx'
+                            });
+                            if (result.success && result.url) {
+                              const link = document.createElement('a');
+                              link.href = result.url;
+                              link.download = result.filename || 'analise-clinica.docx';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }
+                          } catch (error) {
+                            toast.error('Erro ao baixar documento Word');
+                          }
+                        }}>
+                          ⬇️ Baixar Word
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={async () => {
+                          try {
+                            const result = await trpc.clinicalAnalysis.generateAnalysisDocument.mutate({
+                              noteId: note.id,
+                              patientId: patient.id,
+                              format: 'pdf'
+                            });
+                            if (result.success && result.url) {
+                              const link = document.createElement('a');
+                              link.href = result.url;
+                              link.download = result.filename || 'analise-clinica.pdf';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }
+                          } catch (error) {
+                            toast.error('Erro ao baixar documento PDF');
                           }
                         }}>
                           ⬇️ Baixar PDF
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          const htmlContent = generateABNTFormattedPDF(note, aiFeedback);
-                          const printWindow = window.open("", "", "width=900,height=1200");
-                          if (printWindow) {
-                            printWindow.document.write(htmlContent);
-                            setTimeout(() => {
-                              printWindow.print();
-                            }, 500);
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={async () => {
+                          try {
+                            const result = await trpc.clinicalAnalysis.generateAnalysisDocument.mutate({
+                              noteId: note.id,
+                              patientId: patient.id,
+                              format: 'pdf'
+                            });
+                            if (result.success && result.url) {
+                              const printWindow = window.open(result.url, '_blank');
+                              if (printWindow) {
+                                setTimeout(() => {
+                                  printWindow.print();
+                                }, 500);
+                              }
+                            }
+                          } catch (error) {
+                            toast.error('Erro ao imprimir documento');
                           }
                         }}>
                           🖨️ Imprimir
