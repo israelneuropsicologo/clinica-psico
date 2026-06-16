@@ -3,6 +3,9 @@ import { z } from "zod";
 import { getDb } from "../db";
 import { clinicalNotes, sessions } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { generateClinicalAnalysisDocx } from "../_core/clinicalAnalysisDocxGenerator";
+import { generateClinicalAnalysisPDF } from "../_core/clinicalAnalysisPDFGenerator";
+import { storagePut } from "../storage";
 
 interface MoodEvolutionData {
   session: string;
@@ -225,6 +228,122 @@ export const clinicalAnalysisRouter = router({
       } catch (error) {
         console.error("Error getting analysis history:", error);
         return [];
+      }
+    }),
+
+  /**
+   * Generate clinical analysis document (Word or PDF)
+   */
+  generateAnalysisDocument: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.number(),
+        format: z.enum(["docx", "pdf"]),
+        noteId: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) {
+        throw new Error("Database not available");
+      }
+
+      try {
+        // Get the clinical note
+        let note;
+        if (input.noteId) {
+          const notes = await db
+            .select()
+            .from(clinicalNotes)
+            .where(
+              and(
+                eq(clinicalNotes.id, input.noteId),
+                eq(clinicalNotes.patientId, input.patientId),
+                eq(clinicalNotes.userId, ctx.user.id)
+              )
+            );
+          note = notes[0];
+        } else {
+          const notes = await db
+            .select()
+            .from(clinicalNotes)
+            .where(
+              and(
+                eq(clinicalNotes.patientId, input.patientId),
+                eq(clinicalNotes.userId, ctx.user.id)
+              )
+            )
+            .orderBy(desc(clinicalNotes.createdAt))
+            .limit(1);
+          note = notes[0];
+        }
+
+        if (!note) {
+          throw new Error("Clinical note not found");
+        }
+
+        // Get patient info
+        const patients = await db
+          .select()
+          .from(sessions)
+          .where(
+            and(
+              eq(sessions.patientId, input.patientId),
+              eq(sessions.userId, ctx.user.id)
+            )
+          )
+          .limit(1);
+
+        const analysisData = {
+          patientName: "Paciente",
+          analysisDate: new Date(note.createdAt),
+          clinicName: "E-Saúde",
+          professionalName: process.env.OWNER_NAME || "Profissional",
+          specialization: "Neuropsicologia",
+          crp: "05/85230",
+          feedback: note.aiTechnicalFeedback?.substring(0, 500) || "",
+          currentState: note.aiCurrentState?.substring(0, 500) || "",
+          interventionTechniques: note.aiInterventionTechniques?.substring(0, 500) || "",
+          plannedInterventions: note.aiPlannedInterventions?.substring(0, 500) || "",
+          homeAssignment: note.aiHomeAssignment?.substring(0, 500) || "",
+          therapyPlans: note.aiTherapyPlans?.substring(0, 500) || "",
+          evaluationProgress: note.aiEvaluationProgress?.substring(0, 500) || "",
+          clinicalInsights: note.aiClinicalInsights?.substring(0, 500) || "",
+          observedResistances: note.aiObservedResistances?.substring(0, 500) || "",
+          recommendations: note.aiRecommendations?.substring(0, 500) || "",
+        };
+
+        let documentBuffer: Buffer;
+        let filename: string;
+        let mimeType: string;
+
+        if (input.format === "docx") {
+          documentBuffer = await generateClinicalAnalysisDocx(analysisData);
+          filename = `analise_clinica_${input.patientId}_${Date.now()}.docx`;
+          mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        } else {
+          documentBuffer = await generateClinicalAnalysisPDF(analysisData);
+          filename = `analise_clinica_${input.patientId}_${Date.now()}.pdf`;
+          mimeType = "application/pdf";
+        }
+
+        // Upload to storage
+        const { url, key } = await storagePut(
+          `clinical-analysis/${ctx.user.id}/${filename}`,
+          documentBuffer,
+          mimeType
+        );
+
+        return {
+          success: true,
+          url,
+          key,
+          filename,
+          format: input.format,
+        };
+      } catch (error) {
+        console.error("Error generating analysis document:", error);
+        throw error;
       }
     }),
 });
