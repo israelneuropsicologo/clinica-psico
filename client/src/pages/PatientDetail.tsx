@@ -1976,10 +1976,10 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                 </Card>
               )}
               {aiFeedback && !aiFeedbackMutation.isPending && (
-                <div className="space-y-4">
+                <div className="space-y-4 w-full">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resultado da Análise</h3>
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify break-words overflow-wrap-break-word">
+                  <div className="prose prose-sm dark:prose-invert max-w-none w-full">
+                    <div className="w-full whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify break-words overflow-hidden">
                       {aiFeedback}
                     </div>
                   </div>
@@ -2006,13 +2006,13 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                 </Card>
               )}
               {supervision && !supervisionMutation.isPending && (
-                <div className="space-y-4 mt-6 pt-6 border-t">
+                <div className="space-y-4 mt-6 pt-6 border-t w-full">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
                     <Shield className="h-4 w-4 text-blue-500" /> Supervisão
                   </h3>
-                  <Card className="border-l-4 border-l-blue-500">
-                    <CardContent className="pt-6 prose prose-sm dark:prose-invert max-w-none">
-                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify break-words overflow-wrap-break-word">
+                  <Card className="border-l-4 border-l-blue-500 w-full">
+                    <CardContent className="pt-6 prose prose-sm dark:prose-invert max-w-none w-full">
+                      <div className="w-full whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify break-words overflow-hidden">
                         {supervision}
                       </div>
                     </CardContent>
