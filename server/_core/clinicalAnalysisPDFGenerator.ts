@@ -30,7 +30,7 @@ export async function generateClinicalAnalysisPDF(
   const pdfDoc = await PDFDocument.create();
 
   // Set up page (A4 size in points)
-  const page = pdfDoc.addPage([595, 842]);
+  let page = pdfDoc.addPage([595, 842]);
   const { width, height } = page.getSize();
 
   // Margins in points (2.5cm ≈ 71pt, 2cm ≈ 57pt)
@@ -75,7 +75,7 @@ export async function generateClinicalAnalysisPDF(
     for (const textLine of lines) {
       if (yPosition < marginBottom + size + 10) {
         // Add new page if needed
-        const newPage = pdfDoc.addPage([595, 842]);
+        page = pdfDoc.addPage([595, 842]);
         yPosition = height - marginTop;
       }
 
@@ -156,7 +156,7 @@ export async function generateClinicalAnalysisPDF(
 
   for (const section of sections) {
     if (yPosition < marginBottom + 80) {
-      const newPage = pdfDoc.addPage([595, 842]);
+      page = pdfDoc.addPage([595, 842]);
       yPosition = height - marginTop;
     }
 

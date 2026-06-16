@@ -1376,6 +1376,7 @@ const sanitizeModality = (v: unknown): ModalityValue =>
   (VALID_MODALITIES as readonly string[]).includes(v as string) ? v as ModalityValue : "in_person";
 
 function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, unknown>; onBack: () => void; patientId: number }) {
+  console.log('[ClinicalNoteEditor] Renderizando com noteId:', note.id);
   const [subTab, setSubTab] = useState("session");
   const [form, setForm] = useState(() => ({
     // Sessão
