@@ -442,7 +442,7 @@ export default function PatientDetail() {
                                   <Badge variant="outline" className="text-xs">Sofrimento: {String((note as Record<string, unknown>).sufferingLevel)}/10</Badge>
                                 )}
                                 {(note as Record<string, unknown>).aiTechnicalFeedback && (
-                                  <Badge className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">{String((note as Record<string, unknown>).aiTechnicalFeedback)}</Badge>
+                                  <Badge className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">✓ IA</Badge>
                                 )}
                               </div>
                             </div>
