@@ -300,7 +300,7 @@ export default function PatientDetail() {
               <TabsTrigger value="profile" className="gap-1.5 text-xs px-3"><User className="h-3.5 w-3.5" />Perfil</TabsTrigger>
               <TabsTrigger value="contact" className="gap-1.5 text-xs px-3"><Phone className="h-3.5 w-3.5" />Contato</TabsTrigger>
               <TabsTrigger value="health" className="gap-1.5 text-xs px-3"><Heart className="h-3.5 w-3.5" />Saúde</TabsTrigger>
-              <TabsTrigger value="anamnese" className="gap-1.5 text-xs px-3"><FileText className="h-3.5 w-3.5" />Anamnese</TabsTrigger>
+              <TabsTrigger value="anamnese" className="gap-1.5 text-xs px-3" onClick={() => setActiveTab('anamnese')}><FileText className="h-3.5 w-3.5" />Anamnese</TabsTrigger>
               <TabsTrigger value="notes" className="gap-1.5 text-xs px-3"><Brain className="h-3.5 w-3.5" />Prontuário</TabsTrigger>
               <TabsTrigger value="documents" className="gap-1.5 text-xs px-3"><Upload className="h-3.5 w-3.5" />Documentos</TabsTrigger>
               <TabsTrigger value="recordings" className="gap-1.5 text-xs px-3"><Mic className="h-3.5 w-3.5" />Gravações</TabsTrigger>
@@ -1114,9 +1114,7 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
   anamneseData: Record<string, unknown> | null | undefined;
   refetch: () => void;
 }) {
-  console.log('[AnamneseTab] Renderizado! editing state will be managed');
   const [editing, setEditing] = useState(false);
-  console.log('[AnamneseTab] editing state:', editing);
   const [form, setForm] = useState(() => ({
     mainComplaintDetail: (anamneseData?.mainComplaintDetail as string) ?? "",
     therapeuticGoals: (anamneseData?.therapeuticGoals as string) ?? "",
@@ -1139,9 +1137,14 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
     additionalNotes: (anamneseData?.additionalNotes as string) ?? "",
   }));
 
-  // Atualizar form quando entrar em modo de edição ou quando anamneseData mudar
+  // Log do estado editing
   useEffect(() => {
-    if (editing && anamneseData) {
+    console.log('[AnamneseTab] editing state changed:', editing);
+  }, [editing]);
+
+  // Atualizar form quando anamneseData mudar
+  useEffect(() => {
+    if (anamneseData) {
       setForm({
         mainComplaintDetail: (anamneseData.mainComplaintDetail as string) ?? "",
         therapeuticGoals: (anamneseData.therapeuticGoals as string) ?? "",
@@ -1166,11 +1169,14 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
     }
   }, [anamneseData])
 
+  const utils = trpc.useUtils();
   const upsertMutation = trpc.anamnese.upsert.useMutation({
     onSuccess: () => { 
       console.log('✅ Anamnese salva com sucesso!');
       toast.success("Anamnese salva!"); 
-      setEditing(false); 
+      setEditing(false);
+      // Invalidar o cache e refetch
+      utils.anamnese.get.invalidate({ patientId });
       refetch(); 
     },
     onError: (e) => {
@@ -1242,7 +1248,10 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
               </>
             )}
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setEditing(!editing)} className="gap-1.5">
+          <Button size="sm" variant="outline" onClick={() => {
+            console.log('[AnamneseTab] Botão Editar clicado! editing atual:', editing);
+            setEditing(!editing);
+          }} className="gap-1.5">
             <Edit className="h-3.5 w-3.5" /> {editing ? "Cancelar" : "Editar"}
           </Button>
         </div>
@@ -1306,7 +1315,6 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
 
       {editing && (
         <div className="flex justify-end gap-2">
-          {console.log('[AnamneseForm] editing=true, rendering save buttons')}
           <Button variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
           <Button onClick={() => {
             console.log('✅ Botao Salvar Anamnese clicado!');
@@ -1319,7 +1327,6 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
           </Button>
         </div>
       )}
-      {!editing && console.log('[AnamneseForm] editing=false, NOT rendering save buttons')}
     </div>
   );
 }

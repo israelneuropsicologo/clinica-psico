@@ -69,6 +69,7 @@ export const anamneseRouter = router({
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { patientId, ...data } = input;
       console.log("[Anamnese Upsert] patientId:", patientId, "dataKeys:", Object.keys(data).length);
+      console.log("[Anamnese Upsert] data:", JSON.stringify(data, null, 2));
 
       const existing = await db
         .select({ id: anamnese.id })

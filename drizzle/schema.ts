@@ -393,7 +393,7 @@ export const anamnese = mysqlTable("anamnese", {
   sexualAffectiveLife: text("sexualAffectiveLife"),
   previousTreatments: text("previousTreatments"),
   therapeuticGoals: text("therapeuticGoals"),
-  cidCode: varchar("cidCode", { length: 20 }),
+  cidCode: varchar("cidCode", { length: 255 }),
   cidDescription: varchar("cidDescription", { length: 255 }),
   therapeuticApproach: varchar("therapeuticApproach", { length: 100 }),
   riskFactors: text("riskFactors"),
