@@ -155,14 +155,15 @@ function DashboardLayoutContent({
     <>
       <Sidebar collapsible="icon" className="border-r">
         {/* Header */}
-        <SidebarHeader className="h-16 justify-center border-b">
+        <SidebarHeader className="h-16 justify-center border-b bg-sidebar">
           <div className="flex items-center gap-3 px-2 w-full">
             <button
               onClick={toggleSidebar}
-              className="h-8 w-8 flex items-center justify-center hover:bg-sidebar-accent rounded-lg transition-colors shrink-0"
+              className="h-9 w-9 flex items-center justify-center hover:bg-sidebar-accent rounded-lg transition-colors shrink-0 md:h-8 md:w-8"
               aria-label="Toggle navigation"
+              title="Abrir/Fechar menu"
             >
-              <PanelLeft className="h-4 w-4 text-muted-foreground" />
+              <PanelLeft className="h-5 w-5 text-primary md:h-4 md:w-4" />
             </button>
             {!isCollapsed && (
               <div className="flex items-center gap-2 min-w-0">
@@ -299,7 +300,19 @@ function DashboardLayoutContent({
       </Sidebar>
 
       <SidebarInset>
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto flex flex-col">
+          {/* Mobile Header with Menu Toggle */}
+          <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 px-4 py-3 bg-background border-b border-border">
+            <button
+              onClick={toggleSidebar}
+              className="h-9 w-9 flex items-center justify-center hover:bg-accent rounded-lg transition-colors"
+              aria-label="Toggle navigation"
+              title="Abrir/Fechar menu"
+            >
+              <PanelLeft className="h-5 w-5 text-primary" />
+            </button>
+            <span className="font-semibold text-sm">E-Saude</span>
+          </div>
           {children}
         </main>
       </SidebarInset>

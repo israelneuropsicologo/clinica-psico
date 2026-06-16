@@ -4,7 +4,7 @@
   "description": "Sistema de Gestão Clínica para Psicólogos - Prontuários, Sessões, Análise IA",
   "start_url": "/",
   "scope": "/",
-  "display": "standalone",
+  "display": "minimal-ui",
   "orientation": "portrait-primary",
   "theme_color": "#0ea5e9",
   "background_color": "#ffffff",

@@ -893,3 +893,19 @@
 - Meta tags PWA adicionadas ao index.html
 - Suporte a iOS (apple-touch-icon, app-capable)
 - 8 testes vitest para validar configuracao PWA
+
+### Fase 137: Corrigir Menu Lateral em Modo PWA (EM PROGRESSO)
+- [x] Mudar manifest.json para display: minimal-ui
+- [x] Melhorar visibilidade do botao de toggle no sidebar
+- [x] Adicionar header mobile com botao de menu
+- [ ] Testar em modo PWA no mobile
+- [ ] Validar que menu abre/fecha corretamente
+- [ ] Criar checkpoint final
+
+**Objetivo:** Permitir acesso ao menu lateral em modo PWA standalone no mobile.
+
+**Mudancas:**
+- Alterado display de "standalone" para "minimal-ui" no manifest.json
+- Aumentado tamanho do botao de toggle (h-9 w-9 em mobile)
+- Adicionado header mobile com botao de menu visivel
+- Melhorada visibilidade do icone (cor primary em vez de muted-foreground)
