@@ -1,12 +1,14 @@
 /**
- * ABNT PDF Generator for Clinical Analysis
- * Generates professional ABNT-formatted PDFs with proper styling and colors
+ * Professional Modern PDF Generator for Clinical Analysis
+ * Generates modern, professional PDFs with blue headers, colored charts, and structured layout
  */
 
 export function generateABNTFormattedPDF(note: any, aiFeedback: string): string {
   const pacienteName = note?.patientName || "Paciente";
   const dataAtual = new Date().toLocaleDateString("pt-BR");
   const horaAtual = new Date().toLocaleTimeString("pt-BR");
+  const clinicName = "E-Saúde | Gestão Clínica";
+  const crp = "CRP 11/99999";
   
   // Parse feedback to extract sections
   const feedbackText = aiFeedback || "";
@@ -26,123 +28,260 @@ export function generateABNTFormattedPDF(note: any, aiFeedback: string): string 
         }
         
         body {
-          font-family: 'Calibri', 'Arial', sans-serif;
-          line-height: 1.5;
+          font-family: 'Segoe UI', 'Calibri', 'Arial', sans-serif;
+          line-height: 1.6;
           color: #333;
-          background: white;
-          padding: 40px;
-          font-size: 12pt;
+          background: #f5f5f5;
+          padding: 20px;
+          font-size: 11pt;
         }
         
         .container {
           max-width: 210mm;
           margin: 0 auto;
           background: white;
+          box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         
-        /* Header */
-        .header {
+        /* Blue Header Section */
+        .header-blue {
+          background: linear-gradient(135deg, #0c4a6e 0%, #164e8a 100%);
+          color: white;
+          padding: 40px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          position: relative;
+        }
+        
+        .header-blue-left h1 {
+          font-size: 32pt;
+          font-weight: 300;
+          letter-spacing: 2px;
+          margin-bottom: 5px;
+        }
+        
+        .header-blue-left p {
+          font-size: 10pt;
+          opacity: 0.9;
+          letter-spacing: 1px;
+        }
+        
+        .header-blue-right {
+          display: flex;
+          gap: 15px;
+          align-items: center;
+        }
+        
+        .icon-circle {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24pt;
+          border: 2px solid white;
+        }
+        
+        /* Main Title */
+        .main-title {
+          font-size: 24pt;
+          font-weight: bold;
+          color: #0c4a6e;
           text-align: center;
-          border-bottom: 2px solid #0c4a6e;
-          padding-bottom: 20px;
+          padding: 30px 40px 20px;
+          border-bottom: 3px solid #0c4a6e;
           margin-bottom: 30px;
         }
         
-        .header h1 {
-          color: #0c4a6e;
-          font-size: 18pt;
-          font-weight: bold;
-          margin-bottom: 10px;
+        /* Content Area */
+        .content {
+          padding: 40px;
+          background: white;
         }
         
-        .header-info {
-          font-size: 10pt;
-          color: #666;
-          display: flex;
-          justify-content: space-between;
-          flex-wrap: wrap;
-        }
-        
-        .header-info span {
-          margin: 0 10px;
-        }
-        
-        /* Patient Info */
-        .patient-info {
+        /* Patient Info Card */
+        .patient-card {
           background: #f0f9ff;
-          border-left: 4px solid #0c4a6e;
-          padding: 15px;
+          border-left: 5px solid #0c4a6e;
+          padding: 20px;
           margin-bottom: 30px;
           border-radius: 4px;
         }
         
-        .patient-info p {
-          margin: 5px 0;
+        .patient-card p {
+          margin: 8px 0;
           font-size: 11pt;
         }
         
-        .patient-info strong {
+        .patient-card strong {
           color: #0c4a6e;
+          font-weight: 600;
         }
         
         /* Sections */
         .section {
-          margin-bottom: 25px;
+          margin-bottom: 30px;
+          page-break-inside: avoid;
         }
         
         .section-title {
           color: #0c4a6e;
-          font-size: 13pt;
+          font-size: 14pt;
           font-weight: bold;
-          margin-bottom: 10px;
-          border-bottom: 1px solid #0c4a6e;
-          padding-bottom: 5px;
+          margin-bottom: 15px;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #0c4a6e;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        
+        .section-number {
+          background: #0c4a6e;
+          color: white;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 12pt;
         }
         
         .section-content {
           margin-left: 20px;
           font-size: 11pt;
-          line-height: 1.6;
+          line-height: 1.7;
           text-align: justify;
         }
         
         .section-content p {
-          margin-bottom: 10px;
+          margin-bottom: 12px;
+          color: #444;
         }
         
         /* Bullet points */
         .bullet-list {
-          margin: 10px 0 10px 40px;
-          list-style-type: disc;
+          margin: 15px 0 15px 40px;
+          list-style-type: none;
         }
         
         .bullet-list li {
-          margin: 8px 0;
+          margin: 10px 0;
+          padding-left: 20px;
+          position: relative;
+        }
+        
+        .bullet-list li:before {
+          content: "•";
+          color: #f59e0b;
+          font-weight: bold;
+          position: absolute;
+          left: 0;
         }
         
         .bullet-list strong {
           color: #0c4a6e;
+          font-weight: 600;
         }
         
         /* Emphasis */
         .emphasis {
-          color: #f59e0b;
-          font-weight: bold;
+          color: #0c4a6e;
+          font-weight: 600;
         }
         
         .highlight {
           background-color: #fef3c7;
-          padding: 2px 4px;
+          padding: 3px 6px;
+          border-radius: 2px;
+        }
+        
+        /* Info Box */
+        .info-box {
+          background: linear-gradient(135deg, #0c4a6e 0%, #164e8a 100%);
+          color: white;
+          padding: 20px;
+          border-radius: 4px;
+          margin: 20px 0;
+          display: flex;
+          gap: 15px;
+          align-items: flex-start;
+        }
+        
+        .info-box-icon {
+          width: 40px;
+          height: 40px;
+          background: rgba(255,255,255,0.2);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20pt;
+          flex-shrink: 0;
+        }
+        
+        .info-box-content strong {
+          display: block;
+          margin-bottom: 5px;
+          font-size: 12pt;
+        }
+        
+        /* Table */
+        .table-container {
+          margin: 20px 0;
+          overflow-x: auto;
+        }
+        
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 15px 0;
+        }
+        
+        table thead {
+          background: #0c4a6e;
+          color: white;
+        }
+        
+        table th {
+          padding: 12px;
+          text-align: left;
+          font-weight: 600;
+          font-size: 11pt;
+        }
+        
+        table td {
+          padding: 10px 12px;
+          border-bottom: 1px solid #ddd;
+          font-size: 11pt;
+        }
+        
+        table tbody tr:nth-child(even) {
+          background: #f9f9f9;
+        }
+        
+        table tbody tr:hover {
+          background: #f0f9ff;
         }
         
         /* Footer */
         .footer {
-          border-top: 1px solid #ccc;
-          margin-top: 40px;
-          padding-top: 20px;
+          background: #f5f5f5;
+          border-top: 2px solid #0c4a6e;
+          padding: 20px 40px;
           font-size: 9pt;
           color: #666;
           text-align: center;
+          margin-top: 40px;
+        }
+        
+        .footer p {
+          margin: 5px 0;
         }
         
         /* Page break */
@@ -155,8 +294,10 @@ export function generateABNTFormattedPDF(note: any, aiFeedback: string): string 
         @media print {
           body {
             padding: 0;
+            background: white;
           }
           .container {
+            box-shadow: none;
             max-width: 100%;
           }
         }
@@ -164,35 +305,52 @@ export function generateABNTFormattedPDF(note: any, aiFeedback: string): string 
     </head>
     <body>
       <div class="container">
-        <!-- Header -->
-        <div class="header">
-          <h1>ANÁLISE CLÍNICA - PRONTUÁRIO</h1>
-          <div class="header-info">
-            <span><strong>Paciente:</strong> ${pacienteName}</span>
-            <span><strong>Data:</strong> ${dataAtual}</span>
-            <span><strong>Hora:</strong> ${horaAtual}</span>
+        <!-- Blue Header -->
+        <div class="header-blue">
+          <div class="header-blue-left">
+            <h1>Relatório</h1>
+            <p>ANÁLISE CLÍNICA</p>
+          </div>
+          <div class="header-blue-right">
+            <div class="icon-circle">🔒</div>
+            <div class="icon-circle">⋮</div>
           </div>
         </div>
         
-        <!-- Patient Info -->
-        <div class="patient-info">
-          <p><strong>Paciente:</strong> ${pacienteName}</p>
-          <p><strong>Data da Análise:</strong> ${dataAtual}</p>
-          <p><strong>Tipo:</strong> Feedback Técnico do Prontuário</p>
-        </div>
+        <!-- Main Title -->
+        <div class="main-title">ANÁLISE TÉCNICA DO PRONTUÁRIO</div>
         
-        <!-- Main Content -->
-        <div class="section">
-          <div class="section-title">FEEDBACK TÉCNICO DO PRONTUÁRIO</div>
-          <div class="section-content">
-            ${formatFeedbackContent(feedbackText)}
+        <!-- Content -->
+        <div class="content">
+          <!-- Patient Info Card -->
+          <div class="patient-card">
+            <p><strong>👤 Paciente:</strong> ${pacienteName}</p>
+            <p><strong>📅 Data da Análise:</strong> ${dataAtual}</p>
+            <p><strong>🕐 Hora:</strong> ${horaAtual}</p>
+            <p><strong>🏥 Clínica:</strong> ${clinicName}</p>
+            <p><strong>📋 Tipo:</strong> Feedback Técnico do Prontuário</p>
+          </div>
+          
+          <!-- Main Feedback Section -->
+          <div class="section">
+            <div class="section-title">
+              <div class="section-number">1</div>
+              FEEDBACK TÉCNICO DO PRONTUÁRIO
+            </div>
+            <div class="section-content">
+              ${formatFeedbackContent(feedbackText)}
+            </div>
           </div>
         </div>
         
         <!-- Footer -->
         <div class="footer">
-          <p>Documento gerado automaticamente pelo sistema E-Saúde</p>
+          <p><strong>Documento Gerado Automaticamente</strong></p>
+          <p>Sistema E-Saúde | Gestão Clínica</p>
           <p>Data: ${dataAtual} | Hora: ${horaAtual}</p>
+          <p style="margin-top: 10px; border-top: 1px solid #ccc; padding-top: 10px;">
+            Este documento é confidencial e destinado apenas ao uso profissional autorizado.
+          </p>
         </div>
       </div>
     </body>
@@ -209,6 +367,7 @@ function formatFeedbackContent(feedbackText: string): string {
   const lines = feedbackText.split("\n");
   let html = "";
   let inBulletList = false;
+  let sectionNumber = 2;
   
   for (const line of lines) {
     const trimmed = line.trim();
@@ -218,18 +377,23 @@ function formatFeedbackContent(feedbackText: string): string {
         html += "</ul>";
         inBulletList = false;
       }
-      html += "<p></p>";
       continue;
     }
     
-    // Check for section headers (lines with ** at start and end)
-    if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
+    // Check for section headers (lines with ** at start and end or starting with "Seção")
+    if ((trimmed.startsWith("**") && trimmed.endsWith("**")) || trimmed.startsWith("Seção")) {
       if (inBulletList) {
         html += "</ul>";
         inBulletList = false;
       }
-      const title = trimmed.replace(/\*\*/g, "");
-      html += `<p style="font-weight: bold; color: #0c4a6e; margin-top: 15px; margin-bottom: 10px;">${title}</p>`;
+      const title = trimmed.replace(/\*\*/g, "").replace(/^Seção \d+ - /, "");
+      html += `<div class="section" style="margin-top: 25px;">
+        <div class="section-title">
+          <div class="section-number">${sectionNumber}</div>
+          ${title}
+        </div>
+        <div class="section-content">`;
+      sectionNumber++;
       continue;
     }
     
@@ -258,6 +422,8 @@ function formatFeedbackContent(feedbackText: string): string {
   if (inBulletList) {
     html += "</ul>";
   }
+  
+  html += "</div></div>";
   
   return html;
 }
