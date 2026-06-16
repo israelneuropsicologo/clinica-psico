@@ -505,9 +505,20 @@ const clinicalNotesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const { clinicalNotes: cnTable } = await import("../drizzle/schema");
+      const { clinicalNotes: cnTable, patients: patientsTable } = await import("../drizzle/schema");
       const [note] = await db.select().from(cnTable).where(and(eq(cnTable.id, input.noteId), eq(cnTable.userId, ctx.user.id))).limit(1);
       if (!note) throw new TRPCError({ code: "NOT_FOUND" });
+      
+      // Buscar dados do paciente para salvar na análise
+      const [patient] = await db.select().from(patientsTable).where(eq(patientsTable.id, note.patientId)).limit(1);
+      const patientMetadata = patient ? {
+        name: patient.name,
+        email: patient.email,
+        phone: patient.phone,
+        birthDate: patient.birthDate,
+        cpf: patient.cpf,
+        address: patient.address,
+      } : {};
 
       const noteContext = [
         note.emotionalState && `Estado emocional: ${note.emotionalState}`,
@@ -573,6 +584,7 @@ Responda em português brasileiro profissional.`,
       await updateClinicalNote(input.noteId, ctx.user.id, {
         aiTechnicalFeedback: feedback,
         aiTechnicalFeedbackAt: Date.now(),
+        aiAnalysisMetadata: JSON.stringify(patientMetadata),
       });
       return { feedback };
     }),

@@ -282,28 +282,50 @@ export const clinicalAnalysisRouter = router({
           throw new Error("Clinical note not found");
         }
 
-        // Get patient info from patients table
-        const patientsData = await db
-          .select()
-          .from(patients)
-          .where(eq(patients.id, input.patientId))
-          .limit(1);
-        const patient = patientsData[0];
+        // Get patient info from aiAnalysisMetadata if available, otherwise from database
+        let patientData: any = {};
+        if (note.aiAnalysisMetadata) {
+          try {
+            patientData = JSON.parse(note.aiAnalysisMetadata);
+          } catch (e) {
+            console.error("Error parsing aiAnalysisMetadata:", e);
+          }
+        }
+        
+        // Fallback to database if metadata is not available
+        if (!patientData.name) {
+          const patientsData = await db
+            .select()
+            .from(patients)
+            .where(eq(patients.id, input.patientId))
+            .limit(1);
+          const patient = patientsData[0];
+          if (patient) {
+            patientData = {
+              name: patient.name,
+              email: patient.email,
+              phone: patient.phone,
+              birthDate: patient.birthDate,
+              cpf: patient.cpf,
+              address: patient.address,
+            };
+          }
+        }
 
         const analysisDate = new Date(note.createdAt).toLocaleDateString("pt-BR");
-        const feedback = note.aiTechnicalFeedback?.substring(0, 500) || "";
+        const feedback = note.aiTechnicalFeedback || "";
 
         let result;
 
         if (input.format === "docx") {
           result = await generateClinicalAnalysisDocx({
-            patientName: patient?.name || "Paciente",
+            patientName: patientData.name || "Paciente",
             patientId: input.patientId.toString(),
-            patientEmail: patient?.email || undefined,
-            patientPhone: patient?.phone || undefined,
-            patientBirthDate: patient?.birthDate || undefined,
-            patientCPF: patient?.cpf || undefined,
-            patientAddress: patient?.address || undefined,
+            patientEmail: patientData.email || undefined,
+            patientPhone: patientData.phone || undefined,
+            patientBirthDate: patientData.birthDate || undefined,
+            patientCPF: patientData.cpf || undefined,
+            patientAddress: patientData.address || undefined,
             clinicName: "E-Saúde",
             psychologistName: process.env.OWNER_NAME || "Profissional",
             psychologistCRP: "05/85230",
