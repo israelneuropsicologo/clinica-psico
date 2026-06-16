@@ -33,7 +33,6 @@ import {
   Phone,
   Play,
   Plus,
-  Printer,
   RefreshCw,
   Search,
   Shield,
@@ -57,8 +56,6 @@ import { AnalysisTimeline } from "@/components/AnalysisTimeline";
 import { AnalysisComparison } from "@/components/AnalysisComparison";
 import { ClinicalAnalysisVisual } from "@/components/ClinicalAnalysisVisual";
 import { AnalysisChartsDisplay } from "@/components/AnalysisChartsDisplay";
-import { generateAnalysisPDF, downloadPDF, viewPDFInBrowser, printPDF } from "@/lib/generateAnalysisPDF";
-import { AnalysisPrintPreview } from "@/components/AnalysisPrintPreview";
 import { useSafeDOM } from "@/hooks/useSelectDebounce";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -1414,9 +1411,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
   }));
   const [aiFeedback, setAiFeedback] = useState((note.aiTechnicalFeedback as string) ?? "");
   const [aiFeedbackAt, setAiFeedbackAt] = useState((note.aiTechnicalFeedbackAt as number) ?? null);
-  const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
 
-  const patientName = (patient?.name as string) ?? "Paciente";
   const utils = trpc.useUtils();
   const [saveStatus, setSaveStatus] = React.useState<"idle" | "saving" | "saved" | "error">("idle");
   const autoSaveTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1963,44 +1958,21 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   </CardContent>
                 </Card>
               )}
-              <div className="space-y-4">
-                <div data-charts-container>
+              {aiFeedback && !aiFeedbackMutation.isPending && (
+                <div className="space-y-4">
                   <AnalysisChartsDisplay />
-                </div>
-                {aiFeedback && (
                   <div className="border-t pt-4 mt-4">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Análise Completa</h3>
                     <MarkdownRenderer>{aiFeedback}</MarkdownRenderer>
                   </div>
-                )}
-              </div>
-              {/* PDF Button with Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="gap-2 mt-4"><FileText className="h-4 w-4" />Documento PDF</Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={async () => { if (!aiFeedback) { toast.error('Nenhuma análise disponível'); return; } try { const chartsHTML = document.querySelector('[data-charts-container]')?.innerHTML || ''; const pdf = await generateAnalysisPDF(patientName || 'Paciente', aiFeedback, chartsHTML); const pdfBlob = new Blob([pdf], { type: 'application/pdf' }); const url = URL.createObjectURL(pdfBlob); window.open(url, '_blank'); toast.success('PDF aberto para visualizar'); } catch (error) { console.error('Erro ao gerar PDF:', error); toast.error('Erro ao gerar PDF'); } }} className="gap-2"><FileText className="h-4 w-4" />Visualizar</DropdownMenuItem>
-                  <DropdownMenuItem onClick={async () => { if (!aiFeedback) { toast.error('Nenhuma análise disponível'); return; } try { const chartsHTML = document.querySelector('[data-charts-container]')?.innerHTML || ''; const pdf = await generateAnalysisPDF(patientName || 'Paciente', aiFeedback, chartsHTML); await downloadPDF(pdf, `analise-${new Date().toISOString().split('T')[0]}.pdf`); toast.success('PDF baixado com sucesso!'); } catch (error) { console.error('Erro ao gerar PDF:', error); toast.error('Erro ao baixar PDF'); } }} className="gap-2"><FileDown className="h-4 w-4" />Baixar</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={async () => { if (!aiFeedback) { toast.error('Nenhuma análise disponível'); return; } try { const chartsHTML = document.querySelector('[data-charts-container]')?.innerHTML || ''; const pdf = await generateAnalysisPDF(patientName || 'Paciente', aiFeedback, chartsHTML); const pdfBlob = new Blob([pdf], { type: 'application/pdf' }); const url = URL.createObjectURL(pdfBlob); const printWindow = window.open(url, '_blank'); if (printWindow) { printWindow.onload = () => printWindow.print(); } toast.success('Abrindo para impressão'); } catch (error) { console.error('Erro ao gerar PDF:', error); toast.error('Erro ao imprimir PDF'); } }} className="gap-2"><Printer className="h-4 w-4" />Imprimir</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </div>
+              )}
               {!aiFeedback && !aiFeedbackMutation.isPending && (
                 <Card>
                   <CardContent className="py-10 text-center text-muted-foreground">
                     <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-30" />
                     <p className="text-sm">Nenhuma análise gerada ainda.</p>
                     <p className="text-xs mt-1">Clique em "Solicitar Análise" para gerar o feedback técnico.</p>
-                  </CardContent>
-                </Card>
-              )}
-              {aiFeedbackMutation.isPending && (
-                <Card>
-                  <CardContent className="py-10 text-center text-muted-foreground">
-                    <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
-                    <p className="text-sm">Gerando análise...</p>
-                    <p className="text-xs mt-1">Isso pode levar alguns segundos.</p>
                   </CardContent>
                 </Card>
               )}
