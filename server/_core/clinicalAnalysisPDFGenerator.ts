@@ -27,7 +27,10 @@ interface ClinicalAnalysisData {
 export async function generateClinicalAnalysisPDF(
   data: ClinicalAnalysisData
 ): Promise<Buffer> {
-  const pdfDoc = await PDFDocument.create();
+  try {
+    console.log('[PDF Generator] Iniciando geração de PDF...');
+    const pdfDoc = await PDFDocument.create();
+    console.log('[PDF Generator] PDFDocument criado com sucesso');
 
   // Set up page (A4 size in points)
   let page = pdfDoc.addPage([595, 842]);
@@ -184,6 +187,12 @@ export async function generateClinicalAnalysisPDF(
     }
   );
 
+  console.log('[PDF Generator] Salvando PDF...');
   const pdfBytes = await pdfDoc.save();
+  console.log('[PDF Generator] PDF salvo com sucesso, tamanho:', pdfBytes.length);
   return Buffer.from(pdfBytes);
+  } catch (error) {
+    console.error('[PDF Generator] ERRO:', error);
+    throw error;
+  }
 }

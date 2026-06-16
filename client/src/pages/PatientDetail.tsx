@@ -2025,7 +2025,8 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                               window.open(result.url, '_blank');
                             }
                           } catch (error) {
-                            toast.error('Erro ao gerar documento PDF');
+                            console.error('[Documento PDF] Erro:', error);
+                            toast.error(`Erro ao gerar documento PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
                           }
                         }}>
                           👁️ Visualizar PDF
