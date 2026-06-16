@@ -27,7 +27,6 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminAudit from "./pages/AdminAudit";
 import { AdminEmailAliases } from "./pages/AdminEmailAliases";
 import { VirtualCreditsDashboard } from "./pages/VirtualCreditsDashboard";
-import { ClinicalEffectivenessDashboard } from "./pages/ClinicalEffectivenessDashboard";
 
 // App Router - v1.0.4 (Production Ready - isPaid Webhook Fix)
 function Router() {
@@ -53,7 +52,6 @@ function Router() {
       <Route path="/admin/virtual-credits" component={VirtualCreditsDashboard} />
       <Route path="/pistas" component={Pistas} />
       <Route path="/ai-analytics" component={AIAnalytics} />
-      <Route path="/clinical-effectiveness" component={ClinicalEffectivenessDashboard} />
       <Route path="/invite/:token" component={PatientInvite} />
       <Route path="/internal-login" component={InternalLogin} />
       <Route path="/admin/users" component={AdminUsers} />
