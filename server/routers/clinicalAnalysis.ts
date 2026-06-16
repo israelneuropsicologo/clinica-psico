@@ -294,53 +294,69 @@ export const clinicalAnalysisRouter = router({
           )
           .limit(1);
 
-        const analysisData = {
-          patientName: "Paciente",
-          analysisDate: new Date(note.createdAt),
-          clinicName: "E-Saúde",
-          professionalName: process.env.OWNER_NAME || "Profissional",
-          specialization: "Neuropsicologia",
-          crp: "05/85230",
-          feedback: note.aiTechnicalFeedback?.substring(0, 500) || "",
-          currentState: note.aiCurrentState?.substring(0, 500) || "",
-          interventionTechniques: note.aiInterventionTechniques?.substring(0, 500) || "",
-          plannedInterventions: note.aiPlannedInterventions?.substring(0, 500) || "",
-          homeAssignment: note.aiHomeAssignment?.substring(0, 500) || "",
-          therapyPlans: note.aiTherapyPlans?.substring(0, 500) || "",
-          evaluationProgress: note.aiEvaluationProgress?.substring(0, 500) || "",
-          clinicalInsights: note.aiClinicalInsights?.substring(0, 500) || "",
-          observedResistances: note.aiObservedResistances?.substring(0, 500) || "",
-          recommendations: note.aiRecommendations?.substring(0, 500) || "",
-        };
+        const analysisDate = new Date(note.createdAt).toLocaleDateString("pt-BR");
+        const feedback = note.aiTechnicalFeedback?.substring(0, 500) || "";
 
-        let documentBuffer: Buffer;
-        let filename: string;
-        let mimeType: string;
+        let result;
 
         if (input.format === "docx") {
-          documentBuffer = await generateClinicalAnalysisDocx(analysisData);
-          filename = `analise_clinica_${input.patientId}_${Date.now()}.docx`;
-          mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+          result = await generateClinicalAnalysisDocx({
+            patientName: "Paciente",
+            patientId: input.patientId.toString(),
+            clinicName: "E-Saúde",
+            psychologistName: process.env.OWNER_NAME || "Profissional",
+            psychologistCRP: "05/85230",
+            analysisDate,
+            feedback,
+          });
+          const filename = `analise_clinica_${input.patientId}_${Date.now()}.docx`;
+          return {
+            success: true,
+            url: result.url,
+            key: result.key,
+            filename,
+            format: input.format,
+          } as const;
         } else {
-          documentBuffer = await generateClinicalAnalysisPDF(analysisData);
-          filename = `analise_clinica_${input.patientId}_${Date.now()}.pdf`;
-          mimeType = "application/pdf";
+          const pdfData = {
+            patientName: "Paciente",
+            analysisDate: new Date(note.createdAt),
+            clinicName: "E-Saúde",
+            professionalName: process.env.OWNER_NAME || "Profissional",
+            specialization: "Neuropsicologia",
+            crp: "05/85230",
+            feedback,
+            currentState: note.emotionalState?.substring(0, 500) || "",
+            interventionTechniques: note.techniquesUsed?.substring(0, 500) || "",
+            plannedInterventions: note.plannedInterventions?.substring(0, 500) || "",
+            homeAssignment: note.homework?.substring(0, 500) || "",
+            therapyPlans: note.therapeuticPlan?.substring(0, 500) || "",
+            evaluationProgress: note.goalsProgress?.substring(0, 500) || "",
+            clinicalInsights: note.observedInsights?.substring(0, 500) || "",
+            observedResistances: note.observedResistances?.substring(0, 500) || "",
+            recommendations: note.aiSuggestions?.substring(0, 500) || "",
+          };
+
+          const documentBuffer = await generateClinicalAnalysisPDF(pdfData);
+          const filename = `analise_clinica_${input.patientId}_${Date.now()}.pdf`;
+          const mimeType = "application/pdf";
+
+          const { url, key } = await storagePut(
+            `clinical-analysis/${ctx.user.id}/${filename}`,
+            documentBuffer,
+            mimeType
+          );
+
+          return {
+            success: true,
+            url,
+            key,
+            filename,
+            format: input.format,
+          } as const;
         }
 
-        // Upload to storage
-        const { url, key } = await storagePut(
-          `clinical-analysis/${ctx.user.id}/${filename}`,
-          documentBuffer,
-          mimeType
-        );
 
-        return {
-          success: true,
-          url,
-          key,
-          filename,
-          format: input.format,
-        };
       } catch (error) {
         console.error("Error generating analysis document:", error);
         throw error;
