@@ -1939,14 +1939,14 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                 <Sparkles className="h-4 w-4 text-purple-500" /> Feedback Técnico por IA
               </h4>
               <div className="space-y-2">
-                <div className="p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
-                  <p className="text-xs text-purple-700 dark:text-purple-300 leading-relaxed text-justify">
+                <div className="p-3 bg-transparent border-l-4 border-l-purple-400 dark:border-l-purple-600 rounded-none">
+                  <p className="text-xs text-foreground dark:text-foreground/90 leading-relaxed text-justify">
                     A análise é gerada por Inteligência Artificial e serve como ferramenta de apoio para aprimoramento técnico do prontuário.{" "}
                     <span className="font-semibold">Não substitui o julgamento clínico do profissional.</span>
                   </p>
                 </div>
-                <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                  <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                <div className="p-3 bg-transparent border-l-4 border-l-yellow-400 dark:border-l-yellow-600 rounded-none">
+                  <p className="text-xs text-foreground dark:text-foreground/90">
                     💡 Para maior eficácia da análise, preencha a ampla maioria dos campos do prontuário nas diversas seções antes de solicitar.
                   </p>
                 </div>
@@ -1978,14 +1978,11 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
               {aiFeedback && !aiFeedbackMutation.isPending && (
                 <div className="space-y-4">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resultado da Análise</h3>
-                  <AIAnalysisResult 
-                    content={aiFeedback}
-                    patientHistory={{
-                      previousMood: undefined,
-                      previousSufferingLevel: undefined,
-                      sessionCount: 1,
-                    }}
-                  />
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify">
+                      {aiFeedback}
+                    </div>
+                  </div>
                 </div>
               )}
               {!aiFeedback && !aiFeedbackMutation.isPending && (
