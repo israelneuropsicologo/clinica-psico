@@ -77,13 +77,16 @@ export const anamneseRouter = router({
         .limit(1);
 
       if (existing.length > 0) {
+        console.log("[Anamnese Upsert] Atualizando registro existente");
         await db
           .update(anamnese)
           .set(data as any)
           .where(eq(anamnese.patientId, patientId));
       } else {
+        console.log("[Anamnese Upsert] Criando novo registro");
         await db.insert(anamnese).values({ ...data, patientId, userId: ctx.user.id } as any);
       }
+      console.log("[Anamnese Upsert] Sucesso!");
       return { success: true };
     }),
 

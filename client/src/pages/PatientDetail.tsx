@@ -150,9 +150,9 @@ export default function PatientDetail() {
     onSuccess: () => { toast.success("Transcrição concluída!"); refetchRecordings(); },
     onError: (e) => toast.error(e.message),
   });
-  const supervisionMutation = trpc.supervision.analyzeRecordingSupervision.useMutation({
+  const supervisionMutation = trpc.recordings.generateSupervision.useMutation({
     onSuccess: (data) => {
-      setSupervisionAnalysis(data.analysis);
+      setSupervisionAnalysis(data.supervisionText);
       toast.success("Análise de supervisão concluída!");
     },
     onError: (e) => {
@@ -1114,7 +1114,9 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
   anamneseData: Record<string, unknown> | null | undefined;
   refetch: () => void;
 }) {
+  console.log('[AnamneseTab] Renderizado! editing state will be managed');
   const [editing, setEditing] = useState(false);
+  console.log('[AnamneseTab] editing state:', editing);
   const [form, setForm] = useState(() => ({
     mainComplaintDetail: (anamneseData?.mainComplaintDetail as string) ?? "",
     therapeuticGoals: (anamneseData?.therapeuticGoals as string) ?? "",
@@ -1304,17 +1306,20 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
 
       {editing && (
         <div className="flex justify-end gap-2">
+          {console.log('[AnamneseForm] editing=true, rendering save buttons')}
           <Button variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
           <Button onClick={() => {
-            console.log('Botao Salvar Anamnese clicado!');
-            console.log('Dados do formulario:', form);
-            console.log('Patient ID:', patientId);
+            console.log('✅ Botao Salvar Anamnese clicado!');
+            console.log('📋 Dados do formulario:', form);
+            console.log('👤 Patient ID:', patientId);
+            console.log('🔄 Mutation pending:', upsertMutation.isPending);
             upsertMutation.mutate({ patientId, ...form });
           }} disabled={upsertMutation.isPending}>
             {upsertMutation.isPending ? "Salvando..." : "Salvar Anamnese"}
           </Button>
         </div>
       )}
+      {!editing && console.log('[AnamneseForm] editing=false, NOT rendering save buttons')}
     </div>
   );
 }

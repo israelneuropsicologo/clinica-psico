@@ -27,6 +27,7 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminAudit from "./pages/AdminAudit";
 import { AdminEmailAliases } from "./pages/AdminEmailAliases";
 import { VirtualCreditsDashboard } from "./pages/VirtualCreditsDashboard";
+import { AccountBanner } from "./components/AccountBanner";
 
 // App Router - v1.0.4 (Production Ready - isPaid Webhook Fix)
 function Router() {
@@ -67,6 +68,7 @@ function App() {
       <ThemeProvider defaultTheme="light" switchable>
         <TooltipProvider>
           <Toaster />
+          <AccountBanner />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
