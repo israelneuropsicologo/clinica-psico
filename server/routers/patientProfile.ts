@@ -334,43 +334,79 @@ export const recordingsRouter = router({
   generateTranscriptionPdf: protectedProcedure
     .input(z.object({ recordingId: z.number() }))
     .mutation(async ({ input }) => {
-      const db = await getDb();
-      if (!db) throw new Error('Database not available');
-      
-      const recording = await db.select().from(sessionRecordings).where(eq(sessionRecordings.id, input.recordingId)).limit(1);
-      if (!recording || recording.length === 0) throw new Error('Recording not found');
-      
-      const rec = recording[0];
-      if (!rec.transcription) throw new Error('No transcription available');
-      
-      const PDFKit = require('pdfkit');
-      
-      const doc = new PDFKit();
-      const chunks: Buffer[] = [];
-      
-      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
-      
-      doc.fontSize(16).text('Transcrição da Gravação', { align: 'center' });
-      doc.fontSize(11).text(`Arquivo: ${rec.fileName}`, { align: 'left' });
-      doc.text(`Data: ${new Date(rec.createdAt).toLocaleDateString('pt-BR')}`, { align: 'left' });
-      doc.moveDown();
-      
-      doc.fontSize(11).text(rec.transcription, { align: 'justify' });
-      
-      doc.end();
-      
-      const pdfBuffer = await new Promise<Buffer>((resolve) => {
-        doc.on('finish', () => resolve(Buffer.concat(chunks)));
-      });
-      
-      const { storagePut } = await import('../storage');
-      const { url } = await storagePut(
-        `transcriptions/${rec.id}_${Date.now()}.pdf`,
-        pdfBuffer,
-        'application/pdf'
-      );
-      
-      return { pdfUrl: url };
+      try {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        
+        const recording = await db.select().from(sessionRecordings).where(eq(sessionRecordings.id, input.recordingId)).limit(1);
+        if (!recording || recording.length === 0) throw new Error('Recording not found');
+        
+        const rec = recording[0];
+        if (!rec.transcription) throw new Error('No transcription available');
+        
+        const PDFDocument = require('pdfkit');
+        const doc = new PDFDocument();
+        const chunks: Buffer[] = [];
+        
+        doc.on('data', (chunk: Buffer) => {
+          chunks.push(chunk);
+        });
+        
+        doc.on('error', (err: Error) => {
+          console.error('PDF generation error:', err);
+        });
+        
+        doc.fontSize(16).font('Helvetica-Bold').text('Transcrição da Gravação', { align: 'center' });
+        doc.fontSize(10).font('Helvetica');
+        doc.text(`Arquivo: ${rec.fileName}`);
+        doc.text(`Data: ${new Date(rec.createdAt).toLocaleDateString('pt-BR')}`);
+        if (rec.durationSeconds) doc.text(`Duração: ${rec.durationSeconds}s`);
+        doc.moveDown();
+        
+        doc.fontSize(11).text(rec.transcription || 'Sem transcrição disponível', { align: 'left' });
+        
+        doc.end();
+        
+        const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('PDF generation timeout'));
+          }, 30000);
+          
+          doc.on('finish', () => {
+            clearTimeout(timeout);
+            const buffer = Buffer.concat(chunks);
+            if (buffer.length === 0) {
+              reject(new Error('PDF buffer is empty'));
+            } else {
+              resolve(buffer);
+            }
+          });
+          
+          doc.on('error', (err: Error) => {
+            clearTimeout(timeout);
+            reject(err);
+          });
+        });
+        
+        if (!pdfBuffer || pdfBuffer.length === 0) {
+          throw new Error('Failed to generate PDF buffer');
+        }
+        
+        const { storagePut } = await import('../storage');
+        const { url } = await storagePut(
+          `transcriptions/${rec.id}_${Date.now()}.pdf`,
+          pdfBuffer,
+          'application/pdf'
+        );
+        
+        return { pdfUrl: url };
+      } catch (error) {
+        console.error('generateTranscriptionPdf error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to generate PDF'
+        });
+      }
     }),
 
   generateSupervision: protectedProcedure
