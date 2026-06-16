@@ -282,34 +282,23 @@ export const clinicalAnalysisRouter = router({
           throw new Error("Clinical note not found");
         }
 
-        // Get patient info from aiAnalysisMetadata if available, otherwise from database
+        // Get patient info from database
         let patientData: any = {};
-        if (note.aiAnalysisMetadata) {
-          try {
-            patientData = JSON.parse(note.aiAnalysisMetadata);
-          } catch (e) {
-            console.error("Error parsing aiAnalysisMetadata:", e);
-          }
-        }
-        
-        // Fallback to database if metadata is not available
-        if (!patientData.name) {
-          const patientsData = await db
-            .select()
-            .from(patients)
-            .where(eq(patients.id, input.patientId))
-            .limit(1);
-          const patient = patientsData[0];
-          if (patient) {
-            patientData = {
-              name: patient.name,
-              email: patient.email,
-              phone: patient.phone,
-              birthDate: patient.birthDate,
-              cpf: patient.cpf,
-              address: patient.address,
-            };
-          }
+        const patientsData = await db
+          .select()
+          .from(patients)
+          .where(eq(patients.id, input.patientId))
+          .limit(1);
+        const patient = patientsData[0];
+        if (patient) {
+          patientData = {
+            name: patient.name,
+            email: patient.email,
+            phone: patient.phone,
+            birthDate: patient.birthDate,
+            cpf: patient.cpf,
+            address: patient.address,
+          };
         }
 
         const analysisDate = new Date(note.createdAt).toLocaleDateString("pt-BR");
@@ -384,8 +373,6 @@ export const clinicalAnalysisRouter = router({
             format: input.format,
           } as const;
         }
-
-
       } catch (error) {
         console.error("Error generating analysis document:", error);
         throw error;
