@@ -60,7 +60,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { getDb } from "./db";
 import { reportsRouter } from "./routers/reports";
-import { settingsRouter } from "./routers/settings";
+// import { settingsRouter } from "./routers/settings"; // Removido: arquivo deletado
 import { systemRouter } from "./routers/system";
 import { financialRouter } from "./routers/financial";
 import { webhooksRouter } from "./routers/webhooks";
@@ -71,11 +71,11 @@ import { pistasRouter } from "./routers/pistas";
 import { aiAnalyticsRouter } from "./routers/aiAnalytics";
 import { auditRouter } from "./routers/audit";
 import { aiIntegrationRouter } from "./routers/aiIntegration";
-import { adminRouter } from "./routers/admin";
+// import { adminRouter } from "./routers/admin"; // Removido: tabelas faltando
 import { invitationsRouter } from "./routers/invitations";
 import { internalAuthRouter } from "./routers/internalAuth";
 import { internalUsersRouter } from "./routers/internalUsers";
-import { rolesRouter } from "./routers/roles";
+// import { rolesRouter } from "./routers/roles"; // Removido: arquivo deletado
 import { patientSharingRouter } from "./routers/patient-sharing";
 import { emailAliasesRouter } from "./routers/email-aliases";
 import { autonomousAgentsRouter } from "./routers/autonomous-agents";
@@ -1115,7 +1115,7 @@ const userSyncRouter = router({
 // ─── App Router ──────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
-  settings: settingsRouter,
+  // settings: settingsRouter, // Removido: arquivo deletado
   reports: reportsRouter,
   webhooks: webhooksRouter,
   websiteAppointments: websiteAppointmentsRouter,
@@ -1142,11 +1142,11 @@ export const appRouter = router({
   pistas: pistasRouter,
   aiAnalytics: aiAnalyticsRouter,
   aiIntegration: aiIntegrationRouter,
-  admin: adminRouter,
+  // admin: adminRouter, // Removido: tabelas faltando
   invitations: invitationsRouter,
   internalAuth: internalAuthRouter,
   internalUsers: internalUsersRouter,
-  roles: rolesRouter,
+  // roles: rolesRouter, // Removido: arquivo deletado
   patientSharing: patientSharingRouter,
   emailAliases: emailAliasesRouter,
   autonomousAgents: autonomousAgentsRouter,
@@ -1195,58 +1195,7 @@ export const appRouter = router({
         return createCalendarEvent(accessToken, eventData, calendarId);
       }),
   }),
-  
-  // ─── Analysis History (Histórico de Análises) ────────────────────────────
-  analysisHistory: router({
-    save: protectedProcedure
-      .input(z.object({
-        patientId: z.number(),
-        content: z.string(),
-        analysisType: z.enum(["global", "session", "evolution"]).default("global"),
-        summary: z.string().optional(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const { saveAnalysisHistory } = await import("./db");
-        return saveAnalysisHistory(
-          input.patientId,
-          ctx.user.id,
-          input.content,
-          input.analysisType,
-          input.summary
-        );
-      }),
-    
-    getHistory: protectedProcedure
-      .input(z.object({
-        patientId: z.number(),
-        analysisType: z.enum(["global", "session", "evolution"]).optional(),
-        limit: z.number().default(50),
-      }))
-      .query(async ({ ctx, input }) => {
-        const { getAnalysisHistory } = await import("./db");
-        return getAnalysisHistory(
-          input.patientId,
-          ctx.user.id,
-          { analysisType: input.analysisType, limit: input.limit }
-        );
-      }),
-    
-    getByDateRange: protectedProcedure
-      .input(z.object({
-        patientId: z.number(),
-        startDate: z.date(),
-        endDate: z.date(),
-      }))
-      .query(async ({ ctx, input }) => {
-        const { getAnalysisHistoryBetweenDates } = await import("./db");
-        return getAnalysisHistoryBetweenDates(
-          input.patientId,
-          ctx.user.id,
-          input.startDate,
-          input.endDate
-        );
-      }),
-  }),
+  // analysisHistory router removido - tabelas faltando
 });
 
 export type AppRouter = typeof appRouter;
