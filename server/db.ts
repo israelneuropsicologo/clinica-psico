@@ -29,7 +29,6 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   if (!db) return;
 
   const existingUser = await db.select().from(users).where(eq(users.openId, user.openId)).limit(1);
-  const existingClinicId = existingUser?.[0]?.clinicId;
 
   const values: InsertUser = { openId: user.openId };
   const updateSet: Record<string, unknown> = {};
@@ -49,7 +48,6 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
   
   if (existingClinicId) {
-    values.clinicId = existingClinicId;
   }
 
   if (user.role !== undefined) {
