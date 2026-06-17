@@ -4,10 +4,10 @@
  * This ensures the chatbot can always send appointment data without manual token generation
  */
 
-import { createApiToken, validateApiToken } from "./db-webhooks";
+// import { createApiToken, validateApiToken } from "./db-webhooks"; // Removido
 import { getDb } from "./db";
-import { apiTokens } from "../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+// import { apiTokens } from "../drizzle/schema"; // Removido
+// import { eq, and } from "drizzle-orm"; // Removido
 
 const CHATBOT_TOKEN_NAME = "ChatBot Amanda - Permanent";
 const CHATBOT_TOKEN_DESCRIPTION = "Token permanente para integração do ChatBot Amanda com agendamentos diretos. Não expirar.";

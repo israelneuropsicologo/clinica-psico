@@ -66,7 +66,7 @@ import { webhooksRouter } from "./routers/webhooks";
 import { websiteAppointmentsRouter } from "./routers/website-appointments";
 import { anamneseRouter, recordingsRouter, timelineRouter } from "./routers/patientProfile";
 import { managementReportsRouter } from "./routers/managementReports";
-import { pistasRouter } from "./routers/pistas";
+// import { pistasRouter } from "./routers/pistas"; // Removido
 import { aiAnalyticsRouter } from "./routers/aiAnalytics";
 import { auditRouter } from "./routers/audit";
 import { aiIntegrationRouter } from "./routers/aiIntegration";
@@ -1137,7 +1137,7 @@ export const appRouter = router({
   timeline: timelineRouter,
   managementReports: managementReportsRouter,
   userSync: userSyncRouter,
-  pistas: pistasRouter,
+  // pistas: pistasRouter, // Removido
   aiAnalytics: aiAnalyticsRouter,
   aiIntegration: aiIntegrationRouter,
   // admin: adminRouter, // Removido: tabelas faltando

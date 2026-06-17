@@ -3,11 +3,6 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import {
   anamnese,
-  sessionRecordings,
-  timelineAnalyses,
-  clinicalNotes,
-  sessions,
-  patients,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { protectedProcedure, router } from "../_core/trpc";
@@ -100,7 +95,6 @@ export const anamneseRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-      const patient = await db.select().from(patients).where(eq(patients.id, input.patientId)).limit(1);
       if (!patient.length) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
       const patientData = patient[0];
@@ -185,9 +179,6 @@ export const recordingsRouter = router({
       // Retornar TODAS as gravacoes do paciente
       return db
         .select()
-        .from(sessionRecordings)
-        .where(eq(sessionRecordings.patientId, input.patientId))
-        .orderBy(desc(sessionRecordings.createdAt));
     }),
 
   upload: protectedProcedure
@@ -245,7 +236,6 @@ export const recordingsRouter = router({
       }
 
       const result = await db
-        .insert(sessionRecordings)
         .values({
           patientId: input.patientId,
           sessionId: input.sessionId || null,
@@ -262,8 +252,6 @@ export const recordingsRouter = router({
       // Buscar o registro criado para obter o ID
       const recording = await db
         .select()
-        .from(sessionRecordings)
-        .where(eq(sessionRecordings.fileKey, fileKey))
         .limit(1);
 
       return { id: recording[0]?.id || 0, patientId: input.patientId, fileName: input.fileName, fileUrl: audioUrl };
@@ -276,8 +264,6 @@ export const recordingsRouter = router({
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
       await db
-        .delete(sessionRecordings)
-        .where(eq(sessionRecordings.id, input.id));
 
       return { success: true };
     }),
@@ -289,8 +275,6 @@ export const recordingsRouter = router({
 
       const recording = await db
         .select()
-        .from(sessionRecordings)
-        .where(eq(sessionRecordings.id, input.recordingId))
         .limit(1);
 
       if (!recording || recording.length === 0) {
@@ -324,12 +308,10 @@ export const recordingsRouter = router({
 
       // Atualizar o registro com a transcrição
       await db
-        .update(sessionRecordings)
         .set({
           transcription: transcriptionText,
           transcriptionStatus: transcriptionStatus,
         })
-        .where(eq(sessionRecordings.id, input.recordingId));
 
       return {
         success: true,
@@ -345,7 +327,6 @@ export const recordingsRouter = router({
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         
-        const recording = await db.select().from(sessionRecordings).where(eq(sessionRecordings.id, input.recordingId)).limit(1);
         if (!recording || recording.length === 0) throw new Error('Recording not found');
         
         const rec = recording[0];
@@ -480,15 +461,10 @@ export const recordingsRouter = router({
       // Buscar a transcrição mais recente do paciente com status "done"
       const latestRecording = await db
         .select()
-        .from(sessionRecordings)
         .where(
           and(
-            eq(sessionRecordings.patientId, input.patientId),
-            eq(sessionRecordings.userId, ctx.user.id),
-            eq(sessionRecordings.transcriptionStatus, "done")
           )
         )
-        .orderBy(desc(sessionRecordings.createdAt))
         .limit(1);
 
       if (!latestRecording || latestRecording.length === 0) {
@@ -503,8 +479,6 @@ export const recordingsRouter = router({
       // Buscar dados do paciente para contexto
       const [patient] = await db
         .select()
-        .from(patients)
-        .where(eq(patients.id, input.patientId))
         .limit(1);
 
       // Gerar supervisão com IA baseada na transcrição
@@ -538,9 +512,7 @@ Seja conciso, prático e orientado para o desenvolvimento profissional.`,
 
       // Salvar supervisão no registro de gravação
       await db
-        .update(sessionRecordings)
         .set({ supervision: String(supervisionText) })
-        .where(eq(sessionRecordings.id, recording.id));
 
       return {
         supervisionText: String(supervisionText),
@@ -560,9 +532,6 @@ export const timelineRouter = router({
       if (!db) return [];
       return db
         .select()
-        .from(timelineAnalyses)
-        .where(eq(timelineAnalyses.patientId, input.patientId))
-        .orderBy(desc(timelineAnalyses.createdAt));
     }),
 
 });

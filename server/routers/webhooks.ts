@@ -8,7 +8,6 @@ import {
   checkCustomerExists,
   validateApiToken,
   getPatientByExternalId,
-} from "../db-webhooks";
 import { createPatient, updatePatient, createSession, createTransaction, getDb, checkDuplicateSession } from "../db";
 import { sessions, patients } from "../../drizzle/schema";
 import { notifyOwner } from "../_core/notification";
