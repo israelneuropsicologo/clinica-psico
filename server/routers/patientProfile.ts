@@ -3,7 +3,6 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import {
   anamnese,
-  anamneseBackup,
   sessionRecordings,
   timelineAnalyses,
   clinicalNotes,
@@ -17,17 +16,18 @@ import { storagePut, storageGetSignedUrl } from "../storage";
 import { transcribeAudio } from "../_core/voiceTranscription";
 
 // ─── Anamnese Router ────────────────────────────────────────────────────────
+// ✅ Versão 2.0: Corrigido erro de anamnese_backup - Sistema isolado e funcional
 export const anamneseRouter = router({
   get: protectedProcedure
     .input(z.object({ patientId: z.number() }))
     .query(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) return null;
-      // Ler da tabela BACKUP
+      // Ler da tabela anamnese
       const result = await db
         .select()
-        .from(anamneseBackup)
-        .where(eq(anamneseBackup.patientId, input.patientId))
+        .from(anamnese)
+        .where(eq(anamnese.patientId, input.patientId))
         .limit(1);
       return result[0] ?? null;
     }),
@@ -73,22 +73,22 @@ export const anamneseRouter = router({
       console.log("[Anamnese Upsert] patientId:", patientId, "dataKeys:", Object.keys(data).length);
       console.log("[Anamnese Upsert] data:", JSON.stringify(data, null, 2));
 
-      // Salvar na tabela BACKUP com longtext para suportar textos grandes
+      // Salvar na tabela anamnese com longtext para suportar textos grandes
       const existing = await db
-        .select({ id: anamneseBackup.id })
-        .from(anamneseBackup)
-        .where(eq(anamneseBackup.patientId, patientId))
+        .select({ id: anamnese.id })
+        .from(anamnese)
+        .where(eq(anamnese.patientId, patientId))
         .limit(1);
 
       if (existing.length > 0) {
-        console.log("[Anamnese Upsert] Atualizando registro existente na tabela BACKUP");
+        console.log("[Anamnese Upsert] Atualizando registro existente na tabela anamnese");
         await db
-          .update(anamneseBackup)
+          .update(anamnese)
           .set(data as any)
-          .where(eq(anamneseBackup.patientId, patientId));
+          .where(eq(anamnese.patientId, patientId));
       } else {
-        console.log("[Anamnese Upsert] Criando novo registro na tabela BACKUP");
-        await db.insert(anamneseBackup).values({ ...data, patientId, userId: ctx.user.id } as any);
+        console.log("[Anamnese Upsert] Criando novo registro na tabela anamnese");
+        await db.insert(anamnese).values({ ...data, patientId, userId: ctx.user.id } as any);
       }
       console.log("[Anamnese Upsert] Sucesso!");
       return { success: true };

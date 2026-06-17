@@ -50,7 +50,6 @@ function Router() {
       <Route path="/admin/reports" component={AdminReports} />
       <Route path="/admin/audit" component={AdminAudit} />
       <Route path="/admin/email-aliases" component={AdminEmailAliases} />
-      <Route path="/admin/virtual-credits" component={VirtualCreditsDashboard} />
       <Route path="/pistas" component={Pistas} />
       <Route path="/ai-analytics" component={AIAnalytics} />
       <Route path="/invite/:token" component={PatientInvite} />

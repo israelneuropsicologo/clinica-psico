@@ -80,7 +80,6 @@ import { patientSharingRouter } from "./routers/patient-sharing";
 import { emailAliasesRouter } from "./routers/email-aliases";
 import { autonomousAgentsRouter } from "./routers/autonomous-agents";
 import { supervisionRouter } from "./routers/supervision";
-import { virtualCreditsRouter } from "./routers/virtual-credits";
 import { agentCommunicationRouter } from "./routers/agent-communication";
 import { clinicalAnalysisRouter } from "./routers/clinicalAnalysis";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
@@ -610,8 +609,8 @@ Responda em português brasileiro profissional.`,
       if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
       // Buscar anamnese do paciente
-      const { anamneseBackup, clinicalNotes: cnTable, sessions: sessionsTable } = await import("../drizzle/schema");
-      const [anamneseData] = await db.select().from(anamneseBackup).where(eq(anamneseBackup.patientId, input.patientId)).limit(1);
+      const { anamnese: anamneseTable, clinicalNotes: cnTable, sessions: sessionsTable } = await import("../drizzle/schema");
+      const [anamneseData] = await db.select().from(anamneseTable).where(eq(anamneseTable.patientId, input.patientId)).limit(1);
 
       // Buscar sessões anteriores com prontuários
       const previousNotes = await db
@@ -1151,7 +1150,6 @@ export const appRouter = router({
   patientSharing: patientSharingRouter,
   emailAliases: emailAliasesRouter,
   autonomousAgents: autonomousAgentsRouter,
-  virtualCredits: virtualCreditsRouter,
   agentCommunication: agentCommunicationRouter,
   audit: auditRouter,
   supervision: supervisionRouter,
