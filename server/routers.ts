@@ -62,7 +62,6 @@ import { getDb } from "./db";
 // import { reportsRouter } from "./routers/reports"; // Removido
 // import { settingsRouter } from "./routers/settings"; // Removido: arquivo deletado
 import { systemRouter } from "./routers/system";
-import { financialRouter } from "./routers/financial";
 import { webhooksRouter } from "./routers/webhooks";
 import { websiteAppointmentsRouter } from "./routers/website-appointments";
 import { anamneseRouter, recordingsRouter, timelineRouter } from "./routers/patientProfile";
@@ -1132,7 +1131,6 @@ export const appRouter = router({
   sessions: sessionsRouter,
   clinicalNotes: clinicalNotesRouter,
   transactions: transactionsRouter,
-  financial: financialRouter,
   documents: documentsRouter,
   anamnese: anamneseRouter,
   recordings: recordingsRouter,
