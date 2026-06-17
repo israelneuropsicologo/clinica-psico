@@ -42,11 +42,9 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     updateSet[field] = normalized;
   }
 
-  if (user.lastSignedIn !== undefined) {
+    if (user.lastSignedIn !== undefined) {
     values.lastSignedIn = user.lastSignedIn;
     updateSet.lastSignedIn = user.lastSignedIn;
-  }
-  
   }
 
   if (user.role !== undefined) {
