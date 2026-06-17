@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { router, protectedProcedure, adminProcedure } from "../_core/trpc";
 import { z } from "zod";
-import { triggerManualBackup, listBackupsFromGoogleDrive, restoreBackupFromGoogleDrive, extractAndImportBackup } from "../_core/backupService";
+// import { triggerManualBackup, listBackupsFromGoogleDrive, restoreBackupFromGoogleDrive, extractAndImportBackup } from "../_core/backupService"; // Removido
 import { notifyOwner } from "../_core/notification";
 
 export const systemRouter = router({

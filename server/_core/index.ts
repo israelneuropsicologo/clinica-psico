@@ -7,7 +7,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { startBackupScheduler } from "./backupScheduler";
+// import { startBackupScheduler } from "./backupScheduler"; // Removido
 import { initializeESaudeAgent, handleESaudeWebhook, getAgentStatus } from "../esaude-agent";
 import { initChatbotToken, getChatbotToken } from "../init-chatbot-token";
 import { registerAgentEndpoints } from "../agents-endpoints";
@@ -95,9 +95,7 @@ async function startServer() {
   
   // ALL background tasks AFTER server is listening
   // This ensures server responds to health check immediately
-  setImmediate(() => {
-    startBackupScheduler();
-  });
+  // startBackupScheduler removed - backup service not available
   
   setImmediate(() => {
     initChatbotToken().catch((err: any) => console.error("[ChatBot] Erro ao inicializar token:", err));

@@ -53,13 +53,13 @@ import {
   updateTransaction,
 } from "./db";
 import { invokeLLM } from "./_core/llm";
-import { generatePatientReport, generateFinancialReport, type ReportFilters } from "./_core/reportGenerator";
+// import { generatePatientReport, generateFinancialReport, type ReportFilters } from "./_core/reportGenerator"; // Removido
 import { notifyOwner } from "./_core/notification";
 import { storagePut } from "./storage";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { getDb } from "./db";
-import { reportsRouter } from "./routers/reports";
+// import { reportsRouter } from "./routers/reports"; // Removido
 // import { settingsRouter } from "./routers/settings"; // Removido: arquivo deletado
 import { systemRouter } from "./routers/system";
 import { financialRouter } from "./routers/financial";
@@ -1116,7 +1116,7 @@ const userSyncRouter = router({
 export const appRouter = router({
   system: systemRouter,
   // settings: settingsRouter, // Removido: arquivo deletado
-  reports: reportsRouter,
+  // reports: reportsRouter, // Removido
   webhooks: webhooksRouter,
   websiteAppointments: websiteAppointmentsRouter,
   auth: router({
