@@ -28,21 +28,15 @@ export function registerOAuthRoutes(app: Express) {
         return;
       }
 
-      // Consolidar para conta oficial se necessário
-      const officialOpenId = await db.consolidateToOfficialAccount(
-        userInfo.email,
-        userInfo.openId
-      );
-
       await db.upsertUser({
-        openId: officialOpenId,
+        openId: userInfo.openId,
         name: userInfo.name || null,
         email: userInfo.email ?? null,
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
         lastSignedIn: new Date(),
       });
 
-      const sessionToken = await sdk.createSessionToken(officialOpenId, {
+      const sessionToken = await sdk.createSessionToken(userInfo.openId, {
         name: userInfo.name || "",
         expiresInMs: ONE_YEAR_MS,
       });
