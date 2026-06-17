@@ -8,7 +8,6 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 // import { startBackupScheduler } from "./backupScheduler"; // Removido
-import { initializeESaudeAgent, handleESaudeWebhook, getAgentStatus } from "../esaude-agent";
 import { registerAgentEndpoints } from "../agents-endpoints";
 import { sendHandshakeToAmanda, checkAmandaHealth } from "../amanda-communication";
 
@@ -25,19 +24,14 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   
-  // E-SAÚDE Integration (non-blocking)
   // Initialize in background, don't block startup
   setImmediate(() => {
     try {
-      initializeESaudeAgent();
     } catch (err: any) {
       console.error("[E-SAUDE] Init error:", err);
     }
   });
   
-  app.post("/api/esaude/webhook", handleESaudeWebhook);
-  app.get("/api/esaude/status", async (req, res) => {
-    const status = await getAgentStatus();
     res.json(status);
   });
   
