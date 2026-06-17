@@ -6,7 +6,6 @@
  */
 
 import { getDb } from "./db";
-import { syncLogs, sessions, patients, apiTokens } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { notifyOwner } from "./_core/notification";
 
@@ -113,8 +112,6 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
     // Buscar agendamento
     const [appointment] = await db
       .select()
-      .from(sessions)
-      .where(eq(sessions.id, appointmentId))
       .limit(1);
 
     if (!appointment) {
@@ -124,8 +121,6 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
     // Buscar dados do paciente
     const [patient] = await db
       .select()
-      .from(patients)
-      .where(eq(patients.id, appointment.patientId))
       .limit(1);
 
     if (!patient) {
@@ -149,21 +144,17 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
       // Buscar sync log para verificar se já foi notificado
       const [existingLog] = await db
         .select()
-        .from(syncLogs)
-        .where(eq(syncLogs.appointmentId, appointmentId))
         .limit(1);
       
       // Marcar como rejeitado permanentemente (não tentar novamente)
       // Truncar erro para caber na coluna do banco (max 500 caracteres)
       const truncatedError = (validation.error || "Dados inválidos").substring(0, 500);
       await db
-        .update(syncLogs)
         .set({
           status: "failed",
           errorMessage: truncatedError,
           retryCount: 999, // Marcar como esgotado para não tentar novamente
         })
-        .where(eq(syncLogs.appointmentId, appointmentId));
       
       // Notificar admin sobre dados incompletos
       if (!existingLog) {
@@ -179,10 +170,7 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
     // Buscar token de API válido
     const apiTokenRecord = await db
       .select()
-      .from(apiTokens)
       .where(and(
-        eq(apiTokens.userId, appointment.userId),
-        eq(apiTokens.isActive, 1)
       ))
       .limit(1);
 
@@ -220,19 +208,15 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
       // Atualizar session com esaudeId (salvar em notes)
     const esaudeId = response.id || response.esaudeId || `appt_${appointmentId}_${Date.now()}`;
     await db
-      .update(sessions)
       .set({ notes: `esaudeId: ${esaudeId}\nSincronizado com E-SAÚDE` })
-      .where(eq(sessions.id, appointmentId));
 
     // Registrar sucesso
     await db
-      .update(syncLogs)
       .set({
         status: "success",
         esaudeId,
         errorMessage: null,
       })
-      .where(eq(syncLogs.appointmentId, appointmentId));
 
     console.log(`[Success] Agendamento ${appointmentId} sincronizado com E-SAÚDE (${esaudeId})`);
     agentStatus.successCount++;
@@ -245,8 +229,6 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
     if (dbForError) {
       const logsForError = await dbForError
         .select()
-        .from(syncLogs)
-        .where(eq(syncLogs.appointmentId, appointmentId))
         .limit(1);
 
       const log = logsForError?.[0];
@@ -257,13 +239,11 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
 
       if (newRetryCount >= MAX_RETRIES) {
         await dbForError
-          .update(syncLogs)
           .set({
             status: "failed",
             errorMessage: truncatedError,
             retryCount: newRetryCount,
           })
-          .where(eq(syncLogs.appointmentId, appointmentId));
 
         // Notificar admin após muitas tentativas
         await notifyOwner({
@@ -274,13 +254,11 @@ export async function syncSiteToESaude(appointmentId: number): Promise<boolean> 
         agentStatus.failureCount++;
       } else {
         await dbForError
-          .update(syncLogs)
           .set({
             status: "retry",
             errorMessage: truncatedError,
             retryCount: newRetryCount,
           })
-          .where(eq(syncLogs.appointmentId, appointmentId));
       }
     }
 
@@ -307,7 +285,6 @@ async function processESaudeWebhook(payload: WebhookPayload): Promise<boolean> {
     // Buscar agendamento local pelo esaudeId
     let [localAppointment] = await db
       .select()
-      .from(sessions)
       .where(sql`notes LIKE ${"% " + appointment.id + "%"}`) 
       .limit(1);
 
@@ -320,14 +297,11 @@ async function processESaudeWebhook(payload: WebhookPayload): Promise<boolean> {
       // Buscar ou criar paciente
       const existingPatients = await db
         .select()
-        .from(patients)
-        .where(eq(patients.email, appointment.customer_email))
         .limit(1);
       
       let patientId = existingPatients?.[0]?.id;
       if (!patientId) {
         const patientResult = await db
-          .insert(patients)
           .values({
             name: appointment.customer_name,
             email: appointment.customer_email,
@@ -341,7 +315,6 @@ async function processESaudeWebhook(payload: WebhookPayload): Promise<boolean> {
       // Criar agendamento
       const appointmentDateTime = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
       const sessionResult = await db
-        .insert(sessions)
         .values({
           patientId,
           userId: 1,
@@ -366,15 +339,12 @@ async function processESaudeWebhook(payload: WebhookPayload): Promise<boolean> {
 
     // Atualizar agendamento
     await db
-      .update(sessions)
       .set({
         status: newStatus as any,
         notes: `esaudeId: ${appointment.id}\nOrigem: Chatbot Amanda`,
       })
-      .where(eq(sessions.id, localAppointment.id));
 
     // Registrar sincronização
-    await db.insert(syncLogs).values({
       appointmentId: localAppointment.id,
       direction: "esaude_to_site",
       status: "success",
@@ -405,8 +375,6 @@ async function syncPendingAppointments(): Promise<void> {
     // Buscar agendamentos pendentes
     const pendingLogs = await db
       .select()
-      .from(syncLogs)
-      .where(eq(syncLogs.status, "pending"))
       .limit(10);
 
     agentStatus.pendingCount = pendingLogs.length || 0;
@@ -499,8 +467,6 @@ export async function getAgentStatus(): Promise<AgentStatus> {
   try {
     const pendingLogs = await db
       .select()
-      .from(syncLogs)
-      .where(eq(syncLogs.status, "pending"));
 
     agentStatus.pendingCount = pendingLogs.length || 0;
   } catch (error) {
