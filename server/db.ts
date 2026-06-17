@@ -108,6 +108,54 @@ export async function getUserById(id: string | number) {
   return result[0] ?? null;
 }
 
+export async function getUserByOpenId(openId: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function upsertUser(data: Partial<InsertUser> & { openId: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const existing = await getUserByOpenId(data.openId);
+  
+  if (existing) {
+    // Update existing user
+    const updateData: Partial<InsertUser> = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.loginMethod !== undefined) updateData.loginMethod = data.loginMethod;
+    if (data.lastSignedIn !== undefined) updateData.lastSignedIn = data.lastSignedIn;
+    
+    if (Object.keys(updateData).length > 0) {
+      await db.update(users).set(updateData).where(eq(users.openId, data.openId));
+    }
+  } else {
+    // Create new user
+    await db.insert(users).values({
+      openId: data.openId,
+      name: data.name || null,
+      email: data.email || null,
+      loginMethod: data.loginMethod || null,
+      role: 'user',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: data.lastSignedIn || new Date(),
+    });
+  }
+}
+
+export async function consolidateToOfficialAccount(
+  email: string | undefined,
+  openId: string
+): Promise<string> {
+  // For now, just return the openId as-is
+  // In a multi-account scenario, this would consolidate duplicate accounts
+  return openId;
+}
+
 // ─── Anamnese ──────────────────────────────────────────────────────────────
 export async function getAnamneseByPatientId(patientId: number) {
   const db = await getDb();
