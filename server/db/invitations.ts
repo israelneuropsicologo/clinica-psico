@@ -1,5 +1,4 @@
 import { getDb } from "../db";
-import { patientInvitations, patients } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { randomBytes } from "crypto";
 
@@ -28,7 +27,6 @@ export async function createInvitation(
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(patientInvitations).values({
     patientId,
     userId,
     token,
@@ -53,8 +51,6 @@ export async function validateInvitationToken(token: string) {
 
   const invitation = await db
     .select()
-    .from(patientInvitations)
-    .where(eq(patientInvitations.token, token))
     .limit(1);
 
   if (!invitation || invitation.length === 0) {
@@ -72,9 +68,7 @@ export async function validateInvitationToken(token: string) {
   if (new Date() > inv.expiresAt) {
     // Marcar como expirado
     await db
-      .update(patientInvitations)
       .set({ status: "expired" })
-      .where(eq(patientInvitations.id, inv.id));
 
     return { valid: false, error: "Este convite expirou" };
   }
@@ -98,8 +92,6 @@ export async function getPatientByInvitationToken(token: string) {
 
   const patient = await db
     .select()
-    .from(patients)
-    .where(eq(patients.id, validation.invitation!.patientId))
     .limit(1);
 
   if (!patient || patient.length === 0) {
@@ -131,22 +123,18 @@ export async function updatePatientFromInvitation(
 
   // Atualizar paciente
   await db
-    .update(patients)
     .set({
       ...data,
       updatedAt: new Date(),
     })
-    .where(eq(patients.id, patientId));
 
   // Marcar convite como completado
   await db
-    .update(patientInvitations)
     .set({
       status: "completed",
       completedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(patientInvitations.token, token));
 
   return { success: true, patientId };
 }
@@ -161,18 +149,7 @@ export async function listInvitationsByUser(userId: number) {
 
   return await db
     .select({
-      id: patientInvitations.id,
-      token: patientInvitations.token,
-      status: patientInvitations.status,
-      expiresAt: patientInvitations.expiresAt,
-      completedAt: patientInvitations.completedAt,
-      createdAt: patientInvitations.createdAt,
-      patientName: patients.name,
-      patientEmail: patients.email,
     })
-    .from(patientInvitations)
-    .innerJoin(patients, eq(patientInvitations.patientId, patients.id))
-    .where(eq(patientInvitations.userId, userId));
 }
 
 /**
@@ -185,8 +162,6 @@ export async function getInvitationById(invitationId: number) {
 
   const result = await db
     .select()
-    .from(patientInvitations)
-    .where(eq(patientInvitations.id, invitationId))
     .limit(1);
 
   return result[0] || null;
@@ -201,12 +176,10 @@ export async function revokeInvitation(invitationId: number) {
   if (!db) throw new Error("Database not available");
 
   await db
-    .update(patientInvitations)
     .set({
       status: "expired",
       updatedAt: new Date(),
     })
-    .where(eq(patientInvitations.id, invitationId));
 
   return { success: true };
 }
