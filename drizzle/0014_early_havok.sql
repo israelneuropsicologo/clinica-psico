@@ -1,0 +1,1 @@
+ALTER TABLE `sessions` ADD `source` enum('website','manual') DEFAULT 'manual' NOT NULL;

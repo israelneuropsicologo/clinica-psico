@@ -1,0 +1,94 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'clinical_notes' AND ORDINAL_POSITION > 20 ORDER BY ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'clinical_notes' AND ORDINAL_POSITION > 20 ORDER BY ORDINAL_POSITION;",
+  "rows": [
+    {
+      "COLUMN_NAME": "sufferingLevel"
+    },
+    {
+      "COLUMN_NAME": "currentMedications"
+    },
+    {
+      "COLUMN_NAME": "generalPresentation"
+    },
+    {
+      "COLUMN_NAME": "mainDemand"
+    },
+    {
+      "COLUMN_NAME": "topicsAddressed"
+    },
+    {
+      "COLUMN_NAME": "relevantNarrative"
+    },
+    {
+      "COLUMN_NAME": "clinicalAssessment"
+    },
+    {
+      "COLUMN_NAME": "technicalAnalysis"
+    },
+    {
+      "COLUMN_NAME": "techniquesUsed"
+    },
+    {
+      "COLUMN_NAME": "plannedInterventions"
+    },
+    {
+      "COLUMN_NAME": "therapeuticPlan"
+    },
+    {
+      "COLUMN_NAME": "treatmentResponse"
+    },
+    {
+      "COLUMN_NAME": "goalsProgress"
+    },
+    {
+      "COLUMN_NAME": "observedInsights"
+    },
+    {
+      "COLUMN_NAME": "observedResistances"
+    },
+    {
+      "COLUMN_NAME": "nextSessionDate"
+    },
+    {
+      "COLUMN_NAME": "nextSessionGoals"
+    },
+    {
+      "COLUMN_NAME": "treatmentPlanAdjustments"
+    },
+    {
+      "COLUMN_NAME": "selfHarmRisk"
+    },
+    {
+      "COLUMN_NAME": "thirdPartyRisk"
+    },
+    {
+      "COLUMN_NAME": "suicideRisk"
+    },
+    {
+      "COLUMN_NAME": "countertransference"
+    },
+    {
+      "COLUMN_NAME": "clinicalHypotheses"
+    },
+    {
+      "COLUMN_NAME": "supervisionNotes"
+    },
+    {
+      "COLUMN_NAME": "referrals"
+    },
+    {
+      "COLUMN_NAME": "privateObservations"
+    },
+    {
+      "COLUMN_NAME": "aiTechnicalFeedback"
+    },
+    {
+      "COLUMN_NAME": "aiTechnicalFeedbackAt"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nsufferingLevel\ncurrentMedications\ngeneralPresentation\nmainDemand\ntopicsAddressed\nrelevantNarrative\nclinicalAssessment\ntechnicalAnalysis\ntechniquesUsed\nplannedInterventions\ntherapeuticPlan\ntreatmentResponse\ngoalsProgress\nobservedInsights\nobservedResistances\nnextSessionDate\nnextSessionGoals\ntreatmentPlanAdjustments\nselfHarmRisk\nthirdPartyRisk\nsuicideRisk\ncountertransference\nclinicalHypotheses\nsupervisionNotes\nreferrals\nprivateObservations\naiTechnicalFeedback\naiTechnicalFeedbackAt\n",
+  "stderr": "",
+  "execution_time_ms": 557
+}
