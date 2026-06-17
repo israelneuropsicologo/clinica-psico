@@ -1100,9 +1100,13 @@ const AnamneseField = React.memo(function AnamneseField({
           ? <Input value={value} onChange={onChange} />
           : <Textarea value={value} onChange={onChange} rows={rows} />
       ) : (
-        <p className="text-sm text-muted-foreground min-h-[1.5rem]">
-          {value || <span className="italic text-xs">Não informado</span>}
-        </p>
+        <div className="text-sm text-muted-foreground min-h-[1.5rem] max-h-[200px] overflow-y-auto border border-border rounded p-2 bg-muted/30">
+          {value ? (
+            <p className="whitespace-pre-wrap break-words">{value}</p>
+          ) : (
+            <span className="italic text-xs">Não informado</span>
+          )}
+        </div>
       )}
     </div>
   );
