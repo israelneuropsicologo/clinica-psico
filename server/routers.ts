@@ -668,8 +668,8 @@ Responda em português brasileiro profissional.`,
       // Mapear aba para campos a gerar
       const tabFieldsMap: Record<number, { fields: string[]; description: string }> = {
         0: {
-          fields: ["content", "generalPresentation", "currentMedications", "emotionalState", "predominantMood", "mood", "sufferingLevel"],
-          description: "Sessão (apresentação geral, medicações, estado emocional, sofrimento)"
+          fields: ["sessionNumber", "sessionType", "modality", "location", "content", "generalPresentation", "currentMedications", "emotionalState", "predominantMood", "mood", "sufferingLevel"],
+          description: "Sessão (número, tipo, modalidade, local, apresentação geral, medicações, estado emocional, sofrimento)"
         },
         1: {
           fields: ["mainDemand", "topicsAddressed", "relevantNarrative", "clinicalAssessment"],
@@ -708,7 +708,7 @@ Responda em português brasileiro profissional.`,
           },
           {
             role: "user",
-            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}.\n\nPreencha APENAS os seguintes campos com informações clínicas realistas e relevantes: ${tabConfig.fields.join(", ")}. Use o contexto do paciente para gerar uma avaliação apropriada.`,
+            content: `DADOS DO PACIENTE:\n${patientContext}\n\nANAMNESE:\n${anamneseContext}\n\nHISTÓRICO DE SESSÕES ANTERIORES:\n${previousNotesContext}\n\nEsta é a sessão número ${sessionNumber}.\n\nREGRAS OBRIGATÓRIAS DE PREENCHIMENTO:\n- "sessionNumber": Retorne ${sessionNumber}\n- "sessionType": Se não mencionado, retorne "Individual"\n- "modality": Se não mencionado, retorne "Presencial"\n- "location": Tente extrair do texto, senão retorne vazio\n\nPreencha APENAS os seguintes campos com informações clínicas realistas e relevantes: ${tabConfig.fields.join(", ")}. Use o contexto do paciente para gerar uma avaliação apropriada.`,
           },
         ],
         response_format: {
@@ -719,6 +719,10 @@ Responda em português brasileiro profissional.`,
             schema: {
               type: "object",
               properties: {
+                sessionNumber: { type: "number", minimum: 1 },
+                sessionType: { type: "string", enum: ["Individual", "Dupla", "Grupo", "Familiar"] },
+                modality: { type: "string", enum: ["Presencial", "Online", "Híbrida"] },
+                location: { type: "string" },
                 content: { type: "string" },
                 generalPresentation: { type: "string" },
                 currentMedications: { type: "string" },
@@ -811,8 +815,12 @@ Responda em português brasileiro profissional.`,
       // Validar e normalizar campos de enum
       const riskValues = ["absent", "low", "moderate", "high", "extreme"];
       const moodValues = ["very_bad", "bad", "neutral", "good", "very_good"];
+      const sessionTypeValues = ["Individual", "Dupla", "Grupo", "Familiar"];
+      const modalityValues = ["Presencial", "Online", "Híbrida"];
       const safeRisk = (v: unknown) => riskValues.includes(v as string) ? v as string : "absent";
       const safeMood = (v: unknown) => moodValues.includes(v as string) ? v as string : "neutral";
+      const safeSessionType = (v: unknown) => sessionTypeValues.includes(v as string) ? v as string : "Individual";
+      const safeModality = (v: unknown) => modalityValues.includes(v as string) ? v as string : "Presencial";
       const safeNum = (v: unknown, min: number, max: number) => {
         const n = Number(v);
         return isNaN(n) ? min : Math.min(max, Math.max(min, n));
@@ -829,11 +837,15 @@ Responda em português brasileiro profissional.`,
       }
 
       // Validar e normalizar campos específicos se presentes
-      if ("mood" in allowedFields && filled.mood) cleanedFilled.mood = safeMood(filled.mood);
-      if ("sufferingLevel" in allowedFields && filled.sufferingLevel !== undefined) cleanedFilled.sufferingLevel = safeNum(filled.sufferingLevel, 0, 10);
-      if ("selfHarmRisk" in allowedFields && filled.selfHarmRisk) cleanedFilled.selfHarmRisk = safeRisk(filled.selfHarmRisk);
-      if ("thirdPartyRisk" in allowedFields && filled.thirdPartyRisk) cleanedFilled.thirdPartyRisk = safeRisk(filled.thirdPartyRisk);
-      if ("suicideRisk" in allowedFields && filled.suicideRisk) cleanedFilled.suicideRisk = safeRisk(filled.suicideRisk);
+      if (allowedFields.includes("sessionNumber") && filled.sessionNumber !== undefined) cleanedFilled.sessionNumber = safeNum(filled.sessionNumber, 1, 999);
+      if (allowedFields.includes("sessionType") && filled.sessionType) cleanedFilled.sessionType = safeSessionType(filled.sessionType);
+      if (allowedFields.includes("modality") && filled.modality) cleanedFilled.modality = safeModality(filled.modality);
+      if (allowedFields.includes("location") && filled.location) cleanedFilled.location = filled.location as string;
+      if (allowedFields.includes("mood") && filled.mood) cleanedFilled.mood = safeMood(filled.mood);
+      if (allowedFields.includes("sufferingLevel") && filled.sufferingLevel !== undefined) cleanedFilled.sufferingLevel = safeNum(filled.sufferingLevel, 0, 10);
+      if (allowedFields.includes("selfHarmRisk") && filled.selfHarmRisk) cleanedFilled.selfHarmRisk = safeRisk(filled.selfHarmRisk);
+      if (allowedFields.includes("thirdPartyRisk") && filled.thirdPartyRisk) cleanedFilled.thirdPartyRisk = safeRisk(filled.thirdPartyRisk);
+      if (allowedFields.includes("suicideRisk") && filled.suicideRisk) cleanedFilled.suicideRisk = safeRisk(filled.suicideRisk);
 
 
 
