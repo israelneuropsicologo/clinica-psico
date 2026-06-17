@@ -269,6 +269,31 @@ const invitationsRouter = router({
   }),
 });
 
+// ─── Admin Router (stub) ────────────────────────────────────────────────────
+const adminRouter = router({
+  getAllUsers: protectedProcedure.query(async () => {
+    return [];
+  }),
+});
+
+// ─── Dashboard Router (stub) ────────────────────────────────────────────────
+const dashboardRouter = router({
+  metrics: protectedProcedure.query(async () => {
+    return {
+      activePatients: 0,
+      sessionsThisMonth: 0,
+      monthlyRevenue: 0,
+      overallRevenue: 0,
+    };
+  }),
+  
+  conversionFunnel: protectedProcedure.query(async () => {
+    return {
+      stages: [],
+    };
+  }),
+});
+
 // ─── Main Router ────────────────────────────────────────────────────────────
 export const appRouter = router({
   auth: authRouter,
@@ -276,6 +301,8 @@ export const appRouter = router({
   anamnese: anamneseRouter,
   reports: reportsRouter,
   invitations: invitationsRouter,
+  admin: adminRouter,
+  dashboard: dashboardRouter,
 });
 
 export type AppRouter = typeof appRouter;
