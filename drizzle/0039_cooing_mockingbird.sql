@@ -1,1 +1,0 @@
-ALTER TABLE `clinical_notes` ADD `aiAnalysisMetadata` text;
