@@ -32,7 +32,8 @@ const patientsRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        fullName: z.string().min(2),
+        name: z.string().min(2).optional(),
+        fullName: z.string().min(2).optional(),
         email: z.string().email().optional().or(z.literal("")),
         phone: z.string().optional(),
         birthDate: z.string().optional(),
@@ -44,9 +45,12 @@ const patientsRouter = router({
         const userId = ctx.user?.id ? parseInt(ctx.user.id) : 0;
         if (userId === 0) throw new Error("User not authenticated");
         
+        const fullName = input.fullName || input.name;
+        if (!fullName) throw new Error("fullName or name is required");
+        
         const id = await createPatient({
           userId,
-          fullName: input.fullName,
+          fullName,
           email: input.email || null,
           phone: input.phone || null,
           birthDate: input.birthDate ? new Date(input.birthDate) : null,
