@@ -47,7 +47,6 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     updateSet.lastSignedIn = user.lastSignedIn;
   }
   
-  if (existingClinicId) {
   }
 
   if (user.role !== undefined) {
