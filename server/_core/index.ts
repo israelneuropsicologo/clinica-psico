@@ -9,7 +9,6 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 // import { startBackupScheduler } from "./backupScheduler"; // Removido
 import { initializeESaudeAgent, handleESaudeWebhook, getAgentStatus } from "../esaude-agent";
-import { initChatbotToken, getChatbotToken } from "../init-chatbot-token";
 import { registerAgentEndpoints } from "../agents-endpoints";
 import { sendHandshakeToAmanda, checkAmandaHealth } from "../amanda-communication";
 
@@ -98,7 +97,6 @@ async function startServer() {
   // startBackupScheduler removed - backup service not available
   
   setImmediate(() => {
-    initChatbotToken().catch((err: any) => console.error("[ChatBot] Erro ao inicializar token:", err));
   });
   
   setImmediate(() => {
