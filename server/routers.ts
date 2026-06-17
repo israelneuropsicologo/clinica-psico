@@ -120,6 +120,11 @@ const patientsRouter = router({
       }
       return { success: true, deletedCount };
     }),
+
+  deleteTestData: protectedProcedure
+    .mutation(async () => {
+      return { success: true };
+    }),
 });
 
 // ─── Anamnese Router ───────────────────────────────────────────────────────
@@ -236,11 +241,41 @@ const authRouter = router({
   }),
 });
 
+// ─── Reports Router (stub) ────────────────────────────────────────────────
+const reportsRouter = router({
+  generatePatientPDF: protectedProcedure
+    .input(z.object({
+      status: z.string().optional(),
+      patientIds: z.array(z.number()).optional(),
+    }))
+    .mutation(async () => {
+      return { success: true, url: '#' };
+    }),
+});
+
+// ─── Invitations Router (stub) ────────────────────────────────────────────
+const invitationsRouter = router({
+  generateLink: protectedProcedure
+    .input(z.object({
+      patientId: z.number(),
+      expiresInDays: z.number().optional(),
+    }))
+    .mutation(async () => {
+      return { inviteUrl: '#' };
+    }),
+  
+  listByUser: protectedProcedure.query(async () => {
+    return [];
+  }),
+});
+
 // ─── Main Router ────────────────────────────────────────────────────────────
 export const appRouter = router({
   auth: authRouter,
   patients: patientsRouter,
   anamnese: anamneseRouter,
+  reports: reportsRouter,
+  invitations: invitationsRouter,
 });
 
 export type AppRouter = typeof appRouter;
