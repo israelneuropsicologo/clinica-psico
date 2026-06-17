@@ -11,7 +11,6 @@ import Sessions from "./pages/Sessions";
 // import SessionDetail from "./pages/SessionDetail"; // Removido - usar caminho via Paciente
 import Financial from "./pages/Financial";
 import Calendar from "./pages/Calendar";
-import Settings from "./pages/Settings";
 import Home from "./pages/Home";
 import Documents from "./pages/Documents";
 import Backups from "./pages/Backups";
@@ -39,7 +38,6 @@ function Router() {
       {/* Removido - usar caminho via Paciente: /patients/:id?tab=sessions&sessionId=:sessionId */}
       <Route path="/financial" component={Financial} />
       <Route path="/calendar" component={Calendar} />
-      <Route path="/settings" component={Settings} />
       <Route path="/documents" component={Documents} />
       <Route path="/backups" component={Backups} />
       <Route path="/leads" component={Leads} />
