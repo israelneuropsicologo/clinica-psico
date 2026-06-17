@@ -58,6 +58,7 @@ import { ClinicalAnalysisVisual } from "@/components/ClinicalAnalysisVisual";
 import { AnalysisChartsDisplay } from "@/components/AnalysisChartsDisplay";
 import { useSafeDOM } from "@/hooks/useSelectDebounce";
 import { generateABNTFormattedPDF } from "@/lib/abntPdfGenerator";
+import { DocumentsTab } from "@/components/DocumentsTab";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(ts: number | Date) {
@@ -483,58 +484,18 @@ export default function PatientDetail() {
 
           {/* ── DOCUMENTOS ── */}
           <TabsContent value="documents" className="space-y-4">
-            <div className="flex justify-between items-center gap-2">
-              <p className="text-sm text-muted-foreground">{documents?.length ?? 0} documento(s)</p>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => setShowDocumentSelector(true)} className="gap-1.5">
-                  <FileText className="h-3.5 w-3.5" /> Novo Documento
-                </Button>
-                <Button size="sm" onClick={() => setShowUpload(true)} className="gap-1.5">
-                  <Upload className="h-3.5 w-3.5" /> Anexar Documento
-                </Button>
-              </div>
-            </div>
-            {!documents?.length ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
-                  <FileText className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Nenhum documento anexado.</p>
-                  <p className="text-xs mt-1">Anexe laudos, exames, receitas e outros documentos.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-2">
-                {documents.map((doc) => (
-                  <Card key={doc.id}>
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <FileText className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{doc.fileName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {doc.category === "report" ? "Laudo" : doc.category === "exam" ? "Exame" : doc.category === "prescription" ? "Receita" : doc.category === "referral" ? "Encaminhamento" : doc.category === "consent" ? "Consentimento" : "Outro"} •{" "}
-                            {new Date(doc.createdAt).toLocaleDateString("pt-BR")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">Ver</a>
-                        </Button>
-                        <Button
-                          variant="ghost" size="icon" className="text-destructive hover:text-destructive"
-                          onClick={() => { if (confirm("Excluir documento?")) deleteDocMutation.mutate({ id: doc.id }); }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <DocumentsTab
+              patientId={patientId}
+              patientName={patient?.name || "Paciente"}
+              documents={documents}
+              onShowUpload={() => setShowUpload(true)}
+              onDeleteDocument={(id) => {
+                if (confirm("Excluir documento?")) {
+                  deleteDocMutation.mutate({ id });
+                }
+              }}
+              isDeleting={deleteDocMutation.isPending}
+            />
           </TabsContent>
 
           {/* ── GRAVAÇÕES ── */}
@@ -1102,7 +1063,7 @@ const AnamneseField = React.memo(function AnamneseField({
       ) : (
         <div className="text-sm text-muted-foreground min-h-[1.5rem] max-h-[200px] overflow-y-auto border border-border rounded p-2 bg-muted/30">
           {value ? (
-            <p className="whitespace-pre-wrap break-words">{value}</p>
+            <p className="whitespace-pre-wrap break-words m-0">{value}</p>
           ) : (
             <span className="italic text-xs">Não informado</span>
           )}

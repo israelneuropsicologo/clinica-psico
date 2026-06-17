@@ -988,3 +988,22 @@
 - Adicionada invalidação do cache do tRPC
 - Salvamento de Anamnese 100% funcional
 - Checkpoint f28b082e criado
+
+
+### Fase 141: Corrigir Botão "Novo Documento" (CONCLUÍDO) ✅
+- [x] Identificar problema: Modal de seleção de documento não era renderizado
+- [x] Encontrar solução: Componente DocumentsTab.tsx já existia no projeto
+- [x] Integrar DocumentsTab.tsx no PatientDetail.tsx
+- [x] Remover código duplicado e antigo
+- [x] Testar botão "Novo Documento" - Abre seletor de tipos
+- [x] Testar seleção de Declaração - Abre modal de geração
+- [x] Testar preenchimento de campos - Todos os campos funcionam
+- [x] Testar geração de PDF - Documento gerado com sucesso!
+- [x] Validar todos os 6 tipos de documentos disponíveis
+- [x] Criar checkpoint final
+
+**Resultado:** ✅ Botão "Novo Documento" 100% funcional
+- Seletor visual com 6 tipos de documentos psicológicos
+- Modal de geração com campos específicos para cada tipo
+- Geração de PDF funcionando perfeitamente
+- Mensagem de sucesso exibida ao usuário
