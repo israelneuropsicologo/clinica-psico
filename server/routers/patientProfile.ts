@@ -3,7 +3,6 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import {
   anamnese,
-  anamneseBackup,
   sessionRecordings,
   timelineAnalyses,
   clinicalNotes,
@@ -26,8 +25,8 @@ export const anamneseRouter = router({
       // Ler da tabela BACKUP
       const result = await db
         .select()
-        .from(anamneseBackup)
-        .where(eq(anamneseBackup.patientId, input.patientId))
+        .from(anamnese)
+        .where(eq(anamnese.patientId, input.patientId))
         .limit(1);
       return result[0] ?? null;
     }),
@@ -75,20 +74,20 @@ export const anamneseRouter = router({
 
       // Salvar na tabela BACKUP com longtext para suportar textos grandes
       const existing = await db
-        .select({ id: anamneseBackup.id })
-        .from(anamneseBackup)
-        .where(eq(anamneseBackup.patientId, patientId))
+        .select({ id: anamnese.id })
+        .from(anamnese)
+        .where(eq(anamnese.patientId, patientId))
         .limit(1);
 
       if (existing.length > 0) {
         console.log("[Anamnese Upsert] Atualizando registro existente na tabela BACKUP");
         await db
-          .update(anamneseBackup)
+          .update(anamnese)
           .set(data as any)
-          .where(eq(anamneseBackup.patientId, patientId));
+          .where(eq(anamnese.patientId, patientId));
       } else {
         console.log("[Anamnese Upsert] Criando novo registro na tabela BACKUP");
-        await db.insert(anamneseBackup).values({ ...data, patientId, userId: ctx.user.id } as any);
+        await db.insert(anamnese).values({ ...data, patientId, userId: ctx.user.id } as any);
       }
       console.log("[Anamnese Upsert] Sucesso!");
       return { success: true };

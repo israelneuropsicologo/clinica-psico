@@ -610,8 +610,8 @@ Responda em português brasileiro profissional.`,
       if (!patient) throw new TRPCError({ code: "NOT_FOUND", message: "Paciente não encontrado" });
 
       // Buscar anamnese do paciente
-      const { anamneseBackup, clinicalNotes: cnTable, sessions: sessionsTable } = await import("../drizzle/schema");
-      const [anamneseData] = await db.select().from(anamneseBackup).where(eq(anamneseBackup.patientId, input.patientId)).limit(1);
+      const { anamnese, clinicalNotes: cnTable, sessions: sessionsTable } = await import("../drizzle/schema");
+      const [anamneseData] = await db.select().from(anamnese).where(eq(anamnese.patientId, input.patientId)).limit(1);
 
       // Buscar sessões anteriores com prontuários
       const previousNotes = await db

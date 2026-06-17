@@ -1,1 +1,0 @@
-ALTER TABLE `patients` MODIFY COLUMN `birthDate` varchar(10);
