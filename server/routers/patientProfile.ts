@@ -1,14 +1,10 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
-import {
-  anamneseV1,
-  patients,
-} from "../../drizzle/schema";
+import { anamneseV1 } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { protectedProcedure, router } from "../_core/trpc";
 
-// ─── Anamnese Router ────────────────────────────────────────────────────────
 export const anamneseRouter = router({
   get: protectedProcedure
     .input(z.object({ patientId: z.number() }))
