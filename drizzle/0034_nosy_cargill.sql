@@ -1,0 +1,1 @@
+ALTER TABLE `sync_logs` ADD `notified` int DEFAULT 0 NOT NULL;

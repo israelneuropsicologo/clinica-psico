@@ -1,0 +1,1 @@
+ALTER TABLE `anamnese` DROP INDEX `anamnese_patientId_unique`;
