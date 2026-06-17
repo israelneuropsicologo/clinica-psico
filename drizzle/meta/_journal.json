@@ -288,6 +288,20 @@
       "when": 1781647439313,
       "tag": "0040_sad_franklin_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1781660923309,
+      "tag": "0041_stormy_black_cat",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1781661646467,
+      "tag": "0042_dark_skin",
+      "breakpoints": true
     }
   ]
 }

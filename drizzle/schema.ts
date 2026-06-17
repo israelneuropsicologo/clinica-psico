@@ -4,6 +4,7 @@ import {
   date,
   decimal,
   int,
+  longtext,
   mysqlEnum,
   mysqlTable,
   text,
@@ -373,7 +374,7 @@ export type InsertUserLink = typeof userLinks.$inferInsert;
 export const anamnese = mysqlTable("anamnese", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  patientId: int("patientId").notNull().unique(),
+  patientId: int("patientId").notNull(),
   // Dados de saúde
   bloodType: varchar("bloodType", { length: 10 }),
   allergies: text("allergies"),
@@ -405,6 +406,43 @@ export const anamnese = mysqlTable("anamnese", {
 
 export type Anamnese = typeof anamnese.$inferSelect;
 export type InsertAnamnese = typeof anamnese.$inferInsert;
+
+// ─── Anamnese Backup (Tabela Paralela para Armazenar Anamnes) ────────────────────────────────
+export const anamneseBackup = mysqlTable("anamnese_backup", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  patientId: int("patientId").notNull(),
+  // Dados de saúde
+  bloodType: varchar("bloodType", { length: 10 }),
+  allergies: longtext("allergies"),
+  chronicConditions: longtext("chronicConditions"),
+  disabilities: longtext("disabilities"),
+  // Anamnese clínica completa
+  mainComplaintDetail: longtext("mainComplaintDetail"),
+  currentDiseaseHistory: longtext("currentDiseaseHistory"), // HDA
+  psychiatricHistory: longtext("psychiatricHistory"), // internações, crises, tentativas
+  familyHistory: longtext("familyHistory"),
+  personalHistory: longtext("personalHistory"),
+  childhoodHistory: longtext("childhoodHistory"),
+  relationshipHistory: longtext("relationshipHistory"),
+  professionalHistory: longtext("professionalHistory"),
+  substanceUse: longtext("substanceUse"), // álcool, drogas, tabaco
+  sleepAndEating: longtext("sleepAndEating"),
+  sexualAffectiveLife: longtext("sexualAffectiveLife"),
+  previousTreatments: longtext("previousTreatments"),
+  therapeuticGoals: longtext("therapeuticGoals"),
+  cidCode: varchar("cidCode", { length: 255 }),
+  cidDescription: varchar("cidDescription", { length: 255 }),
+  therapeuticApproach: varchar("therapeuticApproach", { length: 500 }),
+  riskFactors: longtext("riskFactors"),
+  protectiveFactors: longtext("protectiveFactors"),
+  additionalNotes: longtext("additionalNotes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AnamneseBackup = typeof anamneseBackup.$inferSelect;
+export type InsertAnamneseBackup = typeof anamneseBackup.$inferInsert;
 
 // ─── Session Recordings (Gravações de Sessões) ────────────────────────────────
 export const sessionRecordings = mysqlTable("session_recordings", {

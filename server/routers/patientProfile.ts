@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import {
   anamnese,
+  anamneseBackup,
   sessionRecordings,
   timelineAnalyses,
   clinicalNotes,
@@ -22,10 +23,11 @@ export const anamneseRouter = router({
     .query(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) return null;
+      // Ler da tabela BACKUP
       const result = await db
         .select()
-        .from(anamnese)
-        .where(eq(anamnese.patientId, input.patientId))
+        .from(anamneseBackup)
+        .where(eq(anamneseBackup.patientId, input.patientId))
         .limit(1);
       return result[0] ?? null;
     }),
@@ -71,21 +73,22 @@ export const anamneseRouter = router({
       console.log("[Anamnese Upsert] patientId:", patientId, "dataKeys:", Object.keys(data).length);
       console.log("[Anamnese Upsert] data:", JSON.stringify(data, null, 2));
 
+      // Salvar na tabela BACKUP com longtext para suportar textos grandes
       const existing = await db
-        .select({ id: anamnese.id })
-        .from(anamnese)
-        .where(eq(anamnese.patientId, patientId))
+        .select({ id: anamneseBackup.id })
+        .from(anamneseBackup)
+        .where(eq(anamneseBackup.patientId, patientId))
         .limit(1);
 
       if (existing.length > 0) {
-        console.log("[Anamnese Upsert] Atualizando registro existente");
+        console.log("[Anamnese Upsert] Atualizando registro existente na tabela BACKUP");
         await db
-          .update(anamnese)
+          .update(anamneseBackup)
           .set(data as any)
-          .where(eq(anamnese.patientId, patientId));
+          .where(eq(anamneseBackup.patientId, patientId));
       } else {
-        console.log("[Anamnese Upsert] Criando novo registro");
-        await db.insert(anamnese).values({ ...data, patientId, userId: ctx.user.id } as any);
+        console.log("[Anamnese Upsert] Criando novo registro na tabela BACKUP");
+        await db.insert(anamneseBackup).values({ ...data, patientId, userId: ctx.user.id } as any);
       }
       console.log("[Anamnese Upsert] Sucesso!");
       return { success: true };
