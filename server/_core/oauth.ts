@@ -29,9 +29,7 @@ export function registerOAuthRoutes(app: Express) {
       }
 
       // Consolidar para conta oficial se necessário
-        userInfo.email,
-        userInfo.openId
-      );
+      const officialOpenId = userInfo.openId;
 
       await db.upsertUser({
         openId: officialOpenId,
