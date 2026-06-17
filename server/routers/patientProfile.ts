@@ -2,11 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import {
-  anamnese,
-  sessionRecordings,
-  timelineAnalyses,
-  clinicalNotes,
-  sessions,
+  anamneseV1,
   patients,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
@@ -25,8 +21,8 @@ export const anamneseRouter = router({
       // Ler da tabela BACKUP
       const result = await db
         .select()
-        .from(anamnese)
-        .where(eq(anamnese.patientId, input.patientId))
+        .from(anamneseV1)
+        .where(eq(anamneseV1.patientId, input.patientId))
         .limit(1);
       return result[0] ?? null;
     }),
@@ -75,8 +71,8 @@ export const anamneseRouter = router({
       // Salvar na tabela BACKUP com longtext para suportar textos grandes
       const existing = await db
         .select({ id: anamnese.id })
-        .from(anamnese)
-        .where(eq(anamnese.patientId, patientId))
+        .from(anamneseV1)
+        .where(eq(anamneseV1.patientId, patientId))
         .limit(1);
 
       if (existing.length > 0) {
@@ -84,7 +80,7 @@ export const anamneseRouter = router({
         await db
           .update(anamnese)
           .set(data as any)
-          .where(eq(anamnese.patientId, patientId));
+          .where(eq(anamneseV1.patientId, patientId));
       } else {
         console.log("[Anamnese Upsert] Criando novo registro na tabela BACKUP");
         await db.insert(anamnese).values({ ...data, patientId, userId: ctx.user.id } as any);

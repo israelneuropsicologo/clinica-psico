@@ -611,7 +611,7 @@ Responda em português brasileiro profissional.`,
 
       // Buscar anamnese do paciente
       const { anamnese, clinicalNotes: cnTable, sessions: sessionsTable } = await import("../drizzle/schema");
-      const [anamneseData] = await db.select().from(anamnese).where(eq(anamnese.patientId, input.patientId)).limit(1);
+      const [anamneseData] = await db.select().from(anamneseV1).where(eq(anamneseV1.patientId, input.patientId)).limit(1);
 
       // Buscar sessões anteriores com prontuários
       const previousNotes = await db
