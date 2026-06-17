@@ -7,7 +7,6 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Dashboard from "./pages/Dashboard";
 import Patients from "./pages/Patients";
 import PatientDetail from "./pages/PatientDetail";
-import Sessions from "./pages/Sessions";
 // import SessionDetail from "./pages/SessionDetail"; // Removido - usar caminho via Paciente
 import Financial from "./pages/Financial";
 import Calendar from "./pages/Calendar";
@@ -34,7 +33,6 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/patients" component={Patients} />
       <Route path="/patients/:id" component={PatientDetail} />
-      <Route path="/sessions" component={Sessions} />
       {/* Removido - usar caminho via Paciente: /patients/:id?tab=sessions&sessionId=:sessionId */}
       <Route path="/financial" component={Financial} />
       <Route path="/calendar" component={Calendar} />
