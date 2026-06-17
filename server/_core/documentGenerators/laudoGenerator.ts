@@ -1,0 +1,73 @@
+import { PDFDocument } from "pdf-lib";
+import { ProfessionalPDFLayout } from "./pdfLayoutHelper";
+
+export interface LaudoData {
+  clinicName: string;
+  clinicCity: string;
+  clinicState: string;
+  professionalName: string;
+  professionalCRP: string;
+  professionalEmail: string;
+  professionalPhone: string;
+  patientName: string;
+  patientBirthDate: string;
+  patientAge: number;
+  complaint: string;
+  evaluation: string;
+  diagnosis: string;
+  recommendations: string[];
+  observations: string;
+  city: string;
+  date: string;
+}
+
+export async function generateLaudo(data: LaudoData): Promise<Buffer> {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([595, 842]);
+
+  const layout = new ProfessionalPDFLayout(page);
+
+  layout.drawHeader({
+    title: "LAUDO PSICOLÓGICO",
+    subtitle: "Avaliação Técnica",
+    headerInfo: {
+      clinicName: data.clinicName,
+      clinicCity: data.clinicCity,
+      clinicState: data.clinicState,
+      professionalName: data.professionalName,
+      professionalCRP: data.professionalCRP,
+      professionalEmail: data.professionalEmail,
+      professionalPhone: data.professionalPhone,
+      patientName: data.patientName,
+      patientAge: data.patientAge,
+      patientBirthDate: data.patientBirthDate,
+    },
+    city: data.clinicCity,
+    date: data.date,
+  });
+
+  layout.drawTitle("LAUDO PSICOLÓGICO", "Avaliação Técnica Completa");
+
+  layout.drawSectionHeader(1, "QUEIXA PRINCIPAL");
+  layout.drawText(data.complaint);
+
+  layout.drawSectionHeader(2, "AVALIAÇÃO");
+  layout.drawText(data.evaluation);
+
+  layout.drawSectionHeader(3, "DIAGNÓSTICO");
+  layout.drawText(data.diagnosis);
+
+  layout.drawSectionHeader(4, "RECOMENDAÇÕES");
+  layout.drawBulletList(data.recommendations);
+
+  if (data.observations) {
+    layout.drawSectionHeader(5, "OBSERVAÇÕES");
+    layout.drawText(data.observations);
+  }
+
+  layout.drawDateLocation(data.city, data.date);
+  layout.drawFooter(data.professionalName, data.professionalCRP);
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
+}

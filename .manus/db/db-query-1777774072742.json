@@ -1,0 +1,52 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'session_recordings' ORDER BY ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3RpD4X9wDf1hcRV.root --database P4nfWouMd7MUucxFWnyo87 --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'session_recordings' ORDER BY ORDINAL_POSITION;",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "userId"
+    },
+    {
+      "COLUMN_NAME": "patientId"
+    },
+    {
+      "COLUMN_NAME": "sessionId"
+    },
+    {
+      "COLUMN_NAME": "fileName"
+    },
+    {
+      "COLUMN_NAME": "fileKey"
+    },
+    {
+      "COLUMN_NAME": "fileUrl"
+    },
+    {
+      "COLUMN_NAME": "mimeType"
+    },
+    {
+      "COLUMN_NAME": "fileSize"
+    },
+    {
+      "COLUMN_NAME": "durationSeconds"
+    },
+    {
+      "COLUMN_NAME": "transcription"
+    },
+    {
+      "COLUMN_NAME": "transcriptionStatus"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "supervision"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nuserId\npatientId\nsessionId\nfileName\nfileKey\nfileUrl\nmimeType\nfileSize\ndurationSeconds\ntranscription\ntranscriptionStatus\ncreatedAt\nsupervision\n",
+  "stderr": "",
+  "execution_time_ms": 587
+}
