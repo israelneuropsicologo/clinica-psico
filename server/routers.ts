@@ -79,7 +79,7 @@ import { rolesRouter } from "./routers/roles";
 import { patientSharingRouter } from "./routers/patient-sharing";
 import { emailAliasesRouter } from "./routers/email-aliases";
 import { autonomousAgentsRouter } from "./routers/autonomous-agents";
-import { virtualCreditsRouter } from "./routers/virtual-credits";
+// import { virtualCreditsRouter } from "./routers/virtual-credits"; // REMOVED - module not found
 import { agentCommunicationRouter } from "./routers/agent-communication";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
@@ -1074,7 +1074,7 @@ export const appRouter = router({
   patientSharing: patientSharingRouter,
   emailAliases: emailAliasesRouter,
   autonomousAgents: autonomousAgentsRouter,
-  virtualCredits: virtualCreditsRouter,
+  // virtualCredits: virtualCreditsRouter, // REMOVED - module not found
   agentCommunication: agentCommunicationRouter,
   audit: auditRouter,
   calendar: router({
