@@ -54,6 +54,7 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { AIAnalysisResult } from "@/components/AIAnalysisResult";
 import { AnalysisTimeline } from "@/components/AnalysisTimeline";
 import { AnalysisComparison } from "@/components/AnalysisComparison";
+import { formatCPF, isValidCPF } from "@/lib/cpfUtils";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(ts: number | Date) {
@@ -2167,7 +2168,29 @@ function EditPatientDialog({ patient, open, onClose, onSuccess }: {
                 </div>
                 <div className="space-y-1.5">
                   <Label>CPF</Label>
-                  <Input value={form.cpf} onChange={set("cpf")} placeholder="000.000.000-00" />
+                  <div className="space-y-1">
+                    <Input 
+                      value={form.cpf} 
+                      onChange={(e) => {
+                        const formatted = formatCPF(e.target.value);
+                        setForm((prev) => ({ ...prev, cpf: formatted }));
+                      }}
+                      placeholder="000.000.000-00" 
+                      maxLength={14}
+                    />
+                    {form.cpf && !isValidCPF(form.cpf) && (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        CPF inválido
+                      </p>
+                    )}
+                    {form.cpf && isValidCPF(form.cpf) && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        CPF válido
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
