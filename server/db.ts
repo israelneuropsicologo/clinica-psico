@@ -10,16 +10,14 @@ import {
   InsertSettings,
   InsertTransaction,
   InsertUser,
-  InsertUserLink,
-  InsertUserShare,
+
   Patient,
   Session,
   SessionWithPatient,
   Settings,
   Transaction,
   User,
-  UserLink,
-  UserShare,
+
   analysisHistory,
   clinicalNotes,
   emailAliases,
@@ -27,8 +25,6 @@ import {
   sessions,
   settings,
   transactions,
-  userLinks,
-  userShares,
   users,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -504,21 +500,6 @@ export async function getOverdueSessions(userId: number): Promise<number> {
 
 // ─── User Links (Sincronização de Usuários) ────────────────────────────────
 
-export async function linkUsers(primaryUserId: number, linkedUserId: number): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  
-  // Verificar se já existe link
-  const existing = await db
-    .select()
-    .from(userLinks)
-    .where(and(eq(userLinks.primaryUserId, primaryUserId), eq(userLinks.linkedUserId, linkedUserId)))
-    .limit(1);
-  
-  if (!existing.length) {
-    await db.insert(userLinks).values({ primaryUserId, linkedUserId });
-  }
-}
 
 export async function getLinkedUserIds(userId: number): Promise<number[]> {
   const db = await getDb();
@@ -535,18 +516,6 @@ export async function getLinkedUserIds(userId: number): Promise<number[]> {
     .select({ primaryUserId: userLinks.primaryUserId })
     .from(userLinks)
     .where(eq(userLinks.linkedUserId, userId));
-  
-  // Retornar o usuário original + todos os vinculados
-  const allLinked = [userId, ...primaryLinks.map(l => l.linkedUserId), ...linkedByOthers.map(l => l.primaryUserId)];
-  return Array.from(new Set(allLinked)); // Remove duplicatas
-}
-
-export async function getPatientsShared(userId: number, search?: string, status?: string): Promise<Patient[]> {
-  const db = await getDb();
-  if (!db) return [];
-  
-  // Buscar IDs de todos os usuários vinculados
-  const linkedUserIds = await getLinkedUserIds(userId);
   
   const conditions = [inArray(patients.userId, linkedUserIds)];
   
