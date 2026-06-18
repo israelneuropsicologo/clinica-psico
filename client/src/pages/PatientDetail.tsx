@@ -32,6 +32,7 @@ import {
   MoreVertical,
   Phone,
   Play,
+  Plus,
   RefreshCw,
   Search,
   Shield,
@@ -96,6 +97,8 @@ export default function PatientDetail() {
   const [activeTab, setActiveTab] = useState("profile");
   const [selectedNote, setSelectedNote] = useState<number | null>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
+
   const [referralForm, setReferralForm] = useState({
     recipientTitle: "Ao Médico Psiquiatra",
     recipientName: "",
@@ -113,6 +116,8 @@ export default function PatientDetail() {
   const { data: patientSessions } = trpc.sessions.list.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: documents, refetch: refetchDocs } = trpc.documents.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: clinicalNotes, refetch: refetchNotes } = trpc.clinicalNotes.byPatient.useQuery({ patientId }, { enabled: patientId > 0 });
+  
+  // Carregar anamneseData da tabela anamnese
   const { data: anamneseData, refetch: refetchAnamnese } = trpc.anamnese.get.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: recordings, refetch: refetchRecordings } = trpc.recordings.list.useQuery({ patientId }, { enabled: patientId > 0 });
   const { data: timelineList, refetch: refetchTimeline } = trpc.timeline.list.useQuery({ patientId }, { enabled: patientId > 0 });
@@ -137,13 +142,27 @@ export default function PatientDetail() {
     onSuccess: () => { toast.success("Transcrição concluída!"); refetchRecordings(); },
     onError: (e) => toast.error(e.message),
   });
-  const supervisionMutation = trpc.recordings.generateSupervision.useMutation({
-    onSuccess: () => { toast.success("Supervisão IA gerada!"); refetchRecordings(); },
-    onError: (e) => toast.error(e.message),
+  // Removed: supervisionMutation (procedure not implemented)
+  // Removed: generateTimelineMutation (procedure not implemented)
+  const createNoteMutation = trpc.clinicalNotes.create.useMutation({
+    onSuccess: (result) => {
+      toast.success("Prontuário criado com sucesso!");
+      setIsCreatingNote(false);
+      refetchNotes();
+      // Set the newly created note as selected
+      setSelectedNote(result.id);
+    },
+    onError: (e) => {
+      toast.error(e.message);
+      setIsCreatingNote(false);
+    },
   });
-  const generateTimelineMutation = trpc.timeline.generate.useMutation({
-    onSuccess: () => { toast.success("Análise gerada com sucesso!"); refetchTimeline(); },
-    onError: (e) => toast.error(e.message),
+  const updateMutation = trpc.patients.update.useMutation({
+    onSuccess: () => {
+      toast.success("Status atualizado com sucesso!");
+      refetch();
+    },
+    onError: (e) => toast.error("Erro ao atualizar status: " + e.message),
   });
   const generateReferralMutation = trpc.reports.generateReferralLetterPDF.useMutation({
     onSuccess: (result) => {
@@ -356,6 +375,19 @@ export default function PatientDetail() {
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-muted-foreground">{clinicalNotes?.length ?? 0} prontuário(s) registrado(s)</p>
                   <div className="flex gap-2">
+                    <Button size="sm" onClick={() => {
+                      setIsCreatingNote(true);
+                      // Create a new clinical note with default structure
+                      createNoteMutation.mutate({
+                        sessionId: patientSessions?.[0]?.id || 0,
+                        patientId,
+                        content: "",
+                        mood: "neutral",
+                      });
+                    }} disabled={isCreatingNote} className="gap-1.5 bg-blue-600 hover:bg-blue-700">
+                      {isCreatingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                      {isCreatingNote ? "Criando..." : "Novo Prontuário"}
+                    </Button>
                     {clinicalNotes?.length ? (
                       <Button size="sm" variant="destructive" onClick={() => {
                         if (confirm(`Tem certeza que deseja apagar TODOS os ${clinicalNotes.length} prontuários?`)) {
@@ -506,7 +538,7 @@ export default function PatientDetail() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {recordings.map((rec) => (
+                {recordings.filter(rec => rec.transcriptionStatus === "done" && rec.transcription).map((rec) => (
                   <Card key={rec.id}>
                     <CardContent className="p-4 space-y-3">
                       {/* Header da gravação */}
@@ -519,23 +551,11 @@ export default function PatientDetail() {
                             <p className="text-sm font-medium truncate">{rec.fileName}</p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(rec.createdAt).toLocaleDateString("pt-BR")} {"•"}{" "}
-                              {rec.transcriptionStatus === "done" ? <span className="text-green-600 font-medium">Transcrito</span>
-                                : rec.transcriptionStatus === "processing" ? <span className="text-yellow-600">Transcrevendo...</span>
-                                : rec.transcriptionStatus === "error" ? <span className="text-red-600">Erro na transcrição</span>
-                                : <span className="text-muted-foreground">Aguardando transcrição</span>}
+                              <span className="text-green-600 font-medium">Transcrito</span>
                             </p>
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0">
-                          {rec.transcriptionStatus !== "done" && rec.transcriptionStatus !== "processing" && (
-                            <Button variant="outline" size="sm"
-                              onClick={() => transcribeMutation.mutate({ recordingId: rec.id })}
-                              disabled={transcribeMutation.isPending}
-                              className="gap-1.5">
-                              {transcribeMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                              Transcrever
-                            </Button>
-                          )}
                           {/* Menu de ações */}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -556,17 +576,73 @@ export default function PatientDetail() {
                                   <DropdownMenuSeparator />
                                 </>
                               )}
-                              <DropdownMenuItem onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = rec.fileUrl;
-                                link.download = rec.fileName;
-                                link.click();
+                              <DropdownMenuItem onClick={async () => {
+                                try {
+                                  toast.loading('Baixando áudio...');
+                                  const response = await fetch(rec.fileUrl);
+                                  if (!response.ok) throw new Error('Erro ao baixar arquivo');
+                                  const blob = await response.blob();
+                                  const url = URL.createObjectURL(blob);
+                                  const link = document.createElement('a');
+                                  link.href = url;
+                                  link.download = rec.fileName || 'audio.mp3';
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  URL.revokeObjectURL(url);
+                                  toast.dismiss();
+                                  toast.success('Áudio baixado com sucesso!');
+                                } catch (error) {
+                                  toast.dismiss();
+                                  toast.error('Erro ao baixar áudio: ' + (error instanceof Error ? error.message : 'Desconhecido'));
+                                }
                               }} className="gap-2">
                                 <Download className="h-4 w-4" />
                                 Baixar Áudio
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ recordingId: rec.id }); }} className="gap-2 text-destructive">
+                              {rec.transcription && (
+                                <>
+                                  <DropdownMenuItem onClick={() => {
+                                    const element = document.createElement('a');
+                                    const file = new Blob([rec.transcription], {type: 'text/plain'});
+                                    element.href = URL.createObjectURL(file);
+                                    element.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.txt`;
+                                    document.body.appendChild(element);
+                                    element.click();
+                                    document.body.removeChild(element);
+                                  }} className="gap-2">
+                                    <FileDown className="h-4 w-4" />
+                                    Baixar Transcrição (TXT)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => {
+                                    toast.loading('Gerando PDF...');
+                                    trpc.recordings.generateTranscriptionPdf.mutate({ recordingId: rec.id }, {
+                                      onSuccess: (data) => {
+                                        console.log('PDF gerado com sucesso:', data);
+                                        toast.dismiss();
+                                        const link = document.createElement('a');
+                                        link.href = data.pdfUrl;
+                                        link.download = `${rec.fileName.replace(/\.[^/.]+$/, '')}_transcricao.pdf`;
+                                        link.style.display = 'none';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                        toast.success('PDF baixado com sucesso!');
+                                      },
+                                      onError: (error) => {
+                                        console.error('Erro ao gerar PDF:', error);
+                                        toast.dismiss();
+                                        toast.error('Erro ao gerar PDF: ' + (error?.message || 'Desconhecido'));
+                                      }
+                                    });
+                                  }} className="gap-2">
+                                    <FileDown className="h-4 w-4" />
+                                    Baixar Transcrição (PDF)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </>
+                              )}
+                              <DropdownMenuItem onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ id: rec.id }); }} className="gap-2 text-destructive">
                                 <Trash2 className="h-4 w-4" />
                                 Excluir
                               </DropdownMenuItem>
@@ -592,13 +668,12 @@ export default function PatientDetail() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="gap-1.5 text-xs h-7 border-primary/30 text-primary hover:bg-primary/10"
-                              onClick={() => supervisionMutation.mutate({ recordingId: rec.id })}
-                              disabled={supervisionMutation.isPending}
+                              className="gap-1.5"
+                              onClick={() => {
+                                toast.info('Supervisão IA será implementada em breve');
+                              }}
                             >
-                              {supervisionMutation.isPending
-                                ? <><Loader2 className="h-3 w-3 animate-spin" /> Gerando...</>
-                                : <><Brain className="h-3 w-3" /> Supervisão IA</>}
+                              <><Brain className="h-3 w-3" /> Supervisão IA</>
                             </Button>
                           </div>
                           <p className="text-xs leading-relaxed text-foreground/90 whitespace-pre-wrap">{rec.transcription}</p>
@@ -632,24 +707,16 @@ export default function PatientDetail() {
                 <h3 className="font-semibold text-sm">Análise Clínica por IA</h3>
                 <p className="text-xs text-muted-foreground">Baseada em {patientSessions?.length ?? 0} sessão(ões) registrada(s)</p>
               </div>
-              <Button size="sm" onClick={() => generateTimelineMutation.mutate({ patientId })} disabled={generateTimelineMutation.isPending} className="gap-1.5">
-                {generateTimelineMutation.isPending ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Analisando...</> : <><Sparkles className="h-3.5 w-3.5" /> {timelineData ? "Nova Análise" : "Gerar Análise"}</>}
+              <Button size="sm" onClick={() => toast.info("Análise de linha do tempo será implementada em breve!")} className="gap-1.5">
+                <><Sparkles className="h-3.5 w-3.5" /> {timelineData ? "Nova Análise" : "Gerar Análise"}</>
               </Button>
             </div>
-            {!timelineData && !generateTimelineMutation.isPending ? (
+            {!timelineData ? (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
                   <TrendingUp className="h-10 w-10 mx-auto mb-2 opacity-30" />
                   <p className="text-sm font-medium">Nenhuma análise gerada ainda</p>
                   <p className="text-xs mt-1 max-w-xs mx-auto">Clique em "Gerar Análise" para que a IA analise o histórico clínico completo do paciente.</p>
-                </CardContent>
-              </Card>
-            ) : generateTimelineMutation.isPending ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Loader2 className="h-10 w-10 mx-auto mb-3 text-primary animate-spin" />
-                  <p className="text-sm font-medium">Analisando histórico clínico...</p>
-                  <p className="text-xs text-muted-foreground mt-1">Isso pode levar alguns segundos.</p>
                 </CardContent>
               </Card>
             ) : timelineData ? (
@@ -990,9 +1057,9 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
     additionalNotes: (anamneseData?.additionalNotes as string) ?? "",
   }));
 
-  // Atualizar form apenas quando sair do modo de edição
+  // Atualizar form quando entrar em modo de edição ou quando anamneseData mudar
   useEffect(() => {
-    if (!editing && anamneseData) {
+    if (editing && anamneseData) {
       setForm({
         mainComplaintDetail: (anamneseData.mainComplaintDetail as string) ?? "",
         therapeuticGoals: (anamneseData.therapeuticGoals as string) ?? "",
@@ -1015,11 +1082,55 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
         additionalNotes: (anamneseData.additionalNotes as string) ?? "",
       });
     }
-  }, [anamneseData, editing])
+  }, [anamneseData])
 
   const upsertMutation = trpc.anamnese.upsert.useMutation({
+    onSuccess: () => { 
+      console.log('✅ Anamnese salva com sucesso!');
+      toast.success("Anamnese salva!"); 
+      setEditing(false); 
+      refetch(); 
+    },
+    onError: (e) => {
+      console.error('❌ Erro ao salvar anamnese:', e);
+      toast.error(e.message);
+    },
+  });
+
+  const updateMutation = trpc.patients.update.useMutation({
     onSuccess: () => { toast.success("Anamnese salva!"); setEditing(false); refetch(); },
     onError: (e) => toast.error(e.message),
+  });
+
+  const autoFillMutation = trpc.anamnese.autoFill.useMutation({
+    onSuccess: (data) => {
+      // Preencher apenas campos vazios
+      setForm((prev) => ({
+        ...prev,
+        mainComplaintDetail: prev.mainComplaintDetail || (data.mainComplaintDetail as string) || "",
+        therapeuticGoals: prev.therapeuticGoals || (data.therapeuticGoals as string) || "",
+        cidCode: prev.cidCode || (data.cidCode as string) || "",
+        cidDescription: prev.cidDescription || (data.cidDescription as string) || "",
+        therapeuticApproach: prev.therapeuticApproach || (data.therapeuticApproach as string) || "",
+        familyHistory: prev.familyHistory || (data.familyHistory as string) || "",
+        personalHistory: prev.personalHistory || (data.personalHistory as string) || "",
+        previousTreatments: prev.previousTreatments || (data.previousTreatments as string) || "",
+        currentDiseaseHistory: prev.currentDiseaseHistory || (data.currentDiseaseHistory as string) || "",
+        psychiatricHistory: prev.psychiatricHistory || (data.psychiatricHistory as string) || "",
+        childhoodHistory: prev.childhoodHistory || (data.childhoodHistory as string) || "",
+        relationshipHistory: prev.relationshipHistory || (data.relationshipHistory as string) || "",
+        professionalHistory: prev.professionalHistory || (data.professionalHistory as string) || "",
+        substanceUse: prev.substanceUse || (data.substanceUse as string) || "",
+        sleepAndEating: prev.sleepAndEating || (data.sleepAndEating as string) || "",
+        sexualAffectiveLife: prev.sexualAffectiveLife || (data.sexualAffectiveLife as string) || "",
+        riskFactors: prev.riskFactors || (data.riskFactors as string) || "",
+        protectiveFactors: prev.protectiveFactors || (data.protectiveFactors as string) || "",
+        additionalNotes: prev.additionalNotes || (data.additionalNotes as string) || "",
+      }));
+      toast.success("Anamnese preenchida com IA!");
+      setEditing(true);
+    },
+    onError: (e) => toast.error(`Erro na IA: ${e.message}`),
   });
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -1027,11 +1138,32 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-2">
         <h3 className="text-sm font-semibold">Ficha de Anamnese</h3>
-        <Button size="sm" variant="outline" onClick={() => setEditing(!editing)} className="gap-1.5">
-          <Edit className="h-3.5 w-3.5" /> {editing ? "Cancelar" : "Editar"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => autoFillMutation.mutate({ patientId })}
+            disabled={autoFillMutation.isPending || editing}
+            className="gap-1.5"
+          >
+            {autoFillMutation.isPending ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Preenchendo...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3.5 w-3.5" />
+                Preencher com IA
+              </>
+            )}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setEditing(!editing)} className="gap-1.5">
+            <Edit className="h-3.5 w-3.5" /> {editing ? "Cancelar" : "Editar"}
+          </Button>
+        </div>
       </div>
 
       {/* Queixa e Objetivos */}
@@ -1093,7 +1225,12 @@ function AnamneseTab({ patientId, anamneseData, refetch }: {
       {editing && (
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
-          <Button onClick={() => upsertMutation.mutate({ patientId, ...form })} disabled={upsertMutation.isPending}>
+          <Button onClick={() => {
+            console.log('Botao Salvar Anamnese clicado!');
+            console.log('Dados do formulario:', form);
+            console.log('Patient ID:', patientId);
+            upsertMutation.mutate({ patientId, ...form });
+          }} disabled={upsertMutation.isPending}>
             {upsertMutation.isPending ? "Salvando..." : "Salvar Anamnese"}
           </Button>
         </div>
@@ -1312,6 +1449,23 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
     },
   // @ts-ignore
     onError: (e) => toast.error(e.message),
+  // @ts-ignore
+  });
+
+  // @ts-ignore
+  const [supervision, setSupervision] = useState<string>("");
+  // @ts-ignore
+  const supervisionMutation = trpc.recordings.generateSupervision.useMutation({
+  // @ts-ignore
+    onSuccess: (data) => {
+  // @ts-ignore
+      setSupervision(data.supervisionText);
+  // @ts-ignore
+      toast.success("Supervisão gerada a partir da transcrição!");
+  // @ts-ignore
+    },
+  // @ts-ignore
+    onError: (e) => toast.error(e.message || "Erro ao gerar supervisão"),
   // @ts-ignore
   });
 
@@ -1701,7 +1855,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <Button
                   onClick={() => aiFeedbackMutation.mutate({ noteId: note.id as number })}
                   disabled={aiFeedbackMutation.isPending}
@@ -1747,10 +1901,36 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   </CardContent>
                 </Card>
               )}
+              
+              {/* Supervisão */}
+              {supervisionMutation.isPending && (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <Loader2 className="h-8 w-8 mx-auto mb-2 text-blue-500 animate-spin" />
+                    <p className="text-sm font-medium">Gerando supervisão a partir da transcrição...</p>
+                    <p className="text-xs text-muted-foreground mt-1">Isso pode levar alguns segundos.</p>
+                  </CardContent>
+                </Card>
+              )}
+              {supervision && !supervisionMutation.isPending && (
+                <div className="space-y-4 mt-6 pt-6 border-t">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-blue-500" /> Supervisão
+                  </h3>
+                  <Card className="border-l-4 border-l-blue-500">
+                    <CardContent className="pt-6 prose prose-sm dark:prose-invert max-w-none">
+                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify">
+                        {supervision}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </>
           )}
         </CardContent>
       </Card>
+
     </div>
   );
 }
@@ -2215,7 +2395,7 @@ function UploadDocumentDialog({ patientId, open, onClose, onSuccess }: { patient
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 16 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 16MB)"); return; }
+    if (file.size > 500 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 500MB)"); return; }
     setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -2232,7 +2412,7 @@ function UploadDocumentDialog({ patientId, open, onClose, onSuccess }: { patient
         <form onSubmit={(e) => { e.preventDefault(); if (!fileData || !fileName) { toast.error("Selecione um arquivo"); return; } uploadMutation.mutate({ patientId, fileName, mimeType: fileData.mimeType, fileSize: fileData.size, category, description, fileBase64: fileData.base64 }); }} className="space-y-4 pt-2">
           <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors" onClick={() => fileRef.current?.click()}>
             <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            {fileName ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Clique para selecionar</p><p className="text-xs text-muted-foreground mt-1">PDF, imagens, Word — máx. 16MB</p></>}
+            {fileName ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Clique para selecionar</p><p className="text-xs text-muted-foreground mt-1">PDF, imagens, Word — máx. 500MB</p></>}
             <input ref={fileRef} type="file" className="hidden" onChange={handleFile} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
           </div>
           <div className="space-y-1.5">
@@ -2341,7 +2521,7 @@ function UploadRecordingDialog({ patientId, open, onClose, onSuccess }: { patien
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 16 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 16MB)"); return; }
+    if (file.size > 500 * 1024 * 1024) { toast.error("Arquivo muito grande (máx. 500MB)"); return; }
     setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -2402,7 +2582,7 @@ function UploadRecordingDialog({ patientId, open, onClose, onSuccess }: { patien
           {/* Upload de arquivo */}
           <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors" onClick={() => fileRef.current?.click()}>
             <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            {fileName && !recordedAudioUrl ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Ou selecione um arquivo</p><p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A, OGG — máx. 16MB</p></>}
+            {fileName && !recordedAudioUrl ? <p className="text-sm font-medium text-primary">{fileName}</p> : <><p className="text-sm font-medium">Ou selecione um arquivo</p><p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A, OGG — máx. 500MB</p></>}
             <input ref={fileRef} type="file" className="hidden" onChange={handleFile} accept=".mp3,.wav,.m4a,.ogg,.webm" />
           </div>
 

@@ -26,6 +26,7 @@ import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { SessionDetailTabs } from "@/components/SessionTabs/SessionDetailTabs";
+import { AIAnalysisResult } from "@/components/AIAnalysisResult";
 import { formatDateSaoPaulo } from "@/lib/timezone";
 
 function formatDate(ts: number) {
@@ -234,7 +235,7 @@ export default function SessionDetail() {
         });
       }
       
-      return prevTabsData;
+      return dataToSave;
     });
   };
 
