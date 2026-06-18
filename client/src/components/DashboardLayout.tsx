@@ -144,12 +144,11 @@ function DashboardLayoutContent({
     // Nunca retornar string vazia - Radix Select não aceita value=""
     return userId || "default";
   });
-  const allUsers = [];
+  const { data: allUsers } = trpc.admin.getAllUsers.useQuery();
 
   const handleUserChange = (userId: string) => {
     setSelectedUserId(userId);
     localStorage.setItem(SELECTED_USER_KEY, userId);
-    // Usuário selecionado
   };
 
   return (

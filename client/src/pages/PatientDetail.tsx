@@ -576,26 +576,11 @@ export default function PatientDetail() {
                                   <DropdownMenuSeparator />
                                 </>
                               )}
-                              <DropdownMenuItem onClick={async () => {
-                                try {
-                                  toast.loading('Baixando áudio...');
-                                  const response = await fetch(rec.fileUrl);
-                                  if (!response.ok) throw new Error('Erro ao baixar arquivo');
-                                  const blob = await response.blob();
-                                  const url = URL.createObjectURL(blob);
-                                  const link = document.createElement('a');
-                                  link.href = url;
-                                  link.download = rec.fileName || 'audio.mp3';
-                                  document.body.appendChild(link);
-                                  link.click();
-                                  document.body.removeChild(link);
-                                  URL.revokeObjectURL(url);
-                                  toast.dismiss();
-                                  toast.success('Áudio baixado com sucesso!');
-                                } catch (error) {
-                                  toast.dismiss();
-                                  toast.error('Erro ao baixar áudio: ' + (error instanceof Error ? error.message : 'Desconhecido'));
-                                }
+                              <DropdownMenuItem onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = rec.fileUrl;
+                                link.download = rec.fileName;
+                                link.click();
                               }} className="gap-2">
                                 <Download className="h-4 w-4" />
                                 Baixar Áudio
@@ -642,7 +627,7 @@ export default function PatientDetail() {
                                   <DropdownMenuSeparator />
                                 </>
                               )}
-                              <DropdownMenuItem onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ id: rec.id }); }} className="gap-2 text-destructive">
+                              <DropdownMenuItem onClick={() => { if (confirm("Excluir gravação?")) deleteRecordingMutation.mutate({ recordingId: rec.id }); }} className="gap-2 text-destructive">
                                 <Trash2 className="h-4 w-4" />
                                 Excluir
                               </DropdownMenuItem>
@@ -1919,7 +1904,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                   </h3>
                   <Card className="border-l-4 border-l-blue-500">
                     <CardContent className="pt-6 prose prose-sm dark:prose-invert max-w-none">
-                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed text-justify">
+                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
                         {supervision}
                       </div>
                     </CardContent>
