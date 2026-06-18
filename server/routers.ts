@@ -278,13 +278,32 @@ const adminRouter = router({
 
 // ─── Dashboard Router (stub) ────────────────────────────────────────────────
 const dashboardRouter = router({
-  metrics: protectedProcedure.query(async () => {
-    return {
-      activePatients: 0,
-      sessionsThisMonth: 0,
-      monthlyRevenue: 0,
-      overallRevenue: 0,
-    };
+  metrics: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const userId = ctx.user?.id ? parseInt(ctx.user.id) : 0;
+      if (userId === 0) throw new Error("User not authenticated");
+      
+      // Get active patients count
+      const patients = await getPatients(String(userId));
+      const patientCount = patients.length;
+      
+      // For now, return placeholder values for sessions and revenue
+      // These would need actual session and transaction data
+      return {
+        patientCount,
+        sessionsThisMonth: 0,
+        monthlyRevenue: 0,
+        overallRevenue: 0,
+      };
+    } catch (error) {
+      console.error('[Dashboard] metrics error:', error);
+      return {
+        patientCount: 0,
+        sessionsThisMonth: 0,
+        monthlyRevenue: 0,
+        overallRevenue: 0,
+      };
+    }
   }),
   
   conversionFunnel: protectedProcedure.query(async () => {
