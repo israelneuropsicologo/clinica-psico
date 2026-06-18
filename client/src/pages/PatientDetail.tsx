@@ -2032,12 +2032,32 @@ function EditPatientDialog({ patient, open, onClose, onSuccess }: {
   onSuccess: () => void;
 }) {
   const [activeSection, setActiveSection] = useState("basic");
-  const [form, setForm] = useState(() => ({
+  const [form, setForm] = useState(() => {
+    // Normalizar birthDate para string no formato YYYY-MM-DD
+    let birthDateStr = "";
+    if (patient.birthDate) {
+      const bd = patient.birthDate;
+      if (bd instanceof Date) {
+        birthDateStr = bd.toISOString().split('T')[0];
+      } else if (typeof bd === 'string') {
+        // Se já é string, tenta converter para formato YYYY-MM-DD
+        const date = new Date(bd);
+        if (!isNaN(date.getTime())) {
+          birthDateStr = date.toISOString().split('T')[0];
+        } else {
+          birthDateStr = bd;
+        }
+      } else if (typeof bd === 'number') {
+        // Se é timestamp
+        birthDateStr = new Date(bd).toISOString().split('T')[0];
+      }
+    }
+    return ({
     name: (patient.name as string) ?? "",
     email: (patient.email as string) ?? "",
     phone: (patient.phone as string) ?? "",
     phone2: ((patient as Record<string, unknown>).phone2 as string) ?? "",
-    birthDate: (patient.birthDate as string) ?? "",
+    birthDate: birthDateStr,
     cpf: (patient.cpf as string) ?? "",
     gender: ((patient as Record<string, unknown>).gender as string) ?? "",
     maritalStatus: ((patient as Record<string, unknown>).maritalStatus as string) ?? "",
@@ -2067,7 +2087,8 @@ function EditPatientDialog({ patient, open, onClose, onSuccess }: {
     notes: (patient.notes as string) ?? "",
     sessionValue: (patient.sessionValue as string) ?? "",
     status: (patient.status as string) ?? "active",
-  }));
+  });
+  });
   const [cepLoading, setCepLoading] = useState(false);
 
   const updateMutation = trpc.patients.update.useMutation({
