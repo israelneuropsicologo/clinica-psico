@@ -73,14 +73,14 @@ export const anamneseRouter = router({
       const existing = await db
         .select({ id: anamnese.id })
         .from(anamnese)
-        .where(eq(anamnese.patientId, patientId))
+        .where(and(eq(anamnese.patientId, patientId), eq(anamnese.userId, ctx.user.id)))
         .limit(1);
 
       if (existing.length > 0) {
         await db
           .update(anamnese)
           .set(data as any)
-          .where(eq(anamnese.patientId, patientId));
+          .where(and(eq(anamnese.patientId, patientId), eq(anamnese.userId, ctx.user.id)));
       } else {
         await db.insert(anamnese).values({ ...data, patientId, userId: ctx.user.id } as any);
       }

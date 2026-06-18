@@ -1,1 +1,0 @@
-ALTER TABLE `patients` ADD `anamneseData` text;

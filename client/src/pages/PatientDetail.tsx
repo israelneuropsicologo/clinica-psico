@@ -1828,7 +1828,7 @@ function ClinicalNoteEditor({ note, onBack, patientId }: { note: Record<string, 
                 <Sparkles className="h-4 w-4 text-purple-500" /> Feedback Técnico por IA
               </h4>
               <div className="space-y-2">
-                <div className="p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                <div className="p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
                   <p className="text-xs text-purple-700 dark:text-purple-300">
                     A análise é gerada por Inteligência Artificial e serve como ferramenta de apoio para aprimoramento técnico do prontuário.{" "}
                     <span className="font-semibold">Não substitui o julgamento clínico do profissional.</span>
