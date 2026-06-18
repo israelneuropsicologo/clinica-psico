@@ -14,7 +14,7 @@ export async function generateReportPDF(
     const html2pdf = (await import("html2pdf.js")).default;
 
     const options = {
-      margin: 20, // Aumentado de 10 para 20 (margens maiores)
+      margin: 10,
       filename: fileName,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
@@ -66,10 +66,8 @@ export async function generateChartPDF(
     const jsPDF = (await import("jspdf")).jsPDF;
     const html2canvas = (await import("html2canvas")).default;
 
-    // Detectar se precisa de landscape para tabelas grandes
-    const needsLandscape = tables.some(t => t.offsetWidth > 800);
     const doc = new jsPDF({
-      orientation: needsLandscape ? "landscape" : "portrait",
+      orientation: "portrait",
       unit: "mm",
       format: "a4",
     });
@@ -77,7 +75,7 @@ export async function generateChartPDF(
     let yPosition = 20;
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15; // Aumentado de 10 para 15 (margens maiores)
+    const margin = 10;
     const contentWidth = pageWidth - 2 * margin;
 
     // Add title

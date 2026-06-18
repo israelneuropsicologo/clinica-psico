@@ -174,24 +174,8 @@ export function SessionDetailTabs({
                     onSuccess: (data) => {
                       console.log("[autoFill] Sucesso:", data);
                       // Preencher os campos com os dados da IA
-                      const mergedData = { ...localData, ...data };
-                      setLocalData(mergedData);
-                      setHasChanges(true);
-                      
-                      // Salvar automaticamente após preencher
-                      setTimeout(() => {
-                        if (isMountedRef.current) {
-                          try {
-                            onSave(mergedData);
-                            setHasChanges(false);
-                            toast.success("Prontuário preenchido com IA e salvo!");
-                          } catch (error) {
-                            console.error("Erro ao salvar após autoFill:", error);
-                            toast.error("Erro ao salvar prontuário: " + (error as Error).message);
-                          }
-                        }
-                      }, 500);
-                      
+                      onSave(data);
+                      toast.success("Prontuário preenchido com IA!");
                       utils.clinicalNotes.bySession.invalidate();
                     },
                     onError: (error) => {

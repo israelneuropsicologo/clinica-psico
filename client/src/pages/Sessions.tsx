@@ -199,13 +199,13 @@ export default function Sessions() {
                       />
                       <div 
                         className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 cursor-pointer"
-                        onClick={() => navigate(`/patients/${session.patientId}?tab=sessions&sessionId=${session.id}`)}
+                        onClick={() => navigate(`/sessions/${session.id}`)}
                       >
                         <User className="h-4 w-4 text-primary" />
                       </div>
                       <div 
                         className="min-w-0 cursor-pointer"
-                        onClick={() => navigate(`/patients/${session.patientId}?tab=sessions&sessionId=${session.id}`)}
+                        onClick={() => navigate(`/sessions/${session.id}`)}
                       >
                         <p className="font-semibold text-sm">{session.patient?.name || `Paciente #${session.patientId}`}</p>
                         <div className="flex items-center gap-3 mt-0.5 flex-wrap text-xs text-muted-foreground">
