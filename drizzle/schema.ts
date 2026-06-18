@@ -79,6 +79,8 @@ export const patients = mysqlTable("patients", {
   phone: varchar("phone", { length: 20 }),
   cpf: varchar("cpf", { length: 14 }).unique(),
   birthDate: timestamp("birthDate"),
+  isActive: tinyint("isActive").default(1).notNull(),
+  status: varchar("status", { length: 50 }).default("active"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

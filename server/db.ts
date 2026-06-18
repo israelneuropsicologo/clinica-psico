@@ -209,11 +209,12 @@ export async function getPatientCount(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
   
-  // Contar pacientes ativos - banco compartilhado, sem filtro de userId
+  // Contar todos os pacientes ativos (isActive = 1)
+  // Independentemente do status (active, scheduled, etc)
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(patients)
-    .where(eq(patients.status, "active"));
+    .where(eq(patients.isActive, true));
   return Number(result[0]?.count ?? 0);
 }
 
