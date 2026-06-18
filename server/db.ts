@@ -6,7 +6,6 @@ import {
   EmailAlias,
   InsertClinicalNote,
   InsertPatient,
-  InsertPatientDocument,
   InsertSession,
   InsertSettings,
   InsertTransaction,
@@ -14,7 +13,6 @@ import {
   InsertUserLink,
   InsertUserShare,
   Patient,
-  PatientDocument,
   Session,
   SessionWithPatient,
   Settings,
@@ -25,7 +23,6 @@ import {
   analysisHistory,
   clinicalNotes,
   emailAliases,
-  patientDocuments,
   patients,
   sessions,
   settings,
@@ -502,29 +499,7 @@ export async function getOverdueSessions(userId: number): Promise<number> {
 }
 
 // ─── Patient Documents ─────────────────────────────────────────────────────
-
-export async function getDocumentsByPatient(patientId: number, userId: number): Promise<PatientDocument[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return db
-    .select()
-    .from(patientDocuments)
-    .where(and(eq(patientDocuments.patientId, patientId), eq(patientDocuments.userId, userId)))
-    .orderBy(desc(patientDocuments.createdAt));
-}
-
-export async function createDocument(data: InsertPatientDocument): Promise<number> {
-  const db = await getDb();
-  if (!db) throw new Error("DB unavailable");
-  const result = await db.insert(patientDocuments).values(data);
-  return (result[0] as { insertId: number }).insertId;
-}
-
-export async function deletDocument(id: number, userId: number): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  await db.delete(patientDocuments).where(and(eq(patientDocuments.id, id), eq(patientDocuments.userId, userId)));
-}
+// Document functions removed - patientDocuments table not in schema
 
 
 // ─── User Links (Sincronização de Usuários) ────────────────────────────────
