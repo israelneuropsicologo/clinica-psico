@@ -411,8 +411,8 @@ export async function createClinicalNote(data: InsertClinicalNote): Promise<numb
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
   
-  // Filtrar apenas campos que existem no schema
-  const allowedFields = ['id', 'userId', 'patientId', 'sessionId', 'noteType', 'content', 'mood', 'progressRating', 'goals', 'interventions', 'homework', 'createdAt', 'updatedAt'];
+  // Filtrar apenas campos que existem no schema (sem mood, progressRating, goals, interventions, homework)
+  const allowedFields = ['id', 'userId', 'patientId', 'sessionId', 'noteType', 'content', 'createdAt', 'updatedAt'];
   const cleanData = Object.fromEntries(
     Object.entries(data).filter(([key]) => allowedFields.includes(key))
   ) as InsertClinicalNote;
