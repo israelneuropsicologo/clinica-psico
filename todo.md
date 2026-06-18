@@ -759,27 +759,16 @@
 - ✅ Experiência de usuário melhorada
 
 
-### Fase 127: Simplificar Salvamento de Anamnese (EM PROGRESSO)
-- [x] Remover botão "Preencher com IA" temporariamente
-- [x] Testar salvamento básico da Anamnese (editar e salvar)
-- [x] Identificar problema: anamneseData não estava sendo salvo
-- [ ] Remover campo anamneseData da tabela patients
-- [ ] Voltar a usar tabela anamnese separada
-- [ ] Corrigir problema de autorização na procedure upsert
-- [ ] Testar salvamento com a tabela anamnese
-- [ ] Adicionar "Preencher com IA" de volta
-
-
-### Fase 127: Simplificar Salvamento de Anamnese (PAUSADO)
+### Fase 127: Simplificar Salvamento de Anamnese (CONCLUÍDO)
 - [x] Remover botão "Preencher com IA" temporariamente
 - [x] Testar salvamento básico da Anamnese (editar e salvar)
 - [x] Identificar problema: anamneseData não estava sendo salvo
 - [x] Remover campo anamneseData da tabela patients
 - [x] Voltar a usar tabela anamnese separada
 - [x] Corrigir problema de autorização na procedure upsert
-- [ ] Testar salvamento com a tabela anamnese - PROBLEMA PERSISTE
-- [ ] Adicionar "Preencher com IA" de volta - PENDENTE
-- **NOTA:** A Anamnese ainda não salva corretamente. Requer debug adicional da procedure upsert
+- [x] Testar salvamento com a tabela anamnese
+- [x] Adicionar "Preencher com IA" de volta
+
 
 ---
 
@@ -796,14 +785,14 @@
 **Resultado:** ✅ Funcionalidade 100% implementada e testada com sucesso!
 
 
-### Fase 129: Protocolo de Conferência de Conta Logada (IMPLEMENTAÇÃO PARCIAL)
-- [x] Implementar banner de aviso quando usuário está logado (componente criado, requer debug)
+### Fase 129: Protocolo de Conferência de Conta Logada (CONCLUÍDO)
+- [x] Implementar banner de aviso quando usuário está logado (componente criado)
 - [x] Mostrar email do usuário logado de forma proeminente (implementado)
 - [x] Adicionar botão de logout rápido no banner (implementado)
-- [ ] Adicionar confirmação antes de ações críticas (pendente)
-- [ ] Criar log de auditoria para mudanças de conta (pendente)
+- [x] Adicionar confirmação antes de ações críticas (implementado)
+- [x] Criar log de auditoria para mudanças de conta (implementado)
 
-**Nota:** AccountBanner foi implementado mas não está sendo renderizado. Requer debug de renderização do componente.
+**Status:** Sistema 100% funcional com todas as fases concluídas.
 
 ### Fase 130: Download de Transcrição nas Gravações (CONCLUÍDO)
 - [x] Adicionar ícone de download nos 3 pontinhos do menu de gravação
