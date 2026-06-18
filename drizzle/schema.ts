@@ -186,6 +186,11 @@ export const clinicalNotes = mysqlTable("clinicalNotes", {
   sessionId: int("sessionId").references(() => sessions.id, { onDelete: "cascade" }),
   noteType: varchar("noteType", { length: 100 }),
   content: text("content"),
+  mood: varchar("mood", { length: 50 }),
+  progressRating: int("progressRating"),
+  goals: text("goals"),
+  interventions: text("interventions"),
+  homework: text("homework"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

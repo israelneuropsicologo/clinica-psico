@@ -310,7 +310,13 @@ export async function createSession(data: InsertSession): Promise<number> {
   // ✅ Sem validação de permissão - proprietário pode criar sessão para qualquer paciente
   // Pacientes vêm do webhook, proprietário precisa criar sessões para eles
   
-  const result = await db.insert(sessions).values(data);
+  // Filtrar apenas campos que existem no schema
+  const allowedFields = ['id', 'userId', 'patientId', 'sessionDate', 'duration', 'notes', 'isPaid', 'createdAt', 'updatedAt'];
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([key]) => allowedFields.includes(key))
+  ) as InsertSession;
+  
+  const result = await db.insert(sessions).values(cleanData);
   return (result[0] as { insertId: number }).insertId;
 }
 
@@ -404,7 +410,14 @@ export async function getClinicalNotesByPatient(patientId: number, userId: numbe
 export async function createClinicalNote(data: InsertClinicalNote): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  const result = await db.insert(clinicalNotes).values(data);
+  
+  // Filtrar apenas campos que existem no schema
+  const allowedFields = ['id', 'userId', 'patientId', 'sessionId', 'noteType', 'content', 'mood', 'progressRating', 'goals', 'interventions', 'homework', 'createdAt', 'updatedAt'];
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([key]) => allowedFields.includes(key))
+  ) as InsertClinicalNote;
+  
+  const result = await db.insert(clinicalNotes).values(cleanData);
   return (result[0] as { insertId: number }).insertId;
 }
 
