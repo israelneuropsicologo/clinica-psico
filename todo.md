@@ -857,7 +857,7 @@
 - [x] Testar download direto em desktop e mobile
 - [x] Validar que arquivo é salvo com nome correto
 - [x] Criar testes Vitest para download de áudio
-- [ ] Criar checkpoint final
+- [x] Criar checkpoint final (versão 71f44d39 - Sistema 100% funcional com criação de pacientes)
 
 **Objetivo:** Permitir download direto do arquivo de áudio (MP3/WebM) em vez de apenas abrir o link CloudFront no navegador.
 
