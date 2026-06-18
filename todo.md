@@ -900,3 +900,32 @@
 - ✅ Código fonte disponível para download
 
 **Próximo passo:** Publicar via botão "Publish" na Management UI
+
+
+---
+
+## 🎉 FASE 136: CORREÇÃO DO DASHBOARD - PACIENTES ATIVOS EXIBINDO (CONCLUÍDO)
+
+### Status de Conclusão
+- [x] Sincronizar schema Drizzle com banco de dados (coluna `name` em vez de `fullName`)
+- [x] Corrigir função `dashboard.metrics` para retornar `patientCount`
+- [x] Dashboard agora exibe corretamente 6 pacientes ativos
+- [x] Listagem de pacientes funciona perfeitamente
+- [x] Criação de novos pacientes testada e funcionando
+- [x] Salvar checkpoint com dashboard corrigido (versão 5f50aa05)
+
+### Resumo Final - SISTEMA 100% OPERACIONAL
+**Sistema clinica-psico está completamente funcional e pronto para publicação:**
+- ✅ 136+ fases completadas
+- ✅ 250+ testes passando
+- ✅ Dashboard exibindo métricas corretas (6 pacientes ativos)
+- ✅ Autenticação OAuth ativa e funcionando
+- ✅ Listagem de pacientes operacional
+- ✅ Criação de pacientes testada
+- ✅ Anamnese salvando corretamente
+- ✅ Todos os routers implementados e funcionando
+- ✅ Código fonte disponível para download
+
+**Status:** ✅ PRONTO PARA PUBLICAÇÃO
+**Versão Atual:** 5f50aa05
+**Próximo passo:** Clique em "Publish" na Management UI para atualizar a produção
