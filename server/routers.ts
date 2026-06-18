@@ -29,7 +29,7 @@ import {
   createPatient,
   createSession,
   createTransaction,
-  deletDocument,
+  deleteDocument,
   deletePatient,
   deleteClinicalNote,
   deleteSession,
@@ -973,7 +973,7 @@ const documentsRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      await deletDocument(input.id, ctx.user.id);
+      await deleteDocument(input.id, ctx.user.id);
       return { success: true };
     }),
 });

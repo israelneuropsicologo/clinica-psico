@@ -1,4 +1,4 @@
-import { mysqlTable, int, varchar, text, timestamp, mysqlEnum, boolean, decimal } from 'drizzle-orm/mysql-core';
+import { mysqlTable, int, varchar, text, timestamp, mysqlEnum, boolean, decimal, tinyint, date, json } from 'drizzle-orm/mysql-core';
 
 /**
  * Core user table backing auth flow.
@@ -223,6 +223,230 @@ export const transactions = mysqlTable("transactions", {
 
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = typeof transactions.$inferInsert;
+
+// ─── API Tokens Table ───────────────────────────────────────────────────────
+export const apiTokens = mysqlTable("apiTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  isActive: tinyint("isActive").default(1).notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ApiToken = typeof apiTokens.$inferSelect;
+export type InsertApiToken = typeof apiTokens.$inferInsert;
+
+// ─── Webhook Logs Table ───────────────────────────────────────────────────────
+export const webhookLogs = mysqlTable("webhookLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  webhookType: varchar("webhookType", { length: 100 }).notNull(),
+  payload: json("payload"),
+  statusCode: int("statusCode"),
+  response: text("response"),
+  error: text("error"),
+  isSuccess: tinyint("isSuccess").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type WebhookLog = typeof webhookLogs.$inferSelect;
+export type InsertWebhookLog = typeof webhookLogs.$inferInsert;
+
+// ─── Sync Logs Table ───────────────────────────────────────────────────────
+export const syncLogs = mysqlTable("syncLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  syncType: varchar("syncType", { length: 100 }).notNull(),
+  source: varchar("source", { length: 100 }).notNull(),
+  target: varchar("target", { length: 100 }).notNull(),
+  recordsProcessed: int("recordsProcessed").default(0),
+  recordsSucceeded: int("recordsSucceeded").default(0),
+  recordsFailed: int("recordsFailed").default(0),
+  error: text("error"),
+  isSuccess: tinyint("isSuccess").default(0).notNull(),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type SyncLog = typeof syncLogs.$inferSelect;
+export type InsertSyncLog = typeof syncLogs.$inferInsert;
+
+// ─── Session Recordings Table ───────────────────────────────────────────────────────
+export const sessionRecordings = mysqlTable("sessionRecordings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sessionId: int("sessionId").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+  recordingUrl: text("recordingUrl"),
+  fileKey: varchar("fileKey", { length: 255 }),
+  duration: int("duration"),
+  fileSize: int("fileSize"),
+  isTranscribed: tinyint("isTranscribed").default(0).notNull(),
+  transcription: text("transcription"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SessionRecording = typeof sessionRecordings.$inferSelect;
+export type InsertSessionRecording = typeof sessionRecordings.$inferInsert;
+
+// ─── User Links Table (for multi-user clinic sharing) ───────────────────────────────────
+export const userLinks = mysqlTable("userLinks", {
+  id: int("id").autoincrement().primaryKey(),
+  primaryUserId: int("primaryUserId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  linkedUserId: int("linkedUserId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  permission: mysqlEnum("permission", ["view", "edit", "admin"]).default("view").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserLink = typeof userLinks.$inferSelect;
+export type InsertUserLink = typeof userLinks.$inferInsert;
+
+// ─── User Shares Table (for patient sharing between users) ───────────────────────────────────
+export const userShares = mysqlTable("userShares", {
+  id: int("id").autoincrement().primaryKey(),
+  fromUserId: int("fromUserId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  toUserId: int("toUserId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  patientId: int("patientId").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  permission: mysqlEnum("permission", ["view", "edit", "admin"]).default("view").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserShare = typeof userShares.$inferSelect;
+export type InsertUserShare = typeof userShares.$inferInsert;
+
+// ─── Timeline Analyses Table ───────────────────────────────────────────────────────
+export const timelineAnalyses = mysqlTable("timelineAnalyses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  patientId: int("patientId").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  analysisType: varchar("analysisType", { length: 100 }).notNull(),
+  content: text("content"),
+  summary: text("summary"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TimelineAnalysis = typeof timelineAnalyses.$inferSelect;
+export type InsertTimelineAnalysis = typeof timelineAnalyses.$inferInsert;
+
+// ─── Patient Invitations Table ───────────────────────────────────────────────────────
+export const patientInvitations = mysqlTable("patientInvitations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  patientId: int("patientId").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  email: varchar("email", { length: 320 }).notNull(),
+  status: mysqlEnum("status", ["pending", "accepted", "rejected", "expired"]).default("pending").notNull(),
+  expiresAt: timestamp("expiresAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PatientInvitation = typeof patientInvitations.$inferSelect;
+export type InsertPatientInvitation = typeof patientInvitations.$inferInsert;
+
+// ─── Internal Users Table (for internal clinic staff) ───────────────────────────────────
+export const internalUsers = mysqlTable("internalUsers", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  roleId: int("roleId").notNull().references(() => roles.id, { onDelete: "set null" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  phone: varchar("phone", { length: 20 }),
+  isActive: tinyint("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type InternalUser = typeof internalUsers.$inferSelect;
+export type InsertInternalUser = typeof internalUsers.$inferInsert;
+
+// ─── Agent Communications Table ───────────────────────────────────────────────────────
+export const agentCommunications = mysqlTable("agentCommunications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  agentId: varchar("agentId", { length: 100 }).notNull(),
+  agentName: varchar("agentName", { length: 255 }).notNull(),
+  messageType: varchar("messageType", { length: 100 }).notNull(),
+  content: text("content"),
+  response: text("response"),
+  status: mysqlEnum("status", ["pending", "processing", "completed", "failed"]).default("pending").notNull(),
+  error: text("error"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgentCommunication = typeof agentCommunications.$inferSelect;
+export type InsertAgentCommunication = typeof agentCommunications.$inferInsert;
+
+// ─── Agent Analysis Table ───────────────────────────────────────────────────────
+export const agentAnalysis = mysqlTable("agentAnalysis", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  patientId: int("patientId").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  analysisType: varchar("analysisType", { length: 100 }).notNull(),
+  findings: text("findings"),
+  recommendations: text("recommendations"),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgentAnalysis = typeof agentAnalysis.$inferSelect;
+export type InsertAgentAnalysis = typeof agentAnalysis.$inferInsert;
+
+// ─── Agent Health Metrics Table ───────────────────────────────────────────────────────
+export const agentHealthMetrics = mysqlTable("agentHealthMetrics", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  metricType: varchar("metricType", { length: 100 }).notNull(),
+  value: decimal("value", { precision: 10, scale: 2 }).notNull(),
+  unit: varchar("unit", { length: 50 }),
+  status: mysqlEnum("status", ["normal", "warning", "critical"]).default("normal").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AgentHealthMetric = typeof agentHealthMetrics.$inferSelect;
+export type InsertAgentHealthMetric = typeof agentHealthMetrics.$inferInsert;
+
+// ─── Agent Tokens Table ───────────────────────────────────────────────────────
+export const agentTokens = mysqlTable("agentTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  agentId: varchar("agentId", { length: 100 }).notNull(),
+  tokensUsed: int("tokensUsed").default(0).notNull(),
+  tokensRemaining: int("tokensRemaining").default(0).notNull(),
+  totalAllocation: int("totalAllocation").default(0).notNull(),
+  resetDate: timestamp("resetDate"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgentToken = typeof agentTokens.$inferSelect;
+export type InsertAgentToken = typeof agentTokens.$inferInsert;
+
+// ─── Daily Reports Table ───────────────────────────────────────────────────────
+export const dailyReports = mysqlTable("dailyReports", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  reportDate: date("reportDate").notNull(),
+  totalPatients: int("totalPatients").default(0),
+  totalSessions: int("totalSessions").default(0),
+  totalRevenue: decimal("totalRevenue", { precision: 10, scale: 2 }).default(0),
+  summary: text("summary"),
+  metrics: json("metrics"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DailyReport = typeof dailyReports.$inferSelect;
+export type InsertDailyReport = typeof dailyReports.$inferInsert;
 
 // ─── Anamnese Table (alias for anamneseV1) ───────────────────────────────────
 export const anamnese = anamneseV1;

@@ -3,13 +3,17 @@ import { drizzle } from "drizzle-orm/mysql2";
 import {
   AnalysisHistory,
   ClinicalNote,
+  Document,
   EmailAlias,
   InsertClinicalNote,
+  InsertDocument,
   InsertPatient,
   InsertSession,
   InsertSettings,
   InsertTransaction,
   InsertUser,
+  InsertUserLink,
+  InsertUserShare,
 
   Patient,
   Session,
@@ -17,15 +21,20 @@ import {
   Settings,
   Transaction,
   User,
+  UserLink,
+  UserShare,
 
   analysisHistory,
   clinicalNotes,
+  documents,
   emailAliases,
   patients,
   sessions,
   settings,
   transactions,
   users,
+  userLinks,
+  userShares,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -1261,4 +1270,35 @@ export async function getTopPatientsByRevenue(userId: number, limit: number = 10
     name: r.name,
     revenue: Number(r.revenue),
   }));
+}
+
+
+// ─── Documents ────────────────────────────────────────────────────────────────
+
+export async function getDocumentsByPatient(patientId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db
+    .select()
+    .from(documents)
+    .where(and(eq(documents.patientId, patientId), eq(documents.userId, userId)))
+    .orderBy(desc(documents.createdAt));
+}
+
+export async function createDocument(data: InsertDocument): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+
+  const result = await db.insert(documents).values(data);
+  return (result[0] as { insertId: number }).insertId;
+}
+
+export async function deleteDocument(id: number, userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db
+    .delete(documents)
+    .where(and(eq(documents.id, id), eq(documents.userId, userId)));
 }
