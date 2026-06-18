@@ -2081,7 +2081,17 @@ function EditPatientDialog({ patient, open, onClose, onSuccess }: {
     insuranceName: ((patient as Record<string, unknown>).insuranceName as string) ?? "",
     insuranceNumber: ((patient as Record<string, unknown>).insuranceNumber as string) ?? "",
     insurancePlan: ((patient as Record<string, unknown>).insurancePlan as string) ?? "",
-    insuranceExpiry: ((patient as Record<string, unknown>).insuranceExpiry as string) ?? "",
+    insuranceExpiry: (() => {
+      const expiry = (patient as Record<string, unknown>).insuranceExpiry;
+      if (!expiry) return "";
+      if (expiry instanceof Date) return expiry.toISOString().split('T')[0];
+      if (typeof expiry === 'string') {
+        const date = new Date(expiry);
+        return !isNaN(date.getTime()) ? date.toISOString().split('T')[0] : expiry;
+      }
+      if (typeof expiry === 'number') return new Date(expiry).toISOString().split('T')[0];
+      return "";
+    })(),
     // Clínico
     mainComplaint: (patient.mainComplaint as string) ?? "",
     medications: (patient.medications as string) ?? "",
