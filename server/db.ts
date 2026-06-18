@@ -53,11 +53,17 @@ export async function getPatientByIdShared(id: number, userId: string) {
 export async function getPatients(userId: string, search?: string) {
   const db = await getDb();
   if (!db) return [];
-  let query = db.select().from(patients).where(eq(patients.userId, parseInt(userId)));
-  if (search) {
-    query = query.where(eq(patients.fullName, search));
+  try {
+    let query = db.select().from(patients).where(eq(patients.userId, parseInt(userId)));
+    if (search) {
+      query = query.where(eq(patients.name, search));
+    }
+    const result = await query;
+    return result;
+  } catch (error) {
+    console.error('[DB] getPatients error:', error);
+    return [];
   }
-  return query;
 }
 
 export async function createPatient(data: InsertPatient) {

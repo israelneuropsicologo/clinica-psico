@@ -74,7 +74,7 @@ export type InsertAnamneseV1 = typeof anamneseV1.$inferInsert;
 export const patients = mysqlTable("patients", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  fullName: varchar("fullName", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }),
   phone: varchar("phone", { length: 20 }),
   cpf: varchar("cpf", { length: 14 }).unique(),

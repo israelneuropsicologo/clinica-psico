@@ -45,12 +45,12 @@ const patientsRouter = router({
         const userId = ctx.user?.id ? parseInt(ctx.user.id) : 0;
         if (userId === 0) throw new Error("User not authenticated");
         
-        const fullName = input.fullName || input.name;
-        if (!fullName) throw new Error("fullName or name is required");
+        const name = input.fullName || input.name;
+        if (!name) throw new Error("fullName or name is required");
         
         const id = await createPatient({
           userId,
-          fullName,
+          name,
           email: input.email || null,
           phone: input.phone || null,
           birthDate: input.birthDate ? new Date(input.birthDate) : null,
