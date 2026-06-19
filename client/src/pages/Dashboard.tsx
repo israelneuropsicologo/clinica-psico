@@ -1,5 +1,7 @@
 import { StatusBadge } from "@/components/StatusBadge";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import {
   AlertCircle,
@@ -62,10 +64,11 @@ const monthlyData = [
 // Conversion data will be fetched from backend
 
 export default function Dashboard() {
+  const [trendPeriod, setTrendPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const { data: metrics, isLoading } = trpc.dashboard.metrics.useQuery();
   const { data: conversionData, isLoading: conversionLoading } = trpc.dashboard.conversionFunnel.useQuery();
-  const { data: patientGrowthData, isLoading: patientGrowthLoading } = trpc.dashboard.patientGrowth.useQuery();
-  const { data: revenueHistoryData, isLoading: revenueHistoryLoading } = trpc.dashboard.revenueHistory.useQuery();
+  const { data: patientGrowthData, isLoading: patientGrowthLoading } = trpc.dashboard.patientGrowth.useQuery({ period: trendPeriod });
+  const { data: revenueHistoryData, isLoading: revenueHistoryLoading } = trpc.dashboard.revenueHistory.useQuery({ period: trendPeriod });
   const [, navigate] = useLocation();
 
   return (
@@ -179,7 +182,37 @@ export default function Dashboard() {
         </Card>
 
         {/* Trend Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          {/* Period Filter */}
+          <div className="flex gap-2">
+            <Button
+              variant={trendPeriod === 'month' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTrendPeriod('month')}
+              className="text-xs"
+            >
+              Últimos 30 dias
+            </Button>
+            <Button
+              variant={trendPeriod === 'quarter' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTrendPeriod('quarter')}
+              className="text-xs"
+            >
+              Últimos 6 meses
+            </Button>
+            <Button
+              variant={trendPeriod === 'year' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTrendPeriod('year')}
+              className="text-xs"
+            >
+              Ano atual
+            </Button>
+          </div>
+
+          {/* Charts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -261,6 +294,7 @@ export default function Dashboard() {
               )}
             </CardContent>
           </Card>
+          </div>
         </div>
 
         {/* Charts Row */}

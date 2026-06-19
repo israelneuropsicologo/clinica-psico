@@ -1320,9 +1320,22 @@ export async function deleteDocument(id: number, userId: number): Promise<void> 
 }
 
 // ─── Patient Growth History (para gráficos de tendência) ────────────────────
-export async function getPatientGrowthHistory(userId: number, months: number = 12): Promise<Array<{ month: string; count: number }>> {
+export async function getPatientGrowthHistory(userId: number, period: 'month' | 'quarter' | 'year' = 'year'): Promise<Array<{ month: string; count: number }>> {
   const db = await getDb();
   if (!db) return [];
+
+  const now = new Date();
+  let startDate: Date;
+
+  // Calcular data de início baseado no período
+  if (period === 'month') {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+  } else if (period === 'quarter') {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+  } else {
+    // year
+    startDate = new Date(now.getFullYear(), 0, 1);
+  }
 
   const result = await db
     .select({
@@ -1330,7 +1343,7 @@ export async function getPatientGrowthHistory(userId: number, months: number = 1
       count: sql<number>`COUNT(*)`,
     })
     .from(patients)
-    .where(eq(patients.userId, userId))
+    .where(and(eq(patients.userId, userId), sql`createdAt >= ${startDate}`))
     .groupBy(sql`YEAR(createdAt), MONTH(createdAt)`)
     .orderBy(sql`YEAR(createdAt), MONTH(createdAt)`);
 
@@ -1341,9 +1354,22 @@ export async function getPatientGrowthHistory(userId: number, months: number = 1
 }
 
 // ─── Revenue History (para gráficos de tendência) ────────────────────────────
-export async function getRevenueHistory(userId: number, months: number = 12): Promise<Array<{ month: string; revenue: number }>> {
+export async function getRevenueHistory(userId: number, period: 'month' | 'quarter' | 'year' = 'year'): Promise<Array<{ month: string; revenue: number }>> {
   const db = await getDb();
   if (!db) return [];
+
+  const now = new Date();
+  let startDate: Date;
+
+  // Calcular data de início baseado no período
+  if (period === 'month') {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+  } else if (period === 'quarter') {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+  } else {
+    // year
+    startDate = new Date(now.getFullYear(), 0, 1);
+  }
 
   const result = await db
     .select({
@@ -1352,7 +1378,7 @@ export async function getRevenueHistory(userId: number, months: number = 12): Pr
     })
     .from(transactions)
     .innerJoin(patients, eq(transactions.patientId, patients.id))
-    .where(eq(patients.userId, userId))
+    .where(and(eq(patients.userId, userId), sql`transactions.createdAt >= ${startDate}`))
     .groupBy(sql`YEAR(transactions.createdAt), MONTH(transactions.createdAt)`)
     .orderBy(sql`YEAR(transactions.createdAt), MONTH(transactions.createdAt)`);
 

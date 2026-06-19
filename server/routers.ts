@@ -1025,13 +1025,17 @@ const dashboardRouter = router({
     };
   }),
 
-  patientGrowth: protectedProcedure.query(async ({ ctx }) => {
-    return getPatientGrowthHistory(ctx.user.id, 12);
-  }),
+  patientGrowth: protectedProcedure
+    .input(z.object({ period: z.enum(["month", "quarter", "year"]).default("year") }))
+    .query(async ({ ctx, input }) => {
+      return getPatientGrowthHistory(ctx.user.id, input.period);
+    }),
 
-  revenueHistory: protectedProcedure.query(async ({ ctx }) => {
-    return getRevenueHistory(ctx.user.id, 12);
-  }),
+  revenueHistory: protectedProcedure
+    .input(z.object({ period: z.enum(["month", "quarter", "year"]).default("year") }))
+    .query(async ({ ctx, input }) => {
+      return getRevenueHistory(ctx.user.id, input.period);
+    }),
 
   cumulativePatients: protectedProcedure.query(async ({ ctx }) => {
     return getCumulativePatientCount(ctx.user.id);

@@ -850,3 +850,37 @@
 - [ ] Testar visualizações com dados reais
 - [ ] Criar testes Vitest para procedures de dados históricos
 - [ ] Salvar checkpoint com gráficos implementados
+
+### Fase 135: Gráficos de Tendência no Dashboard (CONCLUÍDO)
+- [x] Corrigir dashboard mostrando 0 pacientes (isActive não era setado)
+- [x] Adicionar isActive: 1 em 8 locais onde pacientes são criados
+- [x] Criar procedure tRPC para histórico de crescimento de pacientes
+- [x] Criar procedure tRPC para histórico de receita
+- [x] Criar procedure tRPC para contagem cumulativa de pacientes
+- [x] Implementar gráfico de Área para crescimento de pacientes (12 meses)
+- [x] Implementar gráfico de Barras para receita mensal (12 meses)
+- [x] Adicionar loading states e empty states
+- [x] Testar visualizações com dados reais
+- [x] Criar checkpoint final
+
+**Implementação:**
+- Backend: 3 novas funções em db.ts para histórico de dados
+- API: 3 novas procedures em dashboard router
+- Frontend: 2 novos gráficos no Dashboard.tsx com Recharts
+- Gráficos responsivos e com formatação de moeda
+
+### Fase 136: Filtros de Período nos Gráficos de Tendência (CONCLUÍDO)
+- [x] Atualizar procedures tRPC para aceitar parâmetro de período
+- [x] Implementar lógica de filtro por últimos 30 dias
+- [x] Implementar lógica de filtro por últimos 6 meses
+- [x] Implementar lógica de filtro por ano atual
+- [x] Criar componente de seletor de período no Dashboard
+- [x] Adicionar estado local para período selecionado
+- [x] Testar filtros com diferentes períodos
+- [x] Criar checkpoint com filtros implementados
+
+**Implementação:**
+- Backend: Procedures atualizadas para aceitar 'month', 'quarter' ou 'year'
+- Frontend: 3 botões de filtro (30 dias, 6 meses, ano atual)
+- Estado reativo com useState para mudar período
+- Gráficos atualizam automaticamente ao mudar filtro
