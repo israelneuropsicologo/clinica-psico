@@ -18,6 +18,8 @@ import {
   Legend,
   BarChart,
   Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
