@@ -64,6 +64,8 @@ const monthlyData = [
 export default function Dashboard() {
   const { data: metrics, isLoading } = trpc.dashboard.metrics.useQuery();
   const { data: conversionData, isLoading: conversionLoading } = trpc.dashboard.conversionFunnel.useQuery();
+  const { data: patientGrowthData, isLoading: patientGrowthLoading } = trpc.dashboard.patientGrowth.useQuery();
+  const { data: revenueHistoryData, isLoading: revenueHistoryLoading } = trpc.dashboard.revenueHistory.useQuery();
   const [, navigate] = useLocation();
 
   return (
@@ -175,6 +177,91 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Trend Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                Crescimento de Pacientes (12 meses)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {patientGrowthLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <div className="text-muted-foreground">Carregando...</div>
+                </div>
+              ) : !patientGrowthData || patientGrowthData.length === 0 ? (
+                <div className="h-64 flex items-center justify-center text-center">
+                  <div>
+                    <p className="text-muted-foreground text-sm">Sem dados de crescimento</p>
+                  </div>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart data={patientGrowthData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                    <defs>
+                      <linearGradient id="patientGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip
+                      contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }}
+                      formatter={(v: number) => [`${v} pacientes`, "Novos"]}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      fill="url(#patientGrad)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-accent" />
+                Receita por Mês (12 meses)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {revenueHistoryLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <div className="text-muted-foreground">Carregando...</div>
+                </div>
+              ) : !revenueHistoryData || revenueHistoryData.length === 0 ? (
+                <div className="h-64 flex items-center justify-center text-center">
+                  <div>
+                    <p className="text-muted-foreground text-sm">Sem dados de receita</p>
+                  </div>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={revenueHistoryData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip
+                      contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }}
+                      formatter={(v: number) => [formatCurrency(v), "Receita"]}
+                    />
+                    <Bar dataKey="revenue" name="Receita" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -1318,3 +1318,72 @@ export async function deleteDocument(id: number, userId: number): Promise<void> 
     .delete(documents)
     .where(and(eq(documents.id, id), eq(documents.userId, userId)));
 }
+
+// ─── Patient Growth History (para gráficos de tendência) ────────────────────
+export async function getPatientGrowthHistory(userId: number, months: number = 12): Promise<Array<{ month: string; count: number }>> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select({
+      month: sql<string>`CONCAT(YEAR(createdAt), '-', LPAD(MONTH(createdAt), 2, '0'))`,
+      count: sql<number>`COUNT(*)`,
+    })
+    .from(patients)
+    .where(eq(patients.userId, userId))
+    .groupBy(sql`YEAR(createdAt), MONTH(createdAt)`)
+    .orderBy(sql`YEAR(createdAt), MONTH(createdAt)`);
+
+  return result.map((r) => ({
+    month: r.month,
+    count: Number(r.count),
+  }));
+}
+
+// ─── Revenue History (para gráficos de tendência) ────────────────────────────
+export async function getRevenueHistory(userId: number, months: number = 12): Promise<Array<{ month: string; revenue: number }>> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select({
+      month: sql<string>`CONCAT(YEAR(transactions.createdAt), '-', LPAD(MONTH(transactions.createdAt), 2, '0'))`,
+      revenue: sql<number>`COALESCE(SUM(CASE WHEN transactions.type = 'income' AND transactions.status = 'paid' THEN transactions.amount ELSE 0 END), 0)`,
+    })
+    .from(transactions)
+    .innerJoin(patients, eq(transactions.patientId, patients.id))
+    .where(eq(patients.userId, userId))
+    .groupBy(sql`YEAR(transactions.createdAt), MONTH(transactions.createdAt)`)
+    .orderBy(sql`YEAR(transactions.createdAt), MONTH(transactions.createdAt)`);
+
+  return result.map((r) => ({
+    month: r.month,
+    revenue: Number(r.revenue),
+  }));
+}
+
+// ─── Cumulative Patient Count (para gráficos de crescimento acumulado) ──────
+export async function getCumulativePatientCount(userId: number): Promise<Array<{ month: string; totalPatients: number }>> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select({
+      month: sql<string>`CONCAT(YEAR(createdAt), '-', LPAD(MONTH(createdAt), 2, '0'))`,
+      count: sql<number>`COUNT(*)`,
+    })
+    .from(patients)
+    .where(eq(patients.userId, userId))
+    .groupBy(sql`YEAR(createdAt), MONTH(createdAt)`)
+    .orderBy(sql`YEAR(createdAt), MONTH(createdAt)`);
+
+  // Calculate cumulative count
+  let cumulative = 0;
+  return result.map((r) => {
+    cumulative += Number(r.count);
+    return {
+      month: r.month,
+      totalPatients: cumulative,
+    };
+  });
+}

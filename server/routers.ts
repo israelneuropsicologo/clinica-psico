@@ -51,6 +51,9 @@ import {
   updatePatient,
   updateSession,
   updateTransaction,
+  getPatientGrowthHistory,
+  getRevenueHistory,
+  getCumulativePatientCount,
 } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { generatePatientReport, generateFinancialReport, type ReportFilters } from "./_core/reportGenerator";
@@ -1020,6 +1023,18 @@ const dashboardRouter = router({
       conversionRate,
       total,
     };
+  }),
+
+  patientGrowth: protectedProcedure.query(async ({ ctx }) => {
+    return getPatientGrowthHistory(ctx.user.id, 12);
+  }),
+
+  revenueHistory: protectedProcedure.query(async ({ ctx }) => {
+    return getRevenueHistory(ctx.user.id, 12);
+  }),
+
+  cumulativePatients: protectedProcedure.query(async ({ ctx }) => {
+    return getCumulativePatientCount(ctx.user.id);
   }),
 });
 
