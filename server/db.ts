@@ -209,12 +209,14 @@ export async function getPatientCount(userId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
   
-  // Contar todos os pacientes ativos (isActive = 1)
-  // Independentemente do status (active, scheduled, etc)
+  // Contar todos os pacientes ativos (isActive = 1) do usuário
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(patients)
-    .where(eq(patients.isActive, true));
+    .where(and(
+      eq(patients.userId, userId),
+      eq(patients.isActive, 1)  // Usar 1 em vez de true
+    ));
   return Number(result[0]?.count ?? 0);
 }
 
