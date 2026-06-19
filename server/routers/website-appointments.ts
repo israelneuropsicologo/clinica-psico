@@ -78,6 +78,7 @@ export const websiteAppointmentsRouter = router({
             phone: input.phone || null,
             mainComplaint: input.observations || input.consultationType,
             status: "active",
+            isActive: 1,
             leadSource: "website",
             leadStatus: "lead",
             createdAt: new Date(),

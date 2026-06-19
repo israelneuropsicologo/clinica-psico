@@ -147,6 +147,7 @@ const patientsRouter = router({
           medications: input.medications || null,
           notes: input.notes || null,
           status: "active",
+          isActive: 1,
           leadSource: "manual",
           leadStatus: "customer",
           interactionCount: 1,

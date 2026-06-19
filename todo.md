@@ -839,3 +839,14 @@
 - [x] Adicionar subtítulo "Supervisão" na análise
 - [x] Testar funcionalidade completa
 - [x] Criar checkpoint final
+
+### Fase 85: Gráficos de Tendência no Dashboard
+- [ ] Criar procedure tRPC para buscar dados históricos de pacientes (agrupado por mês)
+- [ ] Criar procedure tRPC para buscar dados de receita ao longo do tempo
+- [ ] Instalar biblioteca Recharts para gráficos
+- [ ] Implementar componente LineChart para crescimento de pacientes
+- [ ] Implementar componente AreaChart para receita mensal
+- [ ] Adicionar gráficos ao Dashboard.tsx
+- [ ] Testar visualizações com dados reais
+- [ ] Criar testes Vitest para procedures de dados históricos
+- [ ] Salvar checkpoint com gráficos implementados

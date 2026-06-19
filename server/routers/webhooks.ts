@@ -149,6 +149,7 @@ export const webhooksRouter = router({
             mainComplaint: input.main_complaint,
             medicalHistory: input.medical_history,
             status: "active",
+            isActive: 1,
             leadSource: "direct_booking",
             leadStatus: "customer",
             interactionCount: 1,
@@ -594,6 +595,7 @@ export const webhooksRouter = router({
           phone: input.phone || null,
           mainComplaint: input.message,
           status: "active",
+          isActive: 1,
           leadSource: "chatbot",
           leadStatus: "lead",
           interactionCount: 1,
@@ -705,6 +707,7 @@ export const webhooksRouter = router({
             email: input.customer_email,
             phone: input.customer_phone || null,
             status: "active",
+            isActive: 1,
             leadSource: "chatbot",
             leadStatus: "customer",
             interactionCount: 1,
@@ -936,6 +939,7 @@ export const webhooksRouter = router({
           leadSource: "chatbot",
           leadStatus: "lead",
           status: "active",
+          isActive: 1,
           interactionCount: 1,
           lastInteractionAt: new Date(),
         };
@@ -1024,6 +1028,7 @@ export const webhooksRouter = router({
             leadSource: "direct_booking",
             leadStatus: "customer",
             status: "active",
+            isActive: 1,
             interactionCount: 1,
             lastInteractionAt: new Date(),
             createdAt: new Date(),
@@ -1250,10 +1255,14 @@ export const webhooksRouter = router({
         }
 
         const patientId = await createPatient({
+          userId: 1,
           name: input.customer_name,
           email: input.customer_email,
           phone: input.customer_phone,
+          status: "active",
+          isActive: 1,
           leadSource: "website",
+          leadStatus: "customer",
         });
 
         const scheduledAt = new Date(`${input.appointment_date}T${input.appointment_time}`);

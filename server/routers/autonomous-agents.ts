@@ -191,7 +191,10 @@ export const autonomousAgentsRouter = router({
             name: appointmentData.customer_name,
             email: appointmentData.customer_email,
             phone: appointmentData.customer_phone,
+            status: "active",
+            isActive: 1,
             leadSource: "website",
+            leadStatus: "customer",
           });
           
           // Criar sessão
