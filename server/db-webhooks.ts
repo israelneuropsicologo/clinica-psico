@@ -10,6 +10,20 @@ export async function createApiToken(userId: number, name: string, description?:
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  // PASSO 1: Validar se o userId existe na tabela users
+  const { users } = await import("../drizzle/schema");
+  const userExists = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (userExists.length === 0) {
+    const error = new Error(`User with id ${userId} does not exist`);
+    console.error(`[createApiToken] Erro de validação:`, error.message);
+    throw error;
+  }
+
   // Gerar token aleatório (64 caracteres)
   const token = `sk_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
 
