@@ -365,10 +365,36 @@ export default function Dashboard() {
               {/* Chat Messages */}
               <div className="h-64 bg-muted/30 rounded-lg p-4 overflow-y-auto space-y-3 border">
                 {aiMessages.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-center text-muted-foreground">
+                  <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground space-y-4">
                     <div>
                       <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p className="text-sm">Comece uma conversa com o assistente de IA</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 w-full">
+                      <button
+                        onClick={() => setAiInput('Resuma as metricas do mes para mim')}
+                        className="text-xs px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-left"
+                      >
+                        Resumir metricas do mes
+                      </button>
+                      <button
+                        onClick={() => setAiInput('Analise as tendencias de crescimento de pacientes')}
+                        className="text-xs px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-left"
+                      >
+                        Analisar tendencias de pacientes
+                      </button>
+                      <button
+                        onClick={() => setAiInput('Quais sao as recomendacoes para melhorar a receita?')}
+                        className="text-xs px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-left"
+                      >
+                        Melhorar receita
+                      </button>
+                      <button
+                        onClick={() => setAiInput('Qual eh o status das sessoes em atraso?')}
+                        className="text-xs px-3 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-left"
+                      >
+                        Status de sessoes em atraso
+                      </button>
                     </div>
                   </div>
                 ) : (
