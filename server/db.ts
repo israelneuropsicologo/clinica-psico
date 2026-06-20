@@ -122,8 +122,8 @@ export async function getPatients(userId: number, search?: string, status?: stri
   const db = await getDb();
   if (!db) return [];
 
-  // Todos os usuários compartilham o mesmo banco - sem filtro de userId
-  const patientConditions: any[] = [];
+  // Filtrar por userId do proprietário
+  const patientConditions: any[] = [eq(patients.userId, userId)];
   
   if (status && status !== "all") {
     patientConditions.push(eq(patients.status, status as Patient["status"]));
@@ -542,6 +542,22 @@ export async function getLinkedUserIds(userId: number): Promise<number[]> {
     .from(userLinks)
     .where(eq(userLinks.linkedUserId, userId));
   
+  // Combinar todos os IDs: próprio usuário + links primários + links secundários
+  const linkedUserIds = [
+    userId,
+    ...primaryLinks.map(l => l.linkedUserId),
+    ...linkedByOthers.map(l => l.primaryUserId)
+  ];
+  
+  return linkedUserIds;
+}
+
+// ─── Shared Patients (para sincronização) ──────────────────────────────────
+export async function getPatientsShared(userId: number, status?: string, search?: string): Promise<Patient[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const linkedUserIds = await getLinkedUserIds(userId);
   const conditions = [inArray(patients.userId, linkedUserIds)];
   
   if (status && status !== "all") {
