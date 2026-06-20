@@ -52,7 +52,7 @@ import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
 
 const menuItems = [
-  // { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" }, // REMOVIDO - Dashboard não funciona
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Users, label: "Pacientes", path: "/patients" },
   { icon: Inbox, label: "Leads", path: "/leads" },
   { icon: CheckSquare, label: "Agendamentos Diretos", path: "/direct-bookings" },
