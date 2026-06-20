@@ -64,6 +64,7 @@ const monthlyData = [
 export default function Dashboard() {
   const { data: metrics, isLoading } = trpc.dashboard.metrics.useQuery();
   const { data: conversionData, isLoading: conversionLoading } = trpc.dashboard.conversionFunnel.useQuery();
+  const { data: patientGrowthData, isLoading: patientGrowthLoading } = trpc.dashboard.patientGrowth.useQuery({ period: 'year' });
   const [, navigate] = useLocation();
 
   return (
@@ -238,6 +239,42 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Pacientes por Mês */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              Pacientes Cadastrados por Mês
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {patientGrowthLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <div className="text-muted-foreground">Carregando...</div>
+              </div>
+            ) : !patientGrowthData || patientGrowthData.length === 0 ? (
+              <div className="h-64 flex items-center justify-center text-center">
+                <div>
+                  <p className="text-muted-foreground text-sm">Sem dados de pacientes</p>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={patientGrowthData} margin={{ top: 4, right: 4, bottom: 20, left: -10 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }}
+                    formatter={(v: number) => [`${v} pacientes`, "Total"]}
+                  />
+                  <Bar dataKey="count" name="Pacientes" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Upcoming Sessions */}
         <Card>
