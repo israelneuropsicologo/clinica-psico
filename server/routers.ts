@@ -1212,6 +1212,63 @@ export const appRouter = router({
         );
       }),
   }),
+
+  // ─── AI Agent Router ──────────────────────────────────────────────────────
+  ai: router({
+    /**
+     * Chat com agente de IA para análise e recomendações
+     */
+    chat: protectedProcedure
+      .input(
+        z.object({
+          message: z.string().min(1),
+          patientId: z.number().optional(),
+          context: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+
+        // Construir contexto com informações do paciente se fornecido
+        let systemPrompt = `Você é um assistente de IA especializado em psicologia clínica.
+Você ajuda psicólogos com análises, recomendações de tratamento e suporte ao diagnóstico.
+Seja profissional, empático e baseado em evidências.`;
+
+        if (input.patientId) {
+          const { getPatientById } = await import("./db");
+          const patient = await getPatientById(input.patientId, ctx.user.id);
+          if (patient) {
+            systemPrompt += `\n\nContexto do Paciente:\n- Nome: ${patient.name}\n- Idade: ${patient.age || "N/A"}\n- Diagnóstico: ${patient.diagnosis || "N/A"}`;
+          }
+        }
+
+        if (input.context) {
+          systemPrompt += `\n\nContexto Adicional:\n${input.context}`;
+        }
+
+        try {
+          const response = await invokeLLM({
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: input.message },
+            ],
+          });
+
+          const content = response.choices?.[0]?.message?.content || "";
+          return {
+            success: true,
+            message: content,
+            timestamp: new Date(),
+          };
+        } catch (error) {
+          console.error("[AI] Erro ao chamar OpenAI:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Erro ao processar requisição de IA",
+          });
+        }
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

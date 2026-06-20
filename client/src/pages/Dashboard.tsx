@@ -10,6 +10,10 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2, Send, Sparkles } from "lucide-react";
 import { formatDateSaoPaulo } from "@/lib/timezone";
 import {
   PieChart,
@@ -66,6 +70,28 @@ export default function Dashboard() {
   const { data: conversionData, isLoading: conversionLoading } = trpc.dashboard.conversionFunnel.useQuery();
   const { data: patientGrowthData, isLoading: patientGrowthLoading } = trpc.dashboard.patientGrowth.useQuery({ period: 'year' });
   const [, navigate] = useLocation();
+  const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [aiInput, setAiInput] = useState('');
+  const aiChatMutation = trpc.ai.chat.useMutation();
+
+  const handleAiChat = async () => {
+    if (!aiInput.trim()) return;
+    const userMessage = aiInput;
+    setAiMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setAiInput('');
+    try {
+      const response = await aiChatMutation.mutateAsync({
+        message: userMessage,
+        context: `Pacientes ativos: ${metrics?.patientCount || 0}. Sessoes este mes: ${metrics?.sessionsThisMonth || 0}. Receita mensal: R$ ${metrics?.monthlyRevenue || 0}`,
+      });
+      if (response.success) {
+        setAiMessages(prev => [...prev, { role: 'assistant', content: response.message }]);
+      }
+    } catch (error) {
+      console.error('Erro ao chamar IA:', error);
+      setAiMessages(prev => [...prev, { role: 'assistant', content: 'Desculpe, ocorreu um erro ao processar sua solicitacao.' }]);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -323,6 +349,65 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* AI Assistant Chat */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Assistente de IA
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Chat Messages */}
+              <div className="h-64 bg-muted/30 rounded-lg p-4 overflow-y-auto space-y-3 border">
+                {aiMessages.length === 0 ? (
+                  <div className="h-full flex items-center justify-center text-center text-muted-foreground">
+                    <div>
+                      <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Comece uma conversa com o assistente de IA</p>
+                    </div>
+                  </div>
+                ) : (
+                  aiMessages.map((msg, idx) => (
+                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                        msg.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-foreground'
+                      }`}>
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Input */}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Faça uma pergunta ao assistente..."
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAiChat()}
+                  disabled={aiChatMutation.isPending}
+                />
+                <Button
+                  onClick={handleAiChat}
+                  disabled={aiChatMutation.isPending || !aiInput.trim()}
+                  size="icon"
+                >
+                  {aiChatMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
