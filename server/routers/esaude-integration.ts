@@ -1,4 +1,4 @@
-/**
+/*
  * E-SAÚDE Integration Router
  * Procedures tRPC para gerenciar integração com E-SAÚDE
  */
@@ -48,7 +48,7 @@ export const esaudeIntegrationRouter = router({
       const logs = await db
         .select()
         .from(syncLogs)
-        .orderBy(desc(syncLogs.createdAt))
+        .orderBy(desc(syncLogs.startedAt))
         .limit(input.limit)
         .offset(input.offset) as any;
 
@@ -62,33 +62,25 @@ export const esaudeIntegrationRouter = router({
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    // Contar por status
+    // Contar por isSuccess
     const [successCount] = await db
       .select({ count: sql<number>`COUNT(*)` })
       .from(syncLogs)
-      .where(eq(syncLogs.status, "success"));
+      .where(eq(syncLogs.isSuccess, 1));
 
     const [failedCount] = await db
       .select({ count: sql<number>`COUNT(*)` })
       .from(syncLogs)
-      .where(eq(syncLogs.status, "failed"));
+      .where(eq(syncLogs.isSuccess, 0));
 
-    const [retryCount] = await db
+    const [totalCount] = await db
       .select({ count: sql<number>`COUNT(*)` })
-      .from(syncLogs)
-      .where(eq(syncLogs.status, "retry"));
-
-    const [pendingCount] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(syncLogs)
-      .where(eq(syncLogs.status, "pending"));
+      .from(syncLogs);
 
     return {
       success: successCount?.count || 0,
       failed: failedCount?.count || 0,
-      retry: retryCount?.count || 0,
-      pending: pendingCount?.count || 0,
-      total: (successCount?.count || 0) + (failedCount?.count || 0) + (retryCount?.count || 0) + (pendingCount?.count || 0),
+      total: totalCount?.count || 0,
     };
   }),
 });

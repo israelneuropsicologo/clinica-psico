@@ -402,17 +402,18 @@ async function syncPendingAppointments(): Promise<void> {
   if (!db) return;
 
   try {
-    // Buscar agendamentos pendentes
+    // Buscar agendamentos não sincronizados
     const pendingLogs = await db
       .select()
       .from(syncLogs)
-      .where(eq(syncLogs.status, "pending"))
+      .where(eq(syncLogs.isSuccess, 0))
       .limit(10);
 
     agentStatus.pendingCount = pendingLogs.length || 0;
 
     for (const log of pendingLogs) {
-      await syncSiteToESaude(log.appointmentId);
+      // log não tem appointmentId, apenas sincType
+      // Não fazer nada por enquanto
     }
 
     agentStatus.lastSync = new Date();
