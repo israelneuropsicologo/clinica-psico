@@ -368,15 +368,15 @@ export async function getUpcomingSessions(userId: number, limit = 5): Promise<Se
   if (!db) return [];
   
   const now = Date.now();
-  // Sem restricao de userId - mostrar TODAS as proximas sessoes
   const result = await db
     .select()
     .from(sessions)
     .leftJoin(patients, eq(sessions.patientId, patients.id))
     .where(
       and(
+        eq(sessions.userId, userId),
         gte(sessions.scheduledAt, now),
-        or(eq(sessions.status, "scheduled"), eq(sessions.status, "confirmed"))!
+        or(eq(sessions.status, "scheduled"), eq(sessions.status, "confirmed"))
       )
     )
     .orderBy(sessions.scheduledAt)
