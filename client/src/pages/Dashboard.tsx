@@ -5,7 +5,6 @@ import {
   AlertCircle,
   CalendarDays,
   DollarSign,
-  TrendingUp,
   Users,
 } from "lucide-react";
 import { useLocation } from "wouter";
@@ -15,21 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Send, Sparkles } from "lucide-react";
 import { formatDateSaoPaulo } from "@/lib/timezone";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  BarChart,
-  Bar,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -44,31 +28,43 @@ function formatDate(ts: number) {
   });
 }
 
-// Mock chart data for current month
-const weeklyData = [
-  { day: "Seg", sessoes: 4 },
-  { day: "Ter", sessoes: 6 },
-  { day: "Qua", sessoes: 3 },
-  { day: "Qui", sessoes: 7 },
-  { day: "Sex", sessoes: 5 },
-  { day: "Sáb", sessoes: 2 },
-];
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  color?: "blue" | "teal" | "green" | "orange";
+  onClick?: () => void;
+  alert?: boolean;
+}
 
-const monthlyData = [
-  { mes: "Jan", receita: 3200 },
-  { mes: "Fev", receita: 4100 },
-  { mes: "Mar", receita: 3800 },
-  { mes: "Abr", receita: 4600 },
-  { mes: "Mai", receita: 5200 },
-  { mes: "Jun", receita: 4900 },
-];
+function MetricCard({ title, value, icon, color = "blue", onClick, alert }: MetricCardProps) {
+  const colorClasses = {
+    blue: "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400",
+    teal: "bg-teal-50 text-teal-600 dark:bg-teal-950 dark:text-teal-400",
+    green: "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400",
+    orange: "bg-orange-50 text-orange-600 dark:bg-orange-950 dark:text-orange-400",
+  };
 
-// Conversion data will be fetched from backend
+  return (
+    <Card
+      className={`cursor-pointer transition-all hover:shadow-md ${alert ? "border-orange-200 dark:border-orange-800" : ""}`}
+      onClick={onClick}
+    >
+      <CardContent className="pt-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">{title}</p>
+            <p className="text-2xl font-bold mt-2">{value}</p>
+          </div>
+          <div className={`p-3 rounded-lg ${colorClasses[color]}`}>{icon}</div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Dashboard() {
   const { data: metrics, isLoading } = trpc.dashboard.metrics.useQuery();
-  const { data: conversionData, isLoading: conversionLoading } = trpc.dashboard.conversionFunnel.useQuery();
-  const { data: patientGrowthData, isLoading: patientGrowthLoading } = trpc.dashboard.patientGrowth.useQuery({ period: 'year' });
   const [, navigate] = useLocation();
   const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const [aiInput, setAiInput] = useState('');
@@ -137,170 +133,6 @@ export default function Dashboard() {
             alert={Boolean(metrics?.overdueCount && metrics.overdueCount > 0)}
           />
         </div>
-
-        {/* Conversion Funnel */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              Funil de Conversão de Pacientes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {conversionLoading ? (
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-muted-foreground">Carregando...</div>
-              </div>
-            ) : !conversionData || (conversionData.leads + conversionData.prospects + conversionData.customers) === 0 ? (
-              <div className="h-64 flex items-center justify-center text-center">
-                <div>
-                  <p className="text-muted-foreground text-sm">Nenhum lead registrado</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="h-64 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart key="conversion-pie-chart">
-                    <Pie
-                      data={[
-                        { name: "Contatos", value: conversionData.leads },
-                        { name: "Interessados", value: conversionData.prospects },
-                        { name: "Pacientes", value: conversionData.customers },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      <Cell fill="#3b82f6" />
-                      <Cell fill="#06b6d4" />
-                      <Cell fill="#10b981" />
-                    </Pie>
-                    <Tooltip formatter={(value) => [`${value}`, "Quantidade"]} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-                  <div>
-                    <p className="text-muted-foreground">Taxa de Conversão</p>
-                    <p className="font-bold text-lg">{conversionData.conversionRate}%</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Contatos Ativos</p>
-                    <p className="font-bold text-lg">{conversionData.leads}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Novos Pacientes</p>
-                    <p className="font-bold text-lg">{conversionData.customers}</p>
-                  </div>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-primary" />
-                Sessões por Dia (Semana Atual)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-52 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={weeklyData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }} key="weekly-bar-chart">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="day" tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }}
-                    labelStyle={{ color: "var(--foreground)" }}
-                  />
-                  <Bar dataKey="sessoes" name="Sessões" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-accent" />
-                Receita Mensal (6 meses)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={monthlyData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                  <defs>
-                    <linearGradient id="receitaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="var(--color-accent)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip
-                    contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }}
-                    formatter={(v: number) => [formatCurrency(v), "Receita"]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="receita"
-                    stroke="var(--color-accent)"
-                    strokeWidth={2}
-                    fill="url(#receitaGrad)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Pacientes por Mês */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              Pacientes Cadastrados por Mês
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {patientGrowthLoading ? (
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-muted-foreground">Carregando...</div>
-              </div>
-            ) : !patientGrowthData || patientGrowthData.length === 0 ? (
-              <div className="h-64 flex items-center justify-center text-center">
-                <div>
-                  <p className="text-muted-foreground text-sm">Sem dados de pacientes</p>
-                </div>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={patientGrowthData} margin={{ top: 4, right: 4, bottom: 20, left: -10 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }}
-                    formatter={(v: number) => [`${v} pacientes`, "Total"]}
-                  />
-                  <Bar dataKey="count" name="Pacientes" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Upcoming Sessions */}
         <Card>
@@ -415,7 +247,7 @@ export default function Dashboard() {
               {/* Input */}
               <div className="flex gap-2">
                 <Input
-                  placeholder="Faça uma pergunta ao assistente..."
+                  placeholder="Faca uma pergunta ao assistente..."
                   value={aiInput}
                   onChange={(e) => setAiInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAiChat()}
@@ -438,40 +270,5 @@ export default function Dashboard() {
         </Card>
       </div>
     </DashboardLayout>
-  );
-}
-
-interface MetricCardProps {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  color: "blue" | "teal" | "green" | "orange";
-  onClick?: () => void;
-  alert?: boolean;
-}
-
-const colorMap = {
-  blue: "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400",
-  teal: "bg-teal-50 text-teal-600 dark:bg-teal-950 dark:text-teal-400",
-  green: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400",
-  orange: "bg-orange-50 text-orange-600 dark:bg-orange-950 dark:text-orange-400",
-};
-
-function MetricCard({ title, value, icon, color, onClick, alert }: MetricCardProps) {
-  return (
-    <Card
-      className={`cursor-pointer hover:shadow-md transition-all ${alert ? "border-orange-300 dark:border-orange-700" : ""}`}
-      onClick={onClick}
-    >
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground font-medium">{title}</p>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-          </div>
-          <div className={`p-2.5 rounded-xl ${colorMap[color]}`}>{icon}</div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
