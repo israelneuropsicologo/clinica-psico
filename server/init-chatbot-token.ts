@@ -18,12 +18,14 @@ const CHATBOT_TOKEN_DESCRIPTION = "Token permanente para integração do ChatBot
  */
 export async function initChatbotToken() {
   try {
-    // Get the owner's user ID (usually 1 or from environment)
-    const ownerId = parseInt(process.env.OWNER_ID || "1");
-
-    // Check if token already exists
+    // Get the owner's user ID from database (first user)
     const db = await getDb();
     if (!db) throw new Error("Database not available");
+    
+    // Use hardcoded user ID (the only user in system)
+    const ownerId = 16620009;
+
+    // Check if token already exists
 
     const existingTokens = await db
       .select()
@@ -58,9 +60,11 @@ export async function initChatbotToken() {
  */
 export async function getChatbotToken() {
   try {
-    const ownerId = parseInt(process.env.OWNER_ID || "1");
     const db = await getDb();
     if (!db) throw new Error("Database not available");
+    
+    // Fallback: use hardcoded user ID
+    const ownerId = 16620009;
 
     const token = await db
       .select()
